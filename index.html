@@ -615,10 +615,11 @@ function renderFlow(){
     ['Saldo final',fmt(saldo),saldo>=0?'flujo positivo':'flujo negativo',saldo>=0?COL.in:COL.out]]);
   $('flowChartContent').style.width=`${Math.min(9000,Math.max(1100,days.length*14))}px`;
   const ds=[{label:'Flujo neto del día',data:net,backgroundColor:net.map(v=>v>0?COL.in:v<0?COL.out:'#94a3b8'),borderRadius:3}];
-  const scales={x:{ticks:{maxTicksLimit:16}},y:{...money,beginAtZero:true,grid:{color:ctx=>ctx.tick.value===0?'#334155':'#e2e8f0',lineWidth:ctx=>ctx.tick.value===0?2:1}}};
+  const allChartValues=[...net,...A];
+  const chartMin=Math.min(0,...allChartValues), chartMax=Math.max(0,...allChartValues);
+  const scales={x:{ticks:{maxTicksLimit:16}},y:{...money,grid:{color:ctx=>ctx.tick.value===0?'#334155':'#e2e8f0',lineWidth:ctx=>ctx.tick.value===0?2:1},min:chartMin, max:chartMax}};
   if (showAcc) {
-    ds.push({type:'line',label:'Saldo acumulado',data:A,borderColor:'#0f172a',backgroundColor:'#0f172a',borderWidth:2,pointRadius:0,tension:.25,yAxisID:'y1'});
-    scales.y1={position:'right',grid:{drawOnChartArea:false},ticks:{callback:cmp}};
+    ds.push({type:'line',label:'Saldo acumulado',data:A,borderColor:'#0f172a',backgroundColor:'#0f172a',borderWidth:2,pointRadius:0,tension:.25,yAxisID:'y'});
   }
   mk('cFlujo','bar',{labels:days,datasets:ds},{scales,plugins:{tooltip:{callbacks:{label:c=>{
     const i=c.dataIndex;

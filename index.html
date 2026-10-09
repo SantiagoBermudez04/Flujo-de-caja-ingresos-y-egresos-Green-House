@@ -3,1073 +3,319 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flujo de caja: ingresos y egresos Green House</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<title>Combinador de Excel</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-body{font-family:'IBM Plex Sans',system-ui,sans-serif}
-.card{background:#fff;border:1px solid #d9e2e7;border-radius:.5rem;padding:1rem}
-.card{transition:box-shadow .3s ease}
-.tab.active{background:#0f4c5c!important;color:#fff!important}
-.tab{transition:background-color .3s ease,color .3s ease}
-.tab:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #0f4c5c;outline-offset:2px}
-.kpi{border-left:4px solid var(--c)}
-.chart-badge{display:inline-flex;align-items:center;border-radius:9999px;background:#e6f4f1;color:#0f4c5c;padding:.2rem .55rem;font-size:.65rem;font-weight:700;letter-spacing:.04em}
-.chart-note{color:#64748b;font-size:.75rem;line-height:1.4;margin-bottom:.65rem}
-.weekly-detail{max-height:20rem;overflow:auto;border:1px solid #d9e2e7;border-radius:.5rem;background:#f8fafc;padding:.75rem}
-.weekly-detail thead th{position:sticky;top:0;background:#f8fafc;z-index:1}
-.weekly-detail tbody tr:nth-child(even){background:#f1f5f9}
-.weekly-detail tbody tr:last-child{border-bottom:0}
-.weekly-more{border:1px solid #cbd5e1;background:#fff;border-radius:.375rem;padding:.35rem .65rem}
-.weekly-more:hover{background:#f1f5f9}
-.purchase-records-scroll{max-height:32rem;overflow:auto;border:1px solid #d9e2e7;border-radius:.5rem}
-.purchase-records-scroll thead th{position:sticky;top:0;background:#f8fafc;z-index:1}
-.purchase-records-scroll tbody tr:nth-child(even){background:#f8fafc}
-.kpi-detail-btn{display:inline-flex;align-items:center;gap:.35rem;margin-top:.6rem;border:1px solid #cbd5e1;border-radius:.375rem;padding:.35rem .65rem;background:#f8fafc;color:#0f4c5c;font-size:.7rem;font-weight:600;transition:all .2s ease}
-.kpi-detail-btn:hover{background:#e2e8f0}
-.kpi-detail-modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);padding:1rem;z-index:50}
-.kpi-detail-modal.is-open{display:flex;align-items:center;justify-content:center}
-.kpi-detail-panel{width:min(32rem,100%);max-height:80vh;overflow:auto;background:#fff;border-radius:.75rem;border:1px solid #d9e2e7;box-shadow:0 18px 40px rgba(15,23,42,.28)}
-.kpi-detail-panel ul{list-style:disc;padding-left:1.25rem}
-.kpi-detail-panel li{padding:.35rem 0;border-bottom:1px solid #eef2f7}
-.kpi-detail-panel li:last-child{border-bottom:0}
+:root{--bg:#eef1ec;--card:#fbfcfa;--ink:#18231f;--mut:#5d6b65;--line:#cfd7d0;--acc:#0b6b4f;--onacc:#fff;--accbg:#e1efe8;--err:#a12a2a;--errbg:#fbeaea;--warn:#8a5a00}
+@media(prefers-color-scheme:dark){:root{--bg:#101512;--card:#171e1a;--ink:#e6ede9;--mut:#93a39b;--line:#2c3832;--acc:#4cc59a;--onacc:#07211a;--accbg:#183226;--err:#ff8f8f;--errbg:#2e1818;--warn:#e8b24a}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 20px 64px}
+h1{font-size:30px;line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:17px;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+.lead{color:var(--mut);margin:0 0 28px;max-width:62ch}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px;margin-bottom:16px}
+.grid .card{margin:0}
+.n{width:24px;height:24px;border:1.5px solid var(--acc);color:var(--acc);border-radius:3px;display:grid;place-items:center;font-size:13px;font-weight:700}
+.drop{display:block;border:1.5px dashed var(--line);border-radius:4px;padding:26px 14px;text-align:center;cursor:pointer;background:
+ linear-gradient(var(--line) 1px,transparent 1px) 0 0/100% 28px,linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/64px 100%;background-blend-mode:normal;position:relative}
+.drop::before{content:"";position:absolute;inset:0;background:var(--card);opacity:.88;border-radius:3px}
+.drop>*{position:relative}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop:hover,.drop.over,.drop:focus-within{border-color:var(--acc)}
+.drop:focus-within{outline:2px solid var(--acc);outline-offset:2px}
+.drop strong{display:block}
+.drop span{color:var(--mut);font-size:13px}
+.info{margin-top:12px;font-size:14px}
+.ok{color:var(--acc);font-weight:600;word-break:break-all}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips span{border:1px solid var(--line);background:var(--accbg);border-radius:3px;padding:1px 8px;font-size:12.5px}
+.bad{background:var(--errbg);color:var(--err);border-radius:4px;padding:10px 12px;margin-top:10px}
+.bad ul{margin:6px 0 0;padding-left:18px}
+.hint{color:var(--mut);font-size:13.5px;margin:-6px 0 14px;max-width:70ch}
+.row{display:grid;grid-template-columns:minmax(120px,1fr) auto minmax(150px,1.2fr) minmax(150px,1.2fr) minmax(130px,1fr);gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row small{display:block;color:var(--mut)}
+.row .arrow{color:var(--mut)}
+@media(max-width:820px){.row{grid-template-columns:1fr}.row .arrow{display:none}}
+select{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:4px;padding:7px 8px}
+select:disabled{opacity:.5}
+.actions{display:flex;justify-content:flex-end;margin:20px 0}
+button{font:inherit;font-weight:600;background:var(--acc);color:var(--onacc);border:0;border-radius:4px;padding:12px 26px;cursor:pointer}
+button:hover:not(:disabled){filter:brightness(1.1)}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+button:disabled{background:var(--line);color:var(--mut);cursor:not-allowed}
+#log{list-style:none;margin:0;padding:0}
+#log li{padding:8px 0;border-top:1px solid var(--line)}
+#log li:first-child{border-top:0}
+#log .w{color:var(--warn)}
+#log .e{color:var(--err)}
+@media(prefers-reduced-motion:no-preference){.drop,button{transition:border-color .15s,filter .15s}}
 </style>
 </head>
-<body class="bg-slate-100 text-slate-800">
-<header class="bg-slate-900 text-white">
-  <div class="max-w-7xl mx-auto px-4 py-5 flex flex-wrap items-center justify-between gap-3">
-    <div><h1 class="text-2xl font-semibold">Flujo de caja: ingresos y egresos Green House</h1>
-    <p id="hdrSub" class="text-sm text-slate-400">Sin Excel cargado · importes en pesos argentinos</p></div>
-    <div class="flex flex-wrap items-center gap-2"><span id="cacheStatus" class="text-xs text-slate-400" aria-live="polite"></span><input id="file" type="file" accept=".xlsx,.xlsm,.xls" class="hidden">
-    <button id="btnClearCache" class="px-3 py-2 rounded border border-slate-600 text-slate-200 text-sm font-medium hover:bg-slate-800 transition-all duration-300">Borrar datos cacheados</button>
-    <button id="btnLoad" class="px-4 py-2 rounded bg-white text-slate-900 text-sm font-medium hover:bg-slate-200 transition-all duration-300">Cargar Excel</button></div>
-  </div>
-</header>
-<nav id="nav" class="bg-white border-b border-slate-200 sticky top-0 z-10">
-  <div class="max-w-7xl mx-auto px-4 py-2 flex gap-1 overflow-x-auto">
-    <button class="tab transition-all duration-300 px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="inicio">Inicio</button>
-    <button class="tab transition-all duration-300 px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="flujo">Flujo general</button>
-    <button class="tab transition-all duration-300 px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="prestamos">Préstamos</button>
-    <button class="tab transition-all duration-300 px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="ventas">Ventas</button>
-    <button class="tab transition-all duration-300 px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="compras">Compras y proveedores</button>
-  </div>
-</nav>
+<body>
+<main>
+  <h1>Combinador de Excel</h1>
+  <p class="lead">Sube el Excel base y el secundario, indica cómo incorporar los datos y descarga el archivo combinado. Todo se procesa en tu navegador: ningún dato sale de tu equipo.</p>
 
-<main class="max-w-7xl mx-auto px-4 py-6">
-
-<section id="tab-inicio" class="hidden space-y-5">
-  <div class="card hover:shadow-md transition-all duration-300">
-    <h2 class="text-xl font-semibold mb-1">Cargue su Excel</h2>
-    <p class="text-sm text-slate-600 mb-3">Los datos no vienen incluidos en el tablero: se leen del archivo en su navegador y no se envían a ningún servidor. Para actualizar los valores, cargue una nueva versión del archivo.</p>
-    <label id="drop" for="file" class="block cursor-pointer border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:bg-slate-50"><span class="font-medium">Arrastre el archivo .xlsx aquí</span> <span class="text-slate-500">o haga clic para elegirlo</span></label>
-    <div class="flex flex-wrap items-end gap-4 mt-4 text-sm">
-      <label class="grid gap-1">Plazo de pago por defecto (días)<input id="plazoDef" type="number" min="0" value="0" class="border rounded px-2 py-1 w-32"></label>
-      <p class="text-xs text-slate-500 max-w-xl">Se aplica a los proveedores con compras que no figuran en la hoja de plazos.</p>
+  <section class="grid">
+    <div class="card">
+      <h2><span class="n">1</span>Subir Excel Base</h2>
+      <label class="drop" data-k="base"><input type="file" id="f-base" accept=".xlsx"><strong>Elige o arrastra el archivo</strong><span>.xlsx con las hojas de compras, plazos, préstamos y ventas</span></label>
+      <div class="info" id="i-base"></div>
     </div>
-    <div id="avisos" class="space-y-2 mt-3"></div>
-    <div id="homeCounts" class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4"></div>
-    <div id="homeInsights" class="grid md:grid-cols-4 gap-3 mt-4"></div>
-    <p class="text-xs text-slate-500 mt-4">Hojas esperadas: Ventas, Compras, Plazo Proveedores y Préstamos, con las columnas del archivo original. Basta con que el nombre de la hoja empiece igual, por lo que sirve para cualquier mes.</p>
-  </div>
-  <div class="card hover:shadow-md transition-all duration-300">
-    <h2 class="text-xl font-semibold mb-2">Qué muestra este tablero</h2>
-    <p class="text-slate-600 max-w-3xl">Cruza cuatro hojas de datos (ventas, compras, plazos de proveedores y préstamos) para mostrar cuánto dinero entra y sale cada día, y no solo cuándo se emitió cada comprobante.</p>
-  </div>
-  <div class="grid md:grid-cols-2 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300"><h3 class="font-semibold mb-2">Cómo se calcula cada movimiento</h3>
-      <ul class="space-y-2 text-sm text-slate-600 list-disc pl-5">
-        <li><b>Ingresos:</b> el TOTAL de cada venta (no anulada) en su fecha, porque se cobra al contado.</li>
-        <li><b>Egresos por compras:</b> fecha de emisión más el plazo de pago del proveedor, en días.</li>
-        <li><b>Egresos por préstamos:</b> el Total_Cuota en la fecha de vencimiento.</li>
-        <li><b>Saldo acumulado:</b> saldo inicial más la suma diaria de ingresos menos egresos.</li>
-      </ul></div>
-    <div class="card hover:shadow-md transition-all duration-300"><h3 class="font-semibold mb-2">Cómo navegar</h3>
-      <div class="grid gap-2 text-sm">
-        <button data-tab="flujo" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Flujo general.</b> Filtre fechas, active el saldo acumulado y detecte días críticos.</button>
-        <button data-tab="prestamos" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Préstamos.</b> Composición de cuotas y calendario de vencimientos por banco.</button>
-        <button data-tab="ventas" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Ventas.</b> Mejores clientes, sucursales y evolución diaria.</button>
-        <button data-tab="compras" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Compras y proveedores.</b> Concentración, plazos y pagos futuros.</button>
-      </div>
-      <p class="text-xs text-slate-500 mt-3">Pase el cursor sobre cualquier gráfico para ver los importes exactos.</p></div>
-  </div>
-</section>
-
-<section id="tab-vacio" class="hidden"><div class="card hover:shadow-md transition-all duration-300 text-center py-16"><h2 class="text-lg font-semibold">Todavía no hay datos</h2><p class="text-slate-600 mt-1">Cargue el Excel para ver este panel.</p><button data-tab="inicio" class="mt-4 px-4 py-2 rounded text-white text-sm" style="background:#0f4c5c">Ir a Inicio y cargar el Excel</button></div></section>
-
-<section id="tab-flujo" class="hidden space-y-5">
-  <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm">
-    <label class="grid gap-1">Desde<input id="from" type="date" value="2026-08-01" class="date-from border rounded px-2 py-1"></label>
-    <label class="grid gap-1">Hasta<input id="to" type="date" value="2026-10-31" class="date-to border rounded px-2 py-1"></label>
-    <label class="grid gap-1">Saldo inicial (ARS)<input id="ini" type="number" value="0" step="100000" class="border rounded px-2 py-1 w-40"></label>
-    <label class="flex items-center gap-2 pb-1"><input id="acc" type="checkbox" checked> Ver saldo acumulado</label>
-  </div>
-  <div id="kFlujo" class="grid grid-cols-2 lg:grid-cols-5 gap-3"></div>
-  <div class="grid lg:grid-cols-3 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300 lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Resultado neto de cada día</h3><span class="chart-badge">RECOMENDADO · INGRESOS VS EGRESOS</span></div><p class="chart-note">Barras verdes: los ingresos superaron a los egresos. Barras rojas: los egresos fueron mayores. Barras grises: resultado igual a cero. El valor es ingresos menos proveedores y préstamos.</p><div id="flowChartViewport" class="overflow-x-auto"><div id="flowChartContent" class="h-96"><canvas id="cFlujo"></canvas></div></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición de egresos</h3><span class="chart-badge">COMPOSICIÓN</span></div><p class="chart-note">Compara cuánto representan compras y cuotas dentro del período seleccionado.</p><div class="h-56"><canvas id="cEgr"></canvas></div><div id="insFlujo" class="mt-3 space-y-2 text-sm"></div></div>
-  </div>
-  <div class="card hover:shadow-md transition-all duration-300">
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Resumen semanal del flujo de caja</h3><span class="chart-badge">RECOMENDADO · CONTROL SEMANAL</span></div>
-    <p class="chart-note">El cierre parte del saldo inicial ingresado arriba. “Ingresos netos” excluye ventas anuladas. Los detalles se cargan al abrir cada semana y muestran egresos con signo negativo.</p>
-    <div class="overflow-x-auto"><table class="w-full text-sm min-w-[1050px]"><thead class="text-left text-slate-500 border-b"><tr>
-      <th class="py-2 pr-3">Semana</th><th class="text-right px-2">Ingresos netos</th><th class="text-right px-2">Proveedores</th><th class="text-right px-2">Préstamos</th><th class="text-right px-2">Ingresos totales</th><th class="text-right px-2">Egresos totales</th><th class="text-right px-2">Flujo neto</th><th class="text-right px-2">Saldo cierre</th><th class="px-2">Detalle</th>
-    </tr></thead><tbody id="weeklyTable"></tbody></table></div>
-  </div>
-</section>
-
-<section id="tab-prestamos" class="hidden space-y-5">
-  <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm"><label class="grid gap-1">Desde<input id="loansFrom" class="date-from border rounded px-2 py-1" type="date"></label><label class="grid gap-1">Hasta<input id="loansTo" class="date-to border rounded px-2 py-1" type="date"></label><button id="loansUntilLastPayment" type="button" class="border rounded px-3 py-1 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Hasta última cuota</button><p class="text-xs text-slate-500">El rango filtra las cuotas por fecha de vencimiento.</p></div>
-  <div id="kPrest" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3"></div>
-  <div class="grid lg:grid-cols-3 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300 lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Cuotas pendientes por mes y préstamo</h3><span class="chart-badge">RECOMENDADO · PLANIFICACIÓN</span></div><p class="chart-note">Las barras apiladas muestran el total de cuotas pendientes de cada préstamo en el rango seleccionado. La línea marca el total mensual combinado.</p><div class="h-80"><canvas id="cCuota"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición de deuda pendiente</h3><span class="chart-badge">COSTO FINANCIERO</span></div><p class="chart-note">Separa capital por amortizar del costo financiero que resta pagar.</p><div class="h-80"><canvas id="cPrestDon"></canvas></div></div>
-  </div>
-  <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Cuotas pendientes por mes y banco</h3><span class="chart-badge">COMPARACIÓN · PLAN COMPLETO</span></div><p class="chart-note">Muestra todos los meses con cuotas pendientes del plan completo, sin aplicar el filtro de fechas de esta pestaña. Solo incluye vencimientos futuros.</p><div class="h-80"><canvas id="cTimeline"></canvas></div></div>
-  <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto"><h3 class="font-semibold mb-2">Próximos vencimientos</h3><table id="tPrest" class="w-full text-sm"></table></div>
-  <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto"><h3 class="font-semibold mb-1">Capital inicial y CFT estimado por préstamo</h3><p class="chart-note">El capital inicial es la suma del capital amortizado de todas sus cuotas. CFT anual efectivo estimado con los flujos de pago; se supone que el préstamo se obtuvo un mes antes del primer vencimiento. Es una estimación, no reemplaza el CFT informado por el banco. El rango selecciona préstamos con al menos un vencimiento en el período, pero los importes y la tasa de esta tabla consideran el plan completo.</p><table id="tCft" class="w-full text-sm"></table></div>
-</section>
-
-<section id="tab-ventas" class="hidden space-y-5">
-  <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm"><label class="grid gap-1">Desde<input id="salesFrom" class="date-from border rounded px-2 py-1" type="date"></label><label class="grid gap-1">Hasta<input id="salesTo" class="date-to border rounded px-2 py-1" type="date"></label><label class="grid gap-1">Sucursal<select id="salesBranchFilter" class="border rounded px-2 py-1"><option value="">Todas las sucursales</option></select></label><p class="text-xs text-slate-500">El rango filtra ventas por fecha del comprobante. El gráfico “Ventas por sucursal” siempre compara todas las sucursales del período.</p></div>
-  <div id="kVentas" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
-  <div class="grid lg:grid-cols-3 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300 lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Evolución de ventas</h3><span class="chart-badge">RECOMENDADO · TENDENCIA</span></div><p class="chart-note">Las barras muestran ventas diarias, la línea punteada la media móvil de 7 días y la segunda línea el ticket promedio diario en el eje derecho.</p><div class="h-80"><canvas id="cVEvo"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Ventas por sucursal</h3><span class="chart-badge">COMPARACIÓN</span></div><p class="chart-note">Barras ordenadas: compara el aporte de cada sucursal en importes. No se modifica al filtrar por sucursal.</p><div class="h-80"><canvas id="cVSuc"></canvas></div></div>
-  </div>
-  <div class="grid lg:grid-cols-2 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Ventas entregadas y pendientes</h3><span class="chart-badge">BACKLOG OPERATIVO</span></div><p class="chart-note">Participación por cantidad de comprobantes no anulados con estado “SI” o “NO”. Los registros sin estado reconocido se excluyen.</p><div class="h-80"><canvas id="cVEntrega"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Mix de facturación por tipo</h3><span class="chart-badge">COMPOSICIÓN DE VENTAS</span></div><p class="chart-note">Participación de cada tipo de comprobante según el importe facturado en el período y la sucursal seleccionados.</p><div class="h-80"><canvas id="cVTipo"></canvas></div></div>
-  </div>
-  <div class="grid lg:grid-cols-2 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Análisis ABC de clientes</h3><span class="chart-badge">CONCENTRACIÓN</span></div><p class="chart-note">Clientes ordenados por facturación neta: A hasta el 80% acumulado, B hasta el 95% y C para el resto. Se excluyen “Consumidor Final” y “Sin dato”; los porcentajes reales pueden variar al asignar clientes completos.</p><div class="h-72"><canvas id="cVCli"></canvas></div><div id="insABC" class="grid sm:grid-cols-3 gap-2 mt-3"></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Ticket promedio por día</h3><span class="chart-badge">LUNES A DOMINGO</span></div><p class="chart-note">Promedio por comprobante no anulado en cada día de la semana, considerando el rango y la sucursal seleccionados.</p><div class="h-72"><canvas id="cVWeekday"></canvas></div></div>
-  </div>
-  <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto">
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Detalle de ventas</h3><span id="salesDetailCount" class="chart-badge"></span></div>
-    <p class="chart-note">Detalle de ventas no anuladas según el período y la sucursal seleccionados. Los totales corresponden a los registros visibles tras aplicar los filtros del detalle.</p>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 text-sm">
-      <label class="grid gap-1">Fecha<input type="date" data-sales-filter="Fecha" class="sales-detail-filter border rounded px-2 py-1"></label>
-      <label class="grid gap-1">Comprobante<input type="search" data-sales-filter="Numero" class="sales-detail-filter border rounded px-2 py-1" placeholder="Buscar número"></label>
-      <label class="grid gap-1">Cliente<input type="search" data-sales-filter="Cliente" class="sales-detail-filter border rounded px-2 py-1" placeholder="Buscar texto"></label>
-      <label class="grid gap-1">Tipo<input type="search" data-sales-filter="Tipo" class="sales-detail-filter border rounded px-2 py-1" placeholder="Ej. FA"></label>
-      <label class="grid gap-1">Entrega<select data-sales-filter="Entregado" class="sales-detail-filter border rounded px-2 py-1"><option value="">Todos</option><option value="true">Entregadas</option><option value="false">Pendientes</option></select></label>
-      <label class="grid gap-1">Total<input type="search" data-sales-filter="TOTAL" class="sales-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <button id="clearSalesDetailFilters" type="button" class="self-end border rounded px-3 py-1 hover:bg-slate-50">Limpiar filtros del detalle</button>
+    <div class="card">
+      <h2><span class="n">2</span>Subir Excel Secundario</h2>
+      <label class="drop" data-k="sec"><input type="file" id="f-sec" accept=".xlsx"><strong>Elige o arrastra el archivo</strong><span>.xlsx con los datos a incorporar</span></label>
+      <div class="info" id="i-sec"></div>
     </div>
-    <p class="chart-note">El total admite coincidencia exacta o comparaciones como &gt;=500.</p>
-    <div class="purchase-records-scroll"><table id="tSalesDetalle" class="w-full min-w-[800px] text-xs"></table></div>
-  </div>
-</section>
+  </section>
 
-<section id="tab-compras" class="hidden space-y-5">
-  <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm"><label class="grid gap-1">Desde<input id="purchasesFrom" class="date-from border rounded px-2 py-1" type="date"></label><label class="grid gap-1">Hasta<input id="purchasesTo" class="date-to border rounded px-2 py-1" type="date"></label><p class="text-xs text-slate-500">El rango filtra compras por fecha estimada de pago.</p></div>
-  <div id="kCompras" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
-  <div class="grid lg:grid-cols-2 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Compras netas por proveedor</h3><span class="chart-badge">RECOMENDADO · COMPARACIÓN</span></div><p class="chart-note">Ordena los 10 principales por importe neto; las notas de crédito reducen el valor del proveedor.</p><div class="h-80"><canvas id="cCProv"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Plazos del Top 10 de proveedores</h3><span class="chart-badge">TOP 10 · ORDEN DEL EXCEL</span></div><p class="chart-note">Selecciona los 10 proveedores con mayor compra neta del período y los muestra en el orden de la hoja “Plazo Proveedores”. Los que no figuran allí van al final según su primera aparición en “Compras”. Gris indica que se usa el plazo por defecto.</p><div class="h-80"><canvas id="cCPlazo"></canvas></div></div>
-  </div>
-  <div class="grid lg:grid-cols-2 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición del gasto</h3><span class="chart-badge">IMPORTES NETOS</span></div><p class="chart-note">Desglosa neto gravado, importes no gravados, exentos, IVA y otros tributos. “Importe sin desglose” identifica totales que el Excel no discrimina por concepto (por ejemplo, Factura C). Las notas de crédito reducen los importes; el porcentaje se calcula sobre el gasto neto del período.</p><div class="h-80"><canvas id="cCGasto"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Distribución por comprobante</h3><span class="chart-badge">PARTICIPACIÓN</span></div><p class="chart-note">Muestra qué porcentaje de los registros corresponde a cada tipo de comprobante y la cantidad procesada.</p><div class="h-80"><canvas id="cCTipo"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición del IVA por alícuota</h3><span class="chart-badge">CRÉDITO FISCAL</span></div><p class="chart-note">Distribuye el IVA informado al 10,5%, 21% y 27% como porcentaje del total de esas alícuotas. Las notas de crédito reducen los importes.</p><div class="h-80"><canvas id="cCIva"></canvas></div></div>
-  </div>
-  <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 id="purchaseCalendarTitle" class="font-semibold">Calendario de pagos de compras por semana</h3><div class="flex flex-wrap items-center gap-2"><label for="purchaseCalendarGranularity" class="text-xs text-slate-600">Agrupar por</label><select id="purchaseCalendarGranularity" class="border rounded px-2 py-1 text-sm"><option value="week" selected>Semana</option><option value="day">Día</option></select><span class="chart-badge">RECOMENDADO · TESORERÍA</span></div></div>
-    <p id="purchaseCalendarNote" class="text-xs text-slate-500 mb-2">Barras azules: semanas ya vencidas. Barras ámbar: pagos pendientes que impactan el flujo futuro.</p>
-    <div class="h-80"><canvas id="cCFut"></canvas></div></div>
-  <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto">
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Detalle de registros procesados</h3><span id="comprasDetalleCount" class="chart-badge"></span></div>
-    <p class="chart-note">Registros incluidos según la fecha estimada de pago del período seleccionado. Los importes de notas de crédito se muestran con signo negativo.</p>
-    <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3 mb-3 text-sm">
-      <label class="grid gap-1">Fecha emisión<input type="date" data-purchase-filter="fecha" class="purchase-detail-filter border rounded px-2 py-1"></label>
-      <label class="grid gap-1">Pago estimado<input type="date" data-purchase-filter="pago" class="purchase-detail-filter border rounded px-2 py-1"></label>
-      <label class="grid gap-1">Comprobante<input type="search" data-purchase-filter="tipo" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Buscar texto"></label>
-      <label class="grid gap-1">Número<input type="search" data-purchase-filter="numero" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Buscar texto"></label>
-      <label class="grid gap-1">Proveedor<input type="search" data-purchase-filter="prov" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Buscar texto"></label>
-      <label class="grid gap-1">Neto gravado<input type="search" data-purchase-filter="netoGravado" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">IVA<input type="search" data-purchase-filter="iva" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">No gravado<input type="search" data-purchase-filter="noGravado" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">Exento<input type="search" data-purchase-filter="exento" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">Otros tributos<input type="search" data-purchase-filter="otrosTributos" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">Sin desglose<input type="search" data-purchase-filter="noDesglosado" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">Total<input type="search" data-purchase-filter="monto" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <button id="clearPurchaseDetailFilters" type="button" class="self-end border rounded px-3 py-1 hover:bg-slate-50">Limpiar filtros</button>
-    </div>
-    <p class="chart-note">Los filtros se aplican solo al detalle; los importes aceptan coincidencia exacta o comparaciones como &gt;=500.</p>
-    <div class="purchase-records-scroll"><table id="tComprasDetalle" class="w-full min-w-[1050px] text-xs"></table></div>
-  </div>
-</section>
+  <section class="card" id="mapCard" hidden>
+    <h2>Cómo incorporar los datos</h2>
+    <p class="hint">Cada hoja del secundario se asigna a una hoja del Base y sus columnas se emparejan por nombre de encabezado (sin distinguir mayúsculas ni tildes). Las filas idénticas en las columnas emparejadas se omiten, tanto si ya están en el Base como si se repiten dentro del secundario. "Actualizar por clave" funciona como un BUSCARV: si la clave ya existe se actualizan las celdas con valor; si no existe, la fila se agrega al final.</p>
+    <div id="map"></div>
+  </section>
+
+  <div class="actions"><button id="go" disabled>Procesar y Descargar</button></div>
+
+  <section class="card" id="logCard" hidden>
+    <h2>Resultado</h2>
+    <ul id="log"></ul>
+  </section>
 </main>
 
 <script>
-/* ===== Utilidades ===== */
+// Estructura esperada del Excel Base
+const EXPECTED = {
+  "Compras": ["Fecha de Emision","Tipo de Comprobante","Punto de Venta","Numero Desde","Numero Hasta","Cod Autorizacion","Tipo Doc Emisor","Nro Doc Emisor","Denominacion Emisor","Tipo Doc Receptor","Nro Doc Receptor","Tipo Cambio","Moneda","Imp Neto Gravado IVA 0%","IVA 2.5%","Imp Neto Gravado IVA 2.5%","IVA 5%","Imp Neto Gravado IVA 5%","IVA 10.5%","Imp Neto Gravado IVA 10.5%","IVA 21%","Imp Neto Gravado IVA 21%","IVA 27%","Imp Neto Gravado IVA 27%","Imp Neto Gravado Total","Imp Neto No Gravado","Imp Op Exentas","Otros Tributos","Total IVA","Imp Total"],
+  "Plazo Proveedores": ["Código","Proveedor","Plazo de pago"],
+  "Préstamos": ["Banco","Prestamo_ID","Cuota","Vencimiento","Capital","Interes","Cargos_e_Impuestos","Total_Cuota"],
+  "Ventas": ["Tipo","Numero","Fecha","Cliente","TOTAL","Anul","Conf","OC/Proveedor","Sucursal","Entregado"]
+};
+
 const $ = id => document.getElementById(id);
-const fmt = n => new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n);
-const cmp = n => new Intl.NumberFormat('es-AR',{notation:'compact',maximumFractionDigits:1}).format(n);
-const sum = (a,f) => a.reduce((t,x)=>t+f(x),0);
-const group = (a,kf,vf) => { const m={}; a.forEach(x=>{const k=kf(x); m[k]=(m[k]||0)+vf(x);}); return m; };
-const iso = d => d.toISOString().slice(0,10);
-const addDays = (s,n) => { const d=new Date(s+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()+n); return iso(d); };
-const weekStart = s => { const d=new Date(s+'T00:00:00Z'); return addDays(s, -((d.getUTCDay()+6)%7)); };
-const shiftMonth = (s,amount) => {
-  const d=new Date(`${s}T00:00:00Z`), day=d.getUTCDate();
-  d.setUTCDate(1);
-  d.setUTCMonth(d.getUTCMonth()+amount);
-  d.setUTCDate(Math.min(day,new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate()));
-  return iso(d);
-};
-const within = (date,from,to) => !!date && date>=from && date<=to;
-function estimateCft(rows){
-  const ordered=rows.slice().sort((a,b)=>a.Vencimiento.localeCompare(b.Vencimiento));
-  if (!ordered.length) return null;
-  const principal=sum(ordered,p=>p.Capital), firstDate=ordered[0].Vencimiento;
-  if (principal<=0) return null;
-  const origin=shiftMonth(firstDate,-1), originMs=Date.parse(`${origin}T00:00:00Z`);
-  const flows=ordered.map(p=>({years:(Date.parse(`${p.Vencimiento}T00:00:00Z`)-originMs)/86400000/365.25, amount:p.Total_Cuota}));
-  if (flows.some(f=>f.years<=0)) return null;
-  const npv=rate=>-principal+sum(flows,f=>f.amount/Math.pow(1+rate,f.years));
-  let low=-0.999999, high=1;
-  while (high<1e6 && npv(high)>0) high=high*2+1;
-  if (!Number.isFinite(npv(low)) || !Number.isFinite(npv(high)) || npv(low)*npv(high)>0) return null;
-  for (let i=0;i<120;i++){
-    const mid=(low+high)/2;
-    if (npv(mid)>0) low=mid; else high=mid;
-  }
-  return (low+high)/2*100;
-}
-const HOY = iso(new Date(Date.now() - new Date().getTimezoneOffset()*6e4));
-const COL = {in:'#0f766e', out:'#e11d48', loan:'#d97706', blue:'#2563eb', slate:'#475569'};
-const PAL = ['#0f4c5c','#2a9d8f','#e9c46a','#f4a261','#e76f51','#6d597a','#355070','#b56576','#84a98c','#8d99ae'];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm = s => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toLowerCase();
+const keyOf = v => v instanceof Date ? v.toISOString().slice(0,10) : norm(v);
+const rowSignature = (row, columns) => JSON.stringify(columns.map(index => keyOf(row[index])));
+const S = { base:null, sec:null, map:{} };
 
-/* ===== Carga y normalización del Excel ===== */
-const appState = {
-  raw: {ventas:[], compras:[], plazos:[], prestamos:[]},
-  processed: {ventasOK:[], comprasX:[], sinPlazo:[], avisos:[], loaded:false, sourceName:''},
-  filters: {current:'inicio', values:{}}
-};
-const CACHE_KEY = 'green-house-cashflow-v1';
-const norm = s => String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
-const clean = s => String(s??'').replace(/^\[[^\]]*\]\s*-\s*/,'').trim() || 'Sin dato';
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const num = v => {
-  if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
-  let s = String(v ?? '').trim();
-  if (!s) return 0;
-  const negative = /^\(.*\)$/.test(s);
-  s = s.replace(/[^\d,.\-+]/g, '');
-  const comma = s.lastIndexOf(','), dot = s.lastIndexOf('.');
-  if (comma >= 0 && dot >= 0) {
-    const decimal = comma > dot ? ',' : '.';
-    const grouping = decimal === ',' ? /\./g : /,/g;
-    s = s.replace(grouping, '');
-    if (decimal === ',') s = s.replace(',', '.');
-  } else if (comma >= 0) {
-    const decimals = s.length - comma - 1;
-    s = decimals > 0 && decimals <= 2 ? s.replace(',', '.') : s.replace(/,/g, '');
-  } else if (dot >= 0) {
-    const decimals = s.length - dot - 1;
-    if (decimals === 0 || decimals > 2) s = s.replace(/\./g, '');
-  }
-  const parsed = Number(s);
-  if (!Number.isFinite(parsed)) return 0;
-  return negative ? -Math.abs(parsed) : parsed;
-};
-const pick = (row, aliases) => {
-  if (!row || typeof row !== 'object') return '';
-  const keys = Object.keys(row);
-  for (const alias of aliases) {
-    const target = norm(alias);
-    const exact = keys.find(k => norm(k) === target);
-    if (exact) return row[exact];
-    const partial = keys.find(k => norm(k).includes(target) || target.includes(norm(k)));
-    if (partial) return row[partial];
-  }
-  return '';
-};
-const toISO = v => {
-  if (v==null || v==='') return null;
-  if (typeof v==='number') return iso(new Date(Math.round((v-25569)*864e5)));
-  if (v instanceof Date) return iso(v);
-  const s=String(v).trim(), m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
-  if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
-  return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0,10) : null;
-};
-const emptyNote = (id,hoja) => { $(id).innerHTML = `<p class="text-sm text-slate-600 col-span-full">No se encontraron datos de ${hoja} en el Excel cargado.</p>`; };
+const aoa = ws => XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:"", blankrows:false});
+const headers = (wb, n) => (aoa(wb.Sheets[n])[0] || []).map(h => String(h).trim()).filter(Boolean);
 
-function readSheet(wb, prefix){
-  const name = wb.SheetNames.find(n => norm(n).startsWith(prefix));
-  if (!name) return null;
-  return XLSX.utils.sheet_to_json(wb.Sheets[name], {defval:null}).map(r => { const o={}; for (const k in r) o[norm(k)]=r[k]; return o; });
-}
-function parseWorkbook(wb){
-  appState.processed.avisos = [];
-  const rv=readSheet(wb,'ventas'), rc=readSheet(wb,'compras'), rp=readSheet(wb,'plazo'), rl=readSheet(wb,'prestamos');
-  [[rv,'Ventas'],[rc,'Compras'],[rp,'Plazo Proveedores'],[rl,'Préstamos']].forEach(([r,n]) => { if (!r) appState.processed.avisos.push(`No se encontró la hoja "${n}".`); });
-  appState.raw.ventas = (rv||[]).map(r => {
-    const fecha = toISO(pick(r,['fecha','fechaventa','fecha de venta','fecha_venta','date']));
-    const cliente = clean(pick(r,['cliente','cliente/razon social','denominacion','razon social','nombre']));
-    const total = num(pick(r,['total','importe total','monto total','total venta','total_venta','importe'])) || 0;
-    const anul = String(pick(r,['anul','anulada','anulado','estado','cancelada']) ?? '').trim();
-    const sucursal = clean(pick(r,['sucursal','suc','local']));
-    const numero = String(pick(r,['numero','comprobante','nro comprobante','número']) ?? '').trim();
-    const entregado=norm(pick(r,['entregado']));
-    const tipo=String(pick(r,['tipo','tipo de comprobante','tipocomprobante'])??'').trim();
-    return {Fecha:fecha, Numero:numero, Cliente:cliente, TOTAL:total, Anul:/^(si|s|x|1|true|anulada|anulado)$/i.test(anul)?'S':'N', Sucursal:sucursal,
-      Entregado:/^(si|s|1|true|entregado)$/.test(entregado)?true:/^(no|n|0|false|pendiente)$/.test(entregado)?false:null,Tipo:tipo||'Sin tipo'};
-  }).filter(v => v.Fecha && !Number.isNaN(v.TOTAL));
-
-  appState.raw.compras = (rc||[]).map(r => {
-    const fecha = toISO(pick(r,['fecha','fechadeemision','fecha de emision','fecha_emision','date']));
-    const prov = clean(pick(r,['proveedor','denominacionemisor','denominacion','emisor','razon social','nombre']));
-    const cuit = String(pick(r,['nro doc emisor','nrodocemisor','numero documento emisor','cuit emisor'])??'').replace(/\D/g,'');
-    const tipo = String(pick(r,['tipodecomprobante','tipo de comprobante','tipo comprobante','comprobante']) ?? '').trim();
-    const tipoNormalizado=norm(tipo);
-    const factor = tipoNormalizado.startsWith('notadecredito')||tipoNormalizado.startsWith('ncr')||tipoNormalizado.startsWith('nc') ? -1 : 1;
-    const monto = (factor * num(pick(r,['imptotal','importe total','monto total','total','importe']))) || 0;
-    const iva = (factor * num(pick(r,['totaliva','iva','monto iva','iva total']))) || 0;
-    const iva105 = factor*num(pick(r,['iva105','iva 10.5%','iva 10,5%']));
-    const iva21 = factor*num(pick(r,['iva21','iva 21%']));
-    const iva27 = factor*num(pick(r,['iva27','iva 27%']));
-    const netoBase = num(pick(r,['impnetogravadototal','neto gravado total','neto gravado']));
-    const netoPorAlicuota = sum(Object.entries(r).filter(([key])=>/^impnetogravadiva/.test(norm(key))),([,value])=>num(value));
-    const numero = String(pick(r,['numerodesde','numero desde','nro comprobante','numero comprobante','numero']) ?? '').trim();
-    const puntoVenta = String(pick(r,['puntodeventa','punto de venta']) ?? '').trim();
-    const netoGravado = factor*(netoBase||netoPorAlicuota);
-    const noGravado = factor*num(pick(r,['impnetonogravado','neto no gravado']));
-    const exento = factor*num(pick(r,['impopexentas','operaciones exentas','exento']));
-    const otrosTributos = factor*num(pick(r,['otrostributos','otros tributos']));
-    return {
-      fecha, prov, cuit, monto, iva, iva105, iva21, iva27, tipo:tipo||'Sin tipo', numero:puntoVenta&&numero?`${puntoVenta}-${numero}`:numero,
-      netoGravado,noGravado,exento,otrosTributos,
-      noDesglosado:monto-netoGravado-iva-noGravado-exento-otrosTributos
-    };
-  }).filter(c => c.fecha && c.prov);
-
-  appState.raw.plazos = (rp||[]).map(r => {
-    const proveedor = clean(pick(r,['proveedor','denominacion','razon social','nombre','emisor']));
-    const plazo = num(pick(r,['plazodepago','plazo de pago','plazo','dias de pago','dias'])) || 0;
-    return {Proveedor:proveedor, 'Plazo de pago':plazo};
-  }).filter(p => p.Proveedor);
-
-  appState.raw.prestamos = (rl||[]).map(r => ({
-    Banco:esc(clean(pick(r,['banco','entidad','institucion']))),
-    Prestamo_ID:String(pick(r,['prestamoid','id prestamo','prestamo_id','id']) ?? '').trim(),
-    Cuota:num(pick(r,['cuota','nro cuota','numero de cuota','cuota nro'])) || 0,
-    Vencimiento:toISO(pick(r,['vencimiento','fecha vencimiento','fecha de vencimiento','due date','date'])),
-    Capital:num(pick(r,['capital','capital amortizado','monto capital'])) || 0,
-    Interes:num(pick(r,['interes','interés','interes total'])) || 0,
-    Cargos_e_Impuestos:num(pick(r,['cargoseimpuestos','cargos e impuestos','cargos','impuestos'])) || 0,
-    Total_Cuota:num(pick(r,['totalcuota','total cuota','cuota total','monto cuota'])) || 0
-  })).filter(p => p.Vencimiento);
-
-  build();
-  appState.processed.loaded = appState.processed.ventasOK.length + appState.processed.comprasX.length + appState.raw.prestamos.length > 0;
-  if (!appState.processed.loaded) appState.processed.avisos.push('El archivo no contiene filas utilizables. Revise los nombres de hojas y columnas.');
-}
-/* Cruce compras-proveedor: pago real = fecha de emisión + plazo de pago (nombre normalizado) */
-function build(){
-  appState.processed.ventasOK = appState.raw.ventas.filter(v => v.Anul !== 'S');
-  const pm = Object.fromEntries(appState.raw.plazos.map(p => [norm(p.Proveedor), p['Plazo de pago']]));
-  const def = Math.max(0, +$('plazoDef').value || 0);
-  appState.processed.sinPlazo = [...new Set(appState.raw.compras.filter(c => !(norm(c.prov) in pm)).map(c => c.prov))];
-  appState.processed.comprasX = appState.raw.compras.map(c => { const k=norm(c.prov), ok=k in pm, pl=ok?pm[k]:def; return {...c, plazo:pl, conPlazo:ok, pago:addDays(c.fecha, pl)}; });
-}
-function setRange(){
-  const lo=[...appState.processed.ventasOK.map(v=>v.Fecha), ...appState.processed.comprasX.map(c=>c.fecha)].sort(), hi=[...appState.processed.ventasOK.map(v=>v.Fecha), ...appState.processed.comprasX.map(c=>c.pago)].sort();
-  if (lo.length) syncDateFilters(lo[0],hi[hi.length-1]);
-}
-function afterLoad(name){
-  Object.keys(charts).forEach(k => { charts[k].destroy(); delete charts[k]; });
-  $('tPrest').innerHTML = '';
-  appState.processed.sourceName = name;
-  $('hdrSub').textContent = appState.processed.loaded ? `${name} · ${appState.processed.ventasOK.length.toLocaleString('es-AR')} ventas · ${appState.raw.compras.length} compras · ${appState.raw.prestamos.length} cuotas · importes en pesos` : 'Sin Excel cargado · importes en pesos argentinos';
-  if (appState.processed.loaded) { setRange(); show('flujo'); } else show('inicio');
-}
-function persistCache(){
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      version:1,
-      sourceName:appState.processed.sourceName,
-      raw:appState.raw,
-      defaultPaymentDays:Math.max(0, +$('plazoDef').value || 0)
-    }));
-    $('cacheStatus').textContent = 'Datos guardados en este navegador';
-    return true;
-  } catch (error) {
-    console.error('No se pudieron guardar los datos del dashboard en el caché local.', error);
-    $('cacheStatus').textContent = 'No se pudo guardar el caché local';
-    return false;
-  }
-}
-function restoreCache(){
-  try {
-    const serialized = localStorage.getItem(CACHE_KEY);
-    if (!serialized) return false;
-    const cached = JSON.parse(serialized);
-    const collections = ['ventas','compras','plazos','prestamos'];
-    if (cached.version !== 1 || !cached.raw || collections.some(key => !Array.isArray(cached.raw[key]))) {
-      throw new Error('El caché guardado no tiene un formato válido.');
-    }
-    Object.assign(appState.raw, cached.raw);
-    $('plazoDef').value = Math.max(0, Number(cached.defaultPaymentDays) || 0);
-    appState.processed.avisos = [];
-    build();
-    appState.processed.loaded = appState.processed.ventasOK.length + appState.processed.comprasX.length + appState.raw.prestamos.length > 0;
-    if (!appState.processed.loaded) throw new Error('El caché no contiene filas utilizables.');
-    afterLoad(String(cached.sourceName || 'Datos cacheados'));
-    $('cacheStatus').textContent = 'Datos restaurados desde este navegador';
-    return true;
-  } catch (error) {
-    console.error('No se pudieron restaurar los datos cacheados del dashboard.', error);
-    $('cacheStatus').textContent = 'No se pudo restaurar el caché';
-    appState.processed.avisos = [`No se pudo restaurar el caché local: ${error.message}`];
-    return false;
-  }
-}
-function clearCache(){
-  try {
-    const existed = localStorage.getItem(CACHE_KEY) !== null;
-    localStorage.removeItem(CACHE_KEY);
-    $('cacheStatus').textContent = existed ? 'Caché borrado; los datos abiertos siguen disponibles' : 'No había datos cacheados';
-  } catch (error) {
-    console.error('No se pudo borrar el caché local del dashboard.', error);
-    $('cacheStatus').textContent = 'No se pudo borrar el caché local';
-  }
-}
-async function loadFile(file){
-  try {
-    if (typeof XLSX==='undefined') throw new Error('Sin librería de lectura');
-    parseWorkbook(XLSX.read(await file.arrayBuffer(), {type:'array'}));
-    afterLoad(file.name);
-    if (appState.processed.loaded) persistCache();
-  } catch (e) {
-    console.error('No se pudo cargar el Excel del dashboard.', e);
-    appState.processed.avisos = [`No se pudo leer el archivo. Verifique que sea un Excel (.xlsx) y que haya conexión a internet para cargar la librería de lectura. ${e.message}`];
-    show('inicio');
-  }
-  $('file').value = '';
-}
-const ExcelProcessor = {parseWorkbook, build, loadFile, persistCache, restoreCache};
-
-/* ===== Helpers de gráficos ===== */
-const charts = {};
-const val = c => typeof c.parsed==='number' ? c.parsed : (c.chart.options.indexAxis==='y' ? c.parsed.x : c.parsed.y);
-const lab = c => ` ${c.dataset.label||c.label}: ${fmt(val(c))}`;
-const money = {ticks:{callback:cmp}, grid:{color:'#e2e8f0'}};
-const ChartRenderer = {
-  create(id, type, data, options={}){
-    charts[id]?.destroy();
-    charts[id] = new Chart($(id), {type, data, options:{responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
-      ...options, plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:lab}}, ...(options.plugins||{})}}});
-  },
-  clear(ids){ ids.forEach(id=>{charts[id]?.destroy(); delete charts[id];}); }
-};
-function mk(...args){ return ChartRenderer.create(...args); }
-function ensureKpiDetailModal(){
-  if (document.getElementById('kpiDetailModal')) return;
-  const modal = document.createElement('div');
-  modal.id = 'kpiDetailModal';
-  modal.className = 'kpi-detail-modal';
-  modal.setAttribute('aria-hidden', 'true');
-  modal.innerHTML = `
-    <div class="kpi-detail-panel p-4 sm:p-5" role="dialog" aria-modal="true" aria-labelledby="kpiDetailTitle">
-      <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-200">
-        <h3 id="kpiDetailTitle" class="text-base font-semibold text-slate-800">Detalle</h3>
-        <button type="button" id="kpiDetailClose" class="rounded border border-slate-200 px-2 py-1 text-sm text-slate-600 hover:bg-slate-100">Cerrar</button>
-      </div>
-      <div id="kpiDetailBody" class="pt-3 text-sm text-slate-700"></div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('is-open'); });
-  document.getElementById('kpiDetailClose').addEventListener('click', () => modal.classList.remove('is-open'));
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') modal.classList.remove('is-open');
+function readWb(file){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => { try { res(XLSX.read(e.target.result, {type:"array", cellDates:true})); } catch(x){ rej(x); } };
+    r.onerror = () => rej(new Error("No se pudo leer el archivo."));
+    r.readAsArrayBuffer(file);
   });
 }
-function openKpiDetailModal(title, items){
-  ensureKpiDetailModal();
-  const modal = document.getElementById('kpiDetailModal');
-  const body = document.getElementById('kpiDetailBody');
-  const titleEl = document.getElementById('kpiDetailTitle');
-  titleEl.textContent = title;
-  const list = Array.isArray(items) ? items.filter(Boolean) : [];
-  body.innerHTML = list.length
-    ? `<ul class="space-y-1">${list.map(item => `<li>${esc(item)}</li>`).join('')}</ul>`
-    : '<p class="text-slate-500">No hay elementos para mostrar.</p>';
-  modal.classList.add('is-open');
-  modal.setAttribute('aria-hidden', 'false');
+
+function validateBase(wb){
+  const problems = [], names = {};
+  wb.SheetNames.forEach(n => names[norm(n)] = n);
+  for(const [sheet, cols] of Object.entries(EXPECTED)){
+    const real = names[norm(sheet)];
+    if(!real){ problems.push(`Falta la hoja "${sheet}".`); continue; }
+    const have = new Set(((aoa(wb.Sheets[real])[0]) || []).map(norm));
+    const miss = cols.filter(c => !have.has(norm(c)));
+    if(miss.length) problems.push(`Hoja "${sheet}": faltan las columnas ${miss.join(", ")}.`);
+  }
+  return problems;
 }
-document.addEventListener('click', event => {
-  const btn = event.target.closest('.kpi-detail-btn');
-  if (!btn) return;
-  const title = btn.dataset.detailTitle || 'Detalle';
-  const key = btn.dataset.detailId;
-  const store = window.kpiDetailStore || {};
-  openKpiDetailModal(title, store[key] || []);
-});
-function kpis(id, arr){
-  const store = window.kpiDetailStore = window.kpiDetailStore || {};
-  $(id).innerHTML = arr.map(([l,v,s,c,detail]) => {
-    const detailId = detail && Array.isArray(detail) && detail.length ? `kpi-detail-${id}-${Math.random().toString(36).slice(2,9)}` : '';
-    if (detailId) store[detailId] = detail;
-    return `<div class="card hover:shadow-md transition-all duration-300 kpi" style="--c:${c}">
-      <div class="text-xs text-slate-500">${l}</div>
-      <div class="text-xl font-semibold mt-1">${v}</div>
-      <div class="text-xs text-slate-500 mt-1">${s}</div>
-      ${detailId ? `<button type="button" class="kpi-detail-btn" data-detail-id="${detailId}" data-detail-title="${esc(l)}">Detalle</button>` : ''}
+
+async function load(kind, file){
+  const el = $("i-" + kind);
+  S[kind] = null; el.innerHTML = "";
+  if(file){
+    try{
+      if(!/\.xlsx$/i.test(file.name)) throw new Error("Formato no válido: se esperaba un archivo .xlsx.");
+      const wb = await readWb(file);
+      if(!wb.SheetNames.length) throw new Error("El archivo no contiene hojas.");
+      const problems = kind === "base" ? validateBase(wb) : [];
+      S[kind] = { wb, name:file.name, problems };
+      el.innerHTML = `<div class="ok">${esc(file.name)}</div><div class="chips">${wb.SheetNames.map(n => `<span>${esc(n)}</span>`).join("")}</div>` +
+        (problems.length ? `<div class="bad"><b>La estructura no coincide con lo esperado:</b><ul>${problems.map(p => `<li>${esc(p)}</li>`).join("")}</ul></div>` : "");
+      if(problems.length) alert("El Excel Base no tiene la estructura esperada:\n\n• " + problems.join("\n• "));
+    }catch(e){
+      el.innerHTML = `<div class="bad">${esc(e.message || e)}</div>`;
+      alert("No se pudo cargar el archivo: " + (e.message || e));
+    }
+  }
+  autoMap(); renderMap();
+  $("go").disabled = !(S.base && S.sec);
+}
+
+// Asigna cada hoja del secundario a una del Base: por nombre o, si no coincide, por parecido de columnas
+function autoMap(){
+  S.map = {};
+  if(!S.base || !S.sec) return;
+  const byName = {};
+  S.base.wb.SheetNames.forEach(n => byName[norm(n)] = n);
+  S.sec.wb.SheetNames.forEach(sn => {
+    let target = byName[norm(sn)] || "";
+    const sh = headers(S.sec.wb, sn).map(norm);
+    if(!target && sh.length){
+      let best = 0;
+      S.base.wb.SheetNames.forEach(b => {
+        const bh = new Set(headers(S.base.wb, b).map(norm));
+        const score = sh.filter(h => bh.has(h)).length / sh.length;
+        if(score > best && score >= .6){ best = score; target = b; }
+      });
+    }
+    S.map[sn] = { target, mode:"append", key:"" };
+  });
+}
+
+function renderMap(){
+  const card = $("mapCard");
+  if(!S.base || !S.sec){ card.hidden = true; $("map").innerHTML = ""; return; }
+  card.hidden = false;
+  $("map").innerHTML = S.sec.wb.SheetNames.map(sn => {
+    const m = S.map[sn];
+    const secH = new Set(headers(S.sec.wb, sn).map(norm));
+    const keys = m.target ? headers(S.base.wb, m.target).filter(h => secH.has(norm(h))) : [];
+    const rows = Math.max(0, aoa(S.sec.wb.Sheets[sn]).length - 1);
+    const opt = (v, t, sel) => `<option value="${esc(v)}"${sel ? " selected" : ""}>${esc(t)}</option>`;
+    return `<div class="row" data-s="${esc(sn)}">
+      <div><b>${esc(sn)}</b><small>${rows} filas</small></div>
+      <span class="arrow">→</span>
+      <select data-f="target" aria-label="Hoja de destino">${opt("", "Ignorar esta hoja", !m.target)}${S.base.wb.SheetNames.map(b => opt(b, b, b === m.target)).join("")}</select>
+      <select data-f="mode" aria-label="Modo"${m.target ? "" : " disabled"}>${opt("append", "Agregar al final", m.mode === "append")}${opt("upsert", "Actualizar por clave", m.mode === "upsert")}</select>
+      <select data-f="key" aria-label="Columna clave"${m.target && m.mode === "upsert" ? "" : " hidden"}>${opt("", "Columna clave…", !m.key)}${keys.map(k => opt(k, k, k === m.key)).join("")}</select>
     </div>`;
-  }).join('');
+  }).join("");
 }
 
-/* ===== Inicio ===== */
-function renderHome(){
-  $('homeCounts').innerHTML = appState.processed.loaded ? [['Ventas',appState.raw.ventas.length],['Compras',appState.raw.compras.length],['Proveedores con plazo',appState.raw.plazos.length],['Cuotas de préstamos',appState.raw.prestamos.length]]
-    .map(([l,n]) => `<div class="p-3 rounded bg-slate-50 border border-slate-200"><div class="text-2xl font-semibold">${n.toLocaleString('es-AR')}</div><div class="text-xs text-slate-500">${l}</div></div>`).join('') : '';
+function merge(work, target, ws, srcName, m, log){
+  const base = work[target];
+  if(!base.length) base.push([]);
+  const bh = base[0].map(norm);
+  const sec = aoa(ws);
+  if(sec.length < 2){ log(`"${srcName}" no tiene filas de datos; no se agregó nada a "${target}".`, "w"); return; }
+  const sh = sec[0].map(norm);
+  const cmap = sh.map(h => h ? bh.indexOf(h) : -1);
+  if(!cmap.some(j => j >= 0)) throw new Error(`Ninguna columna de "${srcName}" coincide con las de "${target}". Revisa los encabezados.`);
+  const ignored = sec[0].filter((h, i) => h !== "" && cmap[i] < 0);
 
-  if (!appState.processed.loaded) { $('homeInsights').innerHTML = ''; $('avisos').innerHTML = ''; return; }
-  const from=$('from').value,to=$('to').value,ini=+$('ini').value||0;
-  const ventasPeriodo=appState.processed.ventasOK.filter(v=>within(v.Fecha,from,to));
-  const comprasPeriodo=appState.processed.comprasX.filter(c=>within(c.pago,from,to));
-  const prestamosPeriodo=appState.raw.prestamos.filter(p=>within(p.Vencimiento,from,to));
-  const ingresos=sum(ventasPeriodo,v=>v.TOTAL);
-  const egresos=sum(comprasPeriodo,c=>c.monto)+sum(prestamosPeriodo,p=>p.Total_Cuota);
-  const flujo=ingresos-egresos;
-  const dias=validRange(from,to)?Math.floor((Date.parse(`${to}T00:00:00Z`)-Date.parse(`${from}T00:00:00Z`))/86400000)+1:0;
-  $('homeInsights').innerHTML = [
-    ['Ingresos del período', fmt(ingresos), `${ventasPeriodo.length} ventas netas`],
-    ['Egresos del período', fmt(egresos), `${comprasPeriodo.length} proveedores · ${prestamosPeriodo.length} cuotas`],
-    ['Flujo neto', fmt(flujo), flujo >= 0 ? 'positivo en el período' : 'negativo en el período'],
-    ['Período', validRange(from,to)?`${dias} días`:'rango inválido', validRange(from,to)?`${from} a ${to}`:'revise las fechas']
-  ].map(([l,v,s]) => `<div class="p-3 rounded bg-white border border-slate-200"><div class="text-xs text-slate-500">${l}</div><div class="text-xl font-semibold mt-1">${v}</div><div class="text-xs text-slate-500 mt-1">${s}</div></div>`).join('');
+  let idx = null, kb = -1, ks = -1;
+  if(m.mode === "upsert"){
+    kb = bh.indexOf(norm(m.key)); ks = sh.indexOf(norm(m.key));
+    if(kb < 0 || ks < 0) throw new Error(`La columna clave "${m.key}" debe existir en "${target}" y en "${srcName}".`);
+    idx = new Map();
+    for(let r = 1; r < base.length; r++){ const k = keyOf(base[r][kb]); if(k && !idx.has(k)) idx.set(k, r); }
+  }
 
-  const msgs = appState.processed.avisos.map(esc);
-  if (appState.processed.loaded && appState.processed.sinPlazo.length) msgs.push(`${appState.processed.sinPlazo.length} proveedores con compras no figuran en la hoja de plazos (ej.: ${esc(appState.processed.sinPlazo.slice(0,3).join(', '))}). Se usan ${+$('plazoDef').value||0} días para ellos; ajuste el valor por defecto si corresponde.`);
-  $('avisos').innerHTML = msgs.map(m => `<div class="p-2 rounded bg-amber-50 border border-amber-200 text-amber-900 text-sm">${m}</div>`).join('');
-}
-
-/* ===== Flujo general ===== */
-function validRange(from,to){ return !!from && !!to && from<=to; }
-function clearCharts(ids){ ChartRenderer.clear(ids); }
-let weeklyDetails={};
-function renderWeeklyTable(from,to,initialBalance){
-  const weeks=new Map();
-  const add=(date,type,description,amount,category,detailAmount=amount)=>{
-    const key=weekStart(date);
-    if(!weeks.has(key)) weeks.set(key,{sales:0,purchases:0,loans:0,items:[]});
-    const week=weeks.get(key);
-    week[category]+=amount;
-    week.items.push({date,type,description,amount:detailAmount});
+  const signatures = new Map();
+  const addSignature = signature => signatures.set(signature, (signatures.get(signature) || 0) + 1);
+  const removeSignature = signature => {
+    const count = signatures.get(signature) || 0;
+    if(count <= 1) signatures.delete(signature);
+    else signatures.set(signature, count - 1);
   };
-  appState.processed.ventasOK.filter(v=>within(v.Fecha,from,to)).forEach(v=>add(v.Fecha,'Ingreso · venta',`${v.Numero?`Comprobante ${v.Numero} · `:''}${v.Cliente}`,v.TOTAL,'sales'));
-  appState.processed.comprasX.filter(c=>within(c.pago,from,to)).forEach(c=>add(c.pago,'Egreso · proveedor',`${c.prov} · ${c.plazo} días de plazo`,c.monto,'purchases',-c.monto));
-  appState.raw.prestamos.filter(p=>within(p.Vencimiento,from,to)).forEach(p=>add(p.Vencimiento,'Egreso · préstamo',`${p.Banco} · préstamo ${p.Prestamo_ID} · cuota ${p.Cuota}`,p.Total_Cuota,'loans',-p.Total_Cuota));
-  weeklyDetails={};
-  let closing=initialBalance;
-  const firstWeek=weekStart(from), lastWeek=weekStart(to);
-  const rows=[];
-  for(let start=firstWeek;start<=lastWeek;start=addDays(start,7)){
-    const week=weeks.get(start)||{sales:0,purchases:0,loans:0,items:[]};
-    const totalIn=week.sales, totalOut=week.purchases+week.loans, net=totalIn-totalOut;
-    closing+=net;
-    weeklyDetails[start]=week.items.sort((a,b)=>a.date.localeCompare(b.date)||a.type.localeCompare(b.type));
-    const end=addDays(start,6);
-    rows.push(`<tr class="border-b border-slate-100 align-top"><td class="py-2 pr-3 whitespace-nowrap">${start} – ${end}</td><td class="text-right px-2">${fmt(week.sales)}</td><td class="text-right px-2">${fmt(week.purchases)}</td><td class="text-right px-2">${fmt(week.loans)}</td><td class="text-right px-2">${fmt(totalIn)}</td><td class="text-right px-2">${fmt(totalOut)}</td><td class="text-right px-2 font-medium ${net>=0?'text-teal-700':'text-rose-700'}">${fmt(net)}</td><td class="text-right px-2 font-medium">${fmt(closing)}</td><td class="px-2 py-2"><details class="weekly-details" data-week="${start}"><summary class="cursor-pointer text-teal-800 underline">Ver (${weeklyDetails[start].length})</summary><div class="weekly-detail mt-2 text-xs text-slate-600"></div></details></td></tr>`);
-  }
-  $('weeklyTable').innerHTML=rows.join('');
-}
-function loadWeeklyDetail(details){
-  const start=details.dataset.week, items=weeklyDetails[start]||[];
-  const pageSize=100, offset=Number(details.dataset.offset)||0, next=items.slice(offset,offset+pageSize);
-  const body=next.map(item=>`<tr class="border-b border-slate-100"><td class="py-1 pr-2 whitespace-nowrap">${item.date}</td><td class="px-2 whitespace-nowrap">${item.type}</td><td class="px-2">${esc(item.description)}</td><td class="px-2 text-right whitespace-nowrap ${item.amount<0?'text-rose-700':'text-teal-700'}">${fmt(item.amount)}</td></tr>`).join('');
-  const container=details.querySelector('.weekly-detail');
-  if(details.dataset.loaded!=='true'){
-    container.innerHTML=`<table class="w-full"><thead><tr class="text-left border-b"><th class="py-1 pr-2">Fecha</th><th class="px-2">Tipo</th><th class="px-2">Concepto</th><th class="px-2 text-right">Importe</th></tr></thead><tbody>${body||'<tr><td colspan="4" class="py-2">Sin movimientos en esta semana.</td></tr>'}</tbody></table><button type="button" class="weekly-more mt-2 text-teal-800 underline text-xs"></button>`;
-  } else if(body) container.querySelector('tbody').insertAdjacentHTML('beforeend',body);
-  details.dataset.offset=String(offset+next.length);
-  const more=container.querySelector('.weekly-more');
-  const remaining=items.length-(offset+next.length);
-  more.hidden=remaining<=0;
-  more.textContent=`Mostrar 100 más (${remaining.toLocaleString('es-AR')} restantes)`;
-  details.dataset.loaded='true';
-}
-function renderFlow(){
-  const from=$('from').value, to=$('to').value, ini=+$('ini').value||0, showAcc=$('acc').checked;
-  if (!validRange(from,to)) { $('kFlujo').innerHTML='<p class="text-rose-600 text-sm col-span-full">Revise el rango: la fecha inicial debe ser anterior a la final.</p>'; $('weeklyTable').innerHTML=''; clearCharts(['cFlujo','cEgr']); return; }
-  const rangeDays=(Date.parse(`${to}T00:00:00Z`)-Date.parse(`${from}T00:00:00Z`))/86400000+1;
-  if(rangeDays>1500){ $('kFlujo').innerHTML='<p class="text-rose-600 text-sm col-span-full">El rango diario supera el máximo de 1.500 días para este gráfico. Seleccione un período menor.</p>'; $('weeklyTable').innerHTML=''; clearCharts(['cFlujo','cEgr']); return; }
-  const salesIn=appState.processed.ventasOK.filter(v=>within(v.Fecha,from,to));
-  const purchasesIn=appState.processed.comprasX.filter(c=>within(c.pago,from,to));
-  const loansIn=appState.raw.prestamos.filter(p=>within(p.Vencimiento,from,to));
-  const ing = group(salesIn, v=>v.Fecha, v=>v.TOTAL);
-  const com = group(purchasesIn, c=>c.pago, c=>c.monto);
-  const pre = group(loansIn, p=>p.Vencimiento, p=>p.Total_Cuota);
-  const days=[]; for (let d=from; d<=to && days.length<1500; d=addDays(d,1)) days.push(d);
-  const I=days.map(d=>ing[d]||0), C=days.map(d=>com[d]||0), P=days.map(d=>pre[d]||0);
-  const net=days.map((_,i)=>I[i]-C[i]-P[i]);
-  let a=ini; const A=net.map(n=>a+=n);
-  const tI=sum(I,x=>x), tC=sum(C,x=>x), tP=sum(P,x=>x), saldo=ini+tI-tC-tP;
-  kpis('kFlujo',[['Ingresos',fmt(tI),`${salesIn.length} ventas`,COL.in],['Egresos por compras',fmt(tC),'según plazo de pago',COL.out],
-    ['Egresos por préstamos',fmt(tP),'cuotas vencidas en el rango',COL.loan],['Egresos totales',fmt(tC+tP),`${tI?Math.round((tC+tP)/tI*100):0}% de los ingresos`,COL.slate],
-    ['Saldo final',fmt(saldo),saldo>=0?'flujo positivo':'flujo negativo',saldo>=0?COL.in:COL.out]]);
-  $('flowChartContent').style.width=`${Math.min(9000,Math.max(1100,days.length*14))}px`;
-  const ds=[{label:'Flujo neto del día',data:net,backgroundColor:net.map(v=>v>0?COL.in:v<0?COL.out:'#94a3b8'),borderRadius:3}];
-  const allChartValues=[...net,...A];
-  const chartMin=Math.min(0,...allChartValues), chartMax=Math.max(0,...allChartValues);
-  const scales={x:{ticks:{maxTicksLimit:16}},y:{...money,grid:{color:ctx=>ctx.tick.value===0?'#334155':'#e2e8f0',lineWidth:ctx=>ctx.tick.value===0?2:1},min:chartMin, max:chartMax}};
-  if (showAcc) {
-    ds.push({type:'line',label:'Saldo acumulado',data:A,borderColor:'#0f172a',backgroundColor:'#0f172a',borderWidth:2,pointRadius:0,tension:.25,yAxisID:'y'});
-  }
-  mk('cFlujo','bar',{labels:days,datasets:ds},{scales,plugins:{tooltip:{callbacks:{label:c=>{
-    const i=c.dataIndex;
-    if(c.dataset.label==='Saldo acumulado') return ` Saldo acumulado: ${fmt(A[i])}`;
-    return [` Ingresos: ${fmt(I[i])}`,` Proveedores: ${fmt(C[i])}`,` Préstamos: ${fmt(P[i])}`,` Flujo neto: ${fmt(net[i])}`];
-  }}}}});
-  mk('cEgr','doughnut',{labels:['Compras','Préstamos'],datasets:[{data:[tC,tP],backgroundColor:[COL.out,COL.loan]}]},{interaction:{mode:'nearest'}});
-  const minI=A.indexOf(Math.min(...A)), maxI=C.map((c,i)=>c+P[i]).reduce((b,v,i,r)=>v>r[b]?i:b,0);
-  $('insFlujo').innerHTML = [`Saldo mínimo: <b>${fmt(A[minI])}</b> el ${days[minI]}`, `Mayor egreso diario: <b>${fmt(C[maxI]+P[maxI])}</b> el ${days[maxI]}`, `Días con más ingresos: <b>${net.filter(n=>n>0).length}</b> · con más egresos: <b>${net.filter(n=>n<0).length}</b>`]
-    .map(t=>`<div class="p-2 rounded bg-slate-50 border border-slate-200">${t}</div>`).join('');
-  renderWeeklyTable(from,to,ini);
-}
+  for(let r = 1; r < base.length; r++) addSignature(rowSignature(base[r], cmap.filter(j => j >= 0)));
 
-/* ===== Préstamos ===== */
-function renderLoans(){
-  if(!appState.raw.prestamos.length){ $('loansUntilLastPayment').disabled=true; clearCharts(['cCuota','cPrestDon','cTimeline']); $('tPrest').innerHTML=''; $('tCft').innerHTML=''; return emptyNote('kPrest','Préstamos'); }
-  $('loansUntilLastPayment').disabled=false;
-  const from=$('loansFrom').value,to=$('loansTo').value;
-  if(!validRange(from,to)){ $('kPrest').innerHTML='<p class="text-rose-600 text-sm col-span-full">Revise el rango de fechas.</p>'; clearCharts(['cCuota','cPrestDon','cTimeline']); $('tPrest').innerHTML=''; $('tCft').innerHTML=''; return; }
-  const inRange=p=>within(p.Vencimiento,from,to);
-  const groups=new Map();
-  for(const p of appState.raw.prestamos){
-    const key=`${p.Banco}|${p.Prestamo_ID}`;
-    if(!groups.has(key)) groups.set(key,[]);
-    groups.get(key).push(p);
-  }
-  const loanRows=[...groups.values()].map(rows=>{
-    const principal=sum(rows,p=>p.Capital), total=sum(rows,p=>p.Total_Cuota);
-    return {bank:rows[0].Banco,id:rows[0].Prestamo_ID,principal,total,cost:total-principal,cft:estimateCft(rows),rows};
-  }).sort((a,b)=>a.bank.localeCompare(b.bank)||a.id.localeCompare(b.id));
-  const calculableLoans=loanRows.filter(loan=>loan.cft!==null&&loan.principal>0);
-  const weightedPrincipal=sum(calculableLoans,loan=>loan.principal);
-  const weightedCft=weightedPrincipal
-    ? sum(calculableLoans,loan=>loan.cft*loan.principal)/weightedPrincipal
-    : null;
-  const selected=appState.raw.prestamos.filter(inRange);
-  const mx={}; appState.raw.prestamos.forEach(p=>{const key=`${p.Banco}|${p.Prestamo_ID}`;mx[key]=Math.max(mx[key]||0,p.Cuota);});
-  const pend = selected.filter(p=>p.Vencimiento>HOY), next = pend.slice().sort((a,b)=>a.Vencimiento.localeCompare(b.Vencimiento));
-  const tc=sum(pend,p=>p.Capital), ti=sum(pend,p=>p.Interes), tg=sum(pend,p=>p.Cargos_e_Impuestos);
-  kpis('kPrest',[['Cuotas pendientes en el rango',fmt(sum(pend,p=>p.Total_Cuota)),`${pend.length} cuotas · ${from} a ${to}`,COL.loan],['Capital pendiente en el rango',fmt(sum(pend,p=>p.Capital)),'amortiza deuda',COL.in],
-    ['Costo financiero pendiente',fmt(sum(pend,p=>p.Interes+p.Cargos_e_Impuestos)),'interés más cargos',COL.out],['Próxima cuota',next[0]?fmt(next[0].Total_Cuota):'-',next[0]?`${next[0].Banco} · ${next[0].Vencimiento}`:'sin cuotas',COL.blue],
-    ['CFT promedio (ponderado)',weightedCft===null?'No calculable':`${weightedCft.toFixed(2)}%`,`${calculableLoans.length} de ${loanRows.length} préstamos · ponderado por capital inicial`,COL.slate]]);
-  const meses=[...new Set(pend.map(p=>p.Vencimiento.slice(0,7)))].sort();
-  const porPrestamo=new Map();
-  for(const p of pend){
-    const key=`${p.Banco}|${p.Prestamo_ID}`;
-    if(!porPrestamo.has(key)) porPrestamo.set(key,{label:`${p.Banco} · ${p.Prestamo_ID||'Sin ID'}`,rows:[]});
-    porPrestamo.get(key).rows.push(p);
-  }
-  const cuotasPorPrestamo=[...porPrestamo.values()].map((loan,i)=>({
-    label:loan.label,
-    data:meses.map(m=>sum(loan.rows.filter(p=>p.Vencimiento.startsWith(m)),p=>p.Total_Cuota)),
-    backgroundColor:PAL[(i*3)%PAL.length],
-    borderRadius:3
-  }));
-  const totalPorMes=meses.map(m=>sum(pend.filter(p=>p.Vencimiento.startsWith(m)),p=>p.Total_Cuota));
-  mk('cCuota','bar',{labels:meses,datasets:[
-    ...cuotasPorPrestamo,
-    {type:'line',label:'Total mensual',data:totalPorMes,borderColor:'#0f172a',backgroundColor:'#0f172a',borderWidth:2,
-      pointRadius:3,pointHoverRadius:5,tension:.2,yAxisID:'yTotal',order:0}
-  ]},{scales:{x:{stacked:true},y:{stacked:true,...money},
-    yTotal:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{callback:cmp}}}});
-  mk('cPrestDon','doughnut',{labels:['Capital','Interés','Cargos e impuestos'],datasets:[{data:[tc,ti,tg],backgroundColor:[COL.in,COL.loan,COL.out]}]},{interaction:{mode:'nearest'}});
-  const todasPendientes=appState.raw.prestamos.filter(p=>p.Vencimiento>HOY);
-  const mesesCompletos=[...new Set(todasPendientes.map(p=>p.Vencimiento.slice(0,7)))].sort();
-  const bancos=[...new Set(todasPendientes.map(p=>p.Banco))], porBancoMes=group(todasPendientes,p=>`${p.Banco}|${p.Vencimiento.slice(0,7)}`,p=>p.Total_Cuota);
-  mk('cTimeline','bar',{labels:mesesCompletos,datasets:bancos.map((b,i)=>({label:b,data:mesesCompletos.map(m=>porBancoMes[`${b}|${m}`]||0),
-    backgroundColor:PAL[(i*3)%PAL.length],borderRadius:3}))},{scales:{x:{stacked:true},y:{stacked:true,...money}}});
-  $('tPrest').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1 pr-2">Banco</th><th class="pr-2">Cuota</th><th class="pr-2">Vencimiento</th><th class="text-right px-2">Capital</th><th class="text-right px-2">Interés</th><th class="text-right px-2">Cargos</th><th class="text-right px-2">Total</th></tr></thead><tbody>'
-    + (next.slice(0,8).map(p=>`<tr class="border-b border-slate-100"><td class="py-1 pr-2">${p.Banco}</td><td class="pr-2">${p.Cuota}/${mx[`${p.Banco}|${p.Prestamo_ID}`]}</td><td class="pr-2">${p.Vencimiento}</td><td class="text-right px-2">${fmt(p.Capital)}</td><td class="text-right px-2">${fmt(p.Interes)}</td><td class="text-right px-2">${fmt(p.Cargos_e_Impuestos)}</td><td class="text-right px-2 font-medium">${fmt(p.Total_Cuota)}</td></tr>`).join('')||'<tr><td colspan="7" class="py-2 text-slate-500">No hay cuotas pendientes en el rango seleccionado.</td></tr>')+'</tbody>';
-  $('tCft').innerHTML='<thead><tr class="text-left text-slate-500 border-b"><th class="py-1 pr-2">Banco</th><th class="pr-2">Préstamo</th><th class="text-right px-2">Capital inicial</th><th class="text-right px-2">Total a devolver</th><th class="text-right px-2">Intereses y cargos</th><th class="text-right px-2">CFT anual estimado</th></tr></thead><tbody>'
-    +(loanRows.filter(loan=>loan.rows.some(inRange)).map(p=>`<tr class="border-b border-slate-100"><td class="py-1 pr-2">${p.bank}</td><td class="pr-2">${esc(p.id||'Sin ID')}</td><td class="text-right px-2">${fmt(p.principal)}</td><td class="text-right px-2">${fmt(p.total)}</td><td class="text-right px-2">${fmt(p.cost)}</td><td class="text-right px-2 font-medium">${p.cft===null?'No calculable':`${p.cft.toFixed(2)}%`}</td></tr>`).join('')||'<tr><td colspan="6" class="py-2 text-slate-500">No hay préstamos con vencimientos dentro del rango seleccionado.</td></tr>')+'</tbody>';
-}
+  let added = 0, updated = 0, duplicates = 0;
+  for(let r = 1; r < sec.length; r++){
+    const src = sec[r];
+    const row = new Array(base[0].length).fill("");
+    cmap.forEach((j, i) => { if(j >= 0) row[j] = src[i]; });
 
-/* ===== Ventas ===== */
-function renderSalesDetails(rows){
-  const filters=Object.fromEntries([...document.querySelectorAll('.sales-detail-filter')].map(input=>[input.dataset.salesFilter,input.value.trim()]));
-  const filtered=rows.filter(v=>Object.entries(filters).every(([field,query])=>{
-    if(!query) return true;
-    const value=v[field];
-    if(field==='Fecha') return value===query;
-    if(field==='Entregado') return value!==null&&String(value)===query;
-    if(field==='TOTAL'){
-      const match=query.match(/^\s*(<=|>=|<|>|=)?\s*(-?[\d.,]+)\s*$/);
-      if(!match) return false;
-      const target=num(match[2]), operator=match[1]||'=';
-      if(operator==='>') return value>target;
-      if(operator==='>=') return value>=target;
-      if(operator==='<') return value<target;
-      if(operator==='<=') return value<=target;
-      return Math.abs(value-target)<0.005;
+    const k = idx && keyOf(src[ks]);
+    const existingIndex = k && idx.has(k) ? idx.get(k) : -1;
+    const candidate = existingIndex >= 0
+      ? base[existingIndex].map((value, index) => {
+          const sourceIndex = cmap.indexOf(index);
+          return sourceIndex >= 0 && src[sourceIndex] !== "" ? src[sourceIndex] : value;
+        })
+      : row;
+    const signature = rowSignature(candidate, cmap.filter(j => j >= 0));
+    if(signatures.has(signature)){
+      duplicates++;
+      continue;
     }
-    return norm(value).includes(norm(query));
-  }));
-  const deliveryStatus=v=>v.Entregado===true?'Entregada':v.Entregado===false?'Pendiente':'Sin dato';
-  const rowsHtml=filtered.map(v=>`<tr class="border-b border-slate-100">
-    <td class="py-1 pr-2 whitespace-nowrap">${v.Fecha}</td><td class="px-2 whitespace-nowrap">${esc(v.Numero||'—')}</td>
-    <td class="px-2">${esc(v.Cliente)}</td><td class="px-2">${esc(v.Sucursal)}</td><td class="px-2">${esc(v.Tipo)}</td><td class="px-2">${deliveryStatus(v)}</td>
-    <td class="px-2 text-right whitespace-nowrap font-medium">${fmt(v.TOTAL)}</td></tr>`).join('');
-  $('salesDetailCount').textContent=filtered.length===rows.length
-    ? `${rows.length.toLocaleString('es-AR')} ventas`
-    : `${filtered.length.toLocaleString('es-AR')} de ${rows.length.toLocaleString('es-AR')} ventas`;
-  $('tSalesDetalle').innerHTML=`<thead class="text-left text-slate-500 border-b"><tr>
-    <th class="py-2 pr-2">Fecha</th><th class="px-2">Comprobante</th><th class="px-2">Cliente</th>
-    <th class="px-2">Sucursal</th><th class="px-2">Tipo</th><th class="px-2">Entrega</th><th class="text-right px-2">Total</th></tr></thead>
-    <tbody>${rowsHtml||'<tr><td colspan="7" class="py-3 text-slate-500">No hay ventas que coincidan con los filtros.</td></tr>'}</tbody>
-    <tfoot class="sticky bottom-0 bg-slate-100 font-semibold"><tr>
-    <td class="py-2 px-2" colspan="6">Total de las ventas filtradas</td>
-    <td class="text-right px-2">${fmt(sum(filtered,v=>v.TOTAL))}</td></tr></tfoot>`;
-}
 
-function calculateCustomerABC(rows){
-  const excluded=['consumidorfinal','sindato'];
-  const customers=Object.entries(group(rows,v=>v.Cliente,v=>v.TOTAL))
-    .filter(([name,amount])=>!excluded.includes(norm(name))&&amount>0)
-    .sort((a,b)=>b[1]-a[1]);
-  const total=sum(customers,([,amount])=>amount);
-  const segments={A:[],B:[],C:[]};
-  let cumulative=0;
-  customers.forEach(([name,amount])=>{
-    const cumulativeBefore=total?cumulative/total*100:0;
-    const segment=cumulativeBefore<80?'A':cumulativeBefore<95?'B':'C';
-    segments[segment].push({name,amount});
-    cumulative+=amount;
-  });
-  return {total,segments};
-}
-
-function renderSales(){
-  const from=$('salesFrom').value,to=$('salesTo').value;
-  if(!validRange(from,to)){ $('kVentas').innerHTML='<p class="text-rose-600 text-sm col-span-full">Revise el rango de fechas.</p>'; clearCharts(['cVEvo','cVSuc','cVCli','cVEntrega','cVTipo','cVWeekday']); $('insABC').innerHTML=''; renderSalesDetails([]); return; }
-  const salesInRange=appState.processed.ventasOK.filter(v=>within(v.Fecha,from,to));
-  let branchFilter=$('salesBranchFilter').value;
-  const branches=[...new Set(appState.raw.ventas.filter(v=>within(v.Fecha,from,to)).map(v=>v.Sucursal))].sort((a,b)=>a.localeCompare(b));
-  $('salesBranchFilter').innerHTML='<option value="">Todas las sucursales</option>'+branches.map(branch=>`<option value="${esc(branch)}">${esc(branch)}</option>`).join('');
-  $('salesBranchFilter').value=branches.some(branch=>norm(branch)===norm(branchFilter))?branchFilter:'';
-  branchFilter=$('salesBranchFilter').value;
-  const salesIn=branchFilter?salesInRange.filter(v=>norm(v.Sucursal)===norm(branchFilter)):salesInRange;
-  renderSalesDetails(salesIn);
-  if(!salesInRange.length){ clearCharts(['cVEvo','cVSuc','cVCli','cVEntrega','cVTipo','cVWeekday']); $('insABC').innerHTML=''; return emptyNote('kVentas','Ventas en el rango seleccionado'); }
-  const branchSales=Object.entries(group(salesInRange,v=>v.Sucursal,v=>v.TOTAL)).sort((a,b)=>b[1]-a[1]);
-  mk('cVSuc','bar',{labels:branchSales.map(([name])=>name),datasets:[{label:'Ventas',data:branchSales.map(([,value])=>value),
-    backgroundColor:branchSales.map((_,i)=>PAL[i%PAL.length]),borderRadius:4}]},{
-    indexAxis:'y',scales:{x:money,y:{grid:{display:false}}},plugins:{legend:{display:false}}});
-  if(!salesIn.length){ clearCharts(['cVEvo','cVCli','cVEntrega','cVTipo','cVWeekday']); $('insABC').innerHTML=''; return emptyNote('kVentas',`Ventas de ${esc(branchFilter)} en el rango seleccionado`); }
-  const tot=sum(salesIn,v=>v.TOTAL), porDia=group(salesIn,v=>v.Fecha,v=>v.TOTAL), dias=Object.keys(porDia).sort();
-  const abc=calculateCustomerABC(salesIn);
-  const segmentColors={A:'#0f766e',B:'#e9c46a',C:'#e11d48'};
-  const segmentTargets={A:'hasta 80%',B:'siguiente 15%',C:'restante 5%'};
-  const abcStats=['A','B','C'].map(segment=>{
-    const clients=abc.segments[segment];
-    const amount=sum(clients,client=>client.amount);
-    return {segment,clients,amount,share:abc.total?amount/abc.total*100:0};
-  });
-  const weekdayLabels=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
-  const weekdayAmounts=Array(7).fill(0), weekdayCounts=Array(7).fill(0);
-  salesIn.forEach(sale=>{
-    const weekday=(new Date(`${sale.Fecha}T00:00:00Z`).getUTCDay()+6)%7;
-    weekdayAmounts[weekday]+=sale.TOTAL;
-    weekdayCounts[weekday]++;
-  });
-  const weekdayTickets=weekdayAmounts.map((amount,index)=>weekdayCounts[index]?amount/weekdayCounts[index]:null);
-  const best=dias.reduce((b,d)=>porDia[d]>porDia[b]?d:b,dias[0]);
-  const annulled=appState.raw.ventas.filter(v=>v.Anul==='S'&&within(v.Fecha,from,to)&&(!branchFilter||norm(v.Sucursal)===norm(branchFilter))).length;
-  kpis('kVentas',[['Ventas totales',fmt(tot),`${from} a ${to}`,COL.in],['Comprobantes',salesIn.length.toLocaleString('es-AR'),`${annulled} anulados`,COL.blue],
-    ['Ticket promedio',fmt(tot/salesIn.length),'por comprobante',COL.slate],['Mejor día',fmt(porDia[best]),best,COL.loan]]);
-  const vals=dias.map(d=>porDia[d]), ma=vals.map((_,i)=>{const w=vals.slice(Math.max(0,i-6),i+1);return sum(w,x=>x)/w.length;});
-  const cantidadPorDia=group(salesIn,v=>v.Fecha,()=>1);
-  const ticketPorDia=dias.map(d=>porDia[d]/cantidadPorDia[d]);
-  mk('cVEvo','line',{labels:dias,datasets:[{label:'Ventas diarias',data:vals,borderColor:COL.in,backgroundColor:'rgba(15,118,110,.12)',fill:true,tension:.25,pointRadius:2},
-    {label:'Media móvil 7 días',data:ma,borderColor:'#0f172a',borderDash:[6,4],pointRadius:0,tension:.3},
-    {label:'Ticket promedio diario',data:ticketPorDia,borderColor:COL.loan,backgroundColor:COL.loan,pointRadius:2,tension:.25,yAxisID:'yTicket'}]},
-    {scales:{y:money,x:{ticks:{maxTicksLimit:12}},yTicket:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{callback:cmp},title:{display:true,text:'Ticket promedio'}}}});
-  mk('cVWeekday','bar',{labels:weekdayLabels,datasets:[{label:'Ticket promedio',data:weekdayTickets,
-    backgroundColor:weekdayLabels.map((_,index)=>weekdayCounts[index]?COL.blue:'#cbd5e1'),borderRadius:4}]},{
-    scales:{y:{beginAtZero:true,...money},x:{grid:{display:false}}},
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:item=>`${fmt(item.raw)} · ${weekdayCounts[item.dataIndex].toLocaleString('es-AR')} ventas`}}}
-  });
-  const withDeliveryStatus=salesIn.filter(v=>v.Entregado!==null);
-  const deliveredCount=withDeliveryStatus.filter(v=>v.Entregado).length;
-  const pendingCount=withDeliveryStatus.length-deliveredCount;
-  mk('cVEntrega','doughnut',{labels:['Entregadas','Pendientes'],datasets:[{label:'Ventas',data:[deliveredCount,pendingCount],backgroundColor:[COL.in,COL.loan]}]},{
-    plugins:{tooltip:{callbacks:{label:item=>{
-      const count=item.raw,pct=withDeliveryStatus.length?count/withDeliveryStatus.length*100:0;
-      return ` ${count.toLocaleString('es-AR')} ventas (${pct.toFixed(1)}%)`;
-    }}}}
-  });
-  const byType=Object.entries(group(salesIn,v=>v.Tipo||'Sin tipo',v=>v.TOTAL)).sort((a,b)=>b[1]-a[1]);
-  mk('cVTipo','bar',{labels:byType.map(([type])=>type),datasets:[{label:'Facturación',data:byType.map(([,amount])=>amount),
-    backgroundColor:byType.map((_,i)=>PAL[i%PAL.length]),borderRadius:4}]},{
-    indexAxis:'y',scales:{x:money,y:{grid:{display:false}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:item=>{
-      const amount=item.parsed.x,share=tot?amount/tot*100:null;
-      return ` ${fmt(amount)}${share===null?'':` (${share.toFixed(1)}% de la facturación)`}`;
-    }}}}
-  });
-  mk('cVCli','bar',{labels:abcStats.map(({segment})=>`${segment} · ${segmentTargets[segment]}`),datasets:[{
-    label:'Facturación por segmento',
-    data:abcStats.map(item=>item.amount),
-    backgroundColor:abcStats.map(item=>segmentColors[item.segment]),
-    borderRadius:4
-  }]},{scales:{x:{grid:{display:false}},y:{beginAtZero:true,...money}},
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:item=>{
-      const stat=abcStats[item.dataIndex];
-      return [` ${fmt(stat.amount)} · ${stat.share.toFixed(1)}% de clientes identificados`,` ${stat.clients.length.toLocaleString('es-AR')} clientes`];
-    }}}}});
-  $('insABC').innerHTML=abcStats.map(stat=>{
-    const clients=stat.clients.length
-      ? stat.clients.map(client=>`<li class="flex items-start justify-between gap-2 border-b border-slate-100 py-1.5 last:border-0">
-          <span class="min-w-0 break-words">${esc(client.name)}</span>
-          <span class="shrink-0 text-right font-medium">${fmt(client.amount)}<span class="block text-xs font-normal text-slate-500">${abc.total?(client.amount/abc.total*100).toFixed(1):'0.0'}% de ventas</span></span>
-        </li>`).join('')
-      : '<li class="py-2 text-slate-500">Sin clientes clasificados</li>';
-    return `<div class="rounded border border-slate-200 p-2 text-sm">
-    <div class="flex items-center gap-2 font-semibold"><span class="inline-block h-2.5 w-2.5 rounded-full" style="background:${segmentColors[stat.segment]}"></span>Segmento ${stat.segment}</div>
-    <div class="mt-1 text-slate-600">${stat.clients.length.toLocaleString('es-AR')} clientes · ${stat.share.toFixed(1)}% real</div>
-    <div class="text-xs text-slate-500">${segmentTargets[stat.segment]} de concentración · ${fmt(stat.amount)}</div>
-    <ul class="mt-2 max-h-40 overflow-y-auto rounded border border-slate-100 px-2 text-xs text-slate-700">${clients}</ul>
-  </div>`;
-  }).join('');
-}
-
-/* ===== Compras y proveedores ===== */
-function renderPurchaseDetails(rows){
-  const fields=[
-    ['fecha','Fecha emisión'],['pago','Pago estimado'],['tipo','Comprobante'],['numero','Número'],['prov','Proveedor'],
-    ['netoGravado','Neto gravado'],['iva','IVA'],['noGravado','No gravado'],['exento','Exento'],
-    ['otrosTributos','Otros tributos'],['noDesglosado','Sin desglose'],['monto','Total']
-  ];
-  const filters=Object.fromEntries([...document.querySelectorAll('.purchase-detail-filter')].map(input=>[input.dataset.purchaseFilter,input.value.trim()]));
-  const filtered=rows.filter(c=>fields.every(([field])=>{
-    const query=filters[field];
-    if(!query) return true;
-    const value=c[field];
-    if(field==='fecha'||field==='pago') return value===query;
-    if(typeof value==='number'){
-      const match=query.match(/^\s*(<=|>=|<|>|=)?\s*(-?[\d.,]+)\s*$/);
-      if(!match) return false;
-      const target=num(match[2]), operator=match[1]||'=';
-      if(operator==='>') return value>target;
-      if(operator==='>=') return value>=target;
-      if(operator==='<') return value<target;
-      if(operator==='<=') return value<=target;
-      return Math.abs(value-target)<0.005;
+    if(idx){
+      if(existingIndex >= 0){
+        removeSignature(rowSignature(base[existingIndex], cmap.filter(j => j >= 0)));
+        base[existingIndex] = candidate;
+        addSignature(signature);
+        updated++; continue;
+      }
+      if(k) idx.set(k, base.length);
     }
-    return norm(value).includes(norm(query));
-  }));
-  const recordRows=filtered.map(c=>`<tr class="border-b border-slate-100">
-    <td class="py-1 pr-2 whitespace-nowrap">${c.fecha}</td><td class="px-2 whitespace-nowrap">${c.pago}</td>
-    <td class="px-2">${esc(c.tipo)}</td><td class="px-2 whitespace-nowrap">${esc(c.numero||'—')}</td><td class="px-2">${esc(c.prov)}</td>
-    <td class="px-2 text-right whitespace-nowrap">${fmt(c.netoGravado)}</td><td class="px-2 text-right whitespace-nowrap">${fmt(c.iva)}</td>
-    <td class="px-2 text-right whitespace-nowrap">${fmt(c.noGravado)}</td><td class="px-2 text-right whitespace-nowrap">${fmt(c.exento)}</td>
-    <td class="px-2 text-right whitespace-nowrap">${fmt(c.otrosTributos)}</td><td class="px-2 text-right whitespace-nowrap">${fmt(c.noDesglosado)}</td>
-    <td class="px-2 text-right whitespace-nowrap font-medium">${fmt(c.monto)}</td></tr>`).join('');
-  $('comprasDetalleCount').textContent=filtered.length===rows.length
-    ? `${rows.length.toLocaleString('es-AR')} registros`
-    : `${filtered.length.toLocaleString('es-AR')} de ${rows.length.toLocaleString('es-AR')} registros`;
-  $('tComprasDetalle').innerHTML=`<thead class="text-left text-slate-500 border-b"><tr>
-    <th class="py-2 pr-2">Fecha emisión</th><th class="px-2">Pago estimado</th><th class="px-2">Comprobante</th><th class="px-2">Número</th><th class="px-2">Proveedor</th>
-    <th class="text-right px-2">Neto gravado</th><th class="text-right px-2">IVA</th><th class="text-right px-2">No gravado</th>
-    <th class="text-right px-2">Exento</th><th class="text-right px-2">Otros tributos</th><th class="text-right px-2">Sin desglose</th><th class="text-right px-2">Total</th></tr></thead>
-    <tbody>${recordRows||'<tr><td colspan="12" class="py-3 text-slate-500">No hay registros que coincidan con los filtros.</td></tr>'}</tbody>
-    ${filtered.length?`<tfoot class="sticky bottom-0 bg-slate-100 font-semibold"><tr>
-    <td class="py-2 px-2" colspan="5">Totales de los registros filtrados</td><td class="text-right px-2">${fmt(sum(filtered,c=>c.netoGravado))}</td>
-    <td class="text-right px-2">${fmt(sum(filtered,c=>c.iva))}</td><td class="text-right px-2">${fmt(sum(filtered,c=>c.noGravado))}</td>
-    <td class="text-right px-2">${fmt(sum(filtered,c=>c.exento))}</td><td class="text-right px-2">${fmt(sum(filtered,c=>c.otrosTributos))}</td>
-    <td class="text-right px-2">${fmt(sum(filtered,c=>c.noDesglosado))}</td><td class="text-right px-2">${fmt(sum(filtered,c=>c.monto))}</td></tr></tfoot>`:''}`;
+    base.push(candidate);
+    addSignature(signature);
+    added++;
+  }
+  log(`"${target}" ← "${srcName}": ${added} filas agregadas` + (idx ? `, ${updated} actualizadas` : "") +
+    (duplicates ? `, ${duplicates} duplicadas omitidas` : "") + ".");
+  if(ignored.length) log(`Columnas de "${srcName}" sin coincidencia en "${target}" (omitidas): ${ignored.join(", ")}.`, "w");
 }
 
-function renderPurchases(){
-  const daily=$('purchaseCalendarGranularity').value==='day';
-  $('purchaseCalendarTitle').textContent=`Calendario de pagos de compras por ${daily?'día':'semana'}`;
-  $('purchaseCalendarNote').textContent=`Barras azules: ${daily?'días':'semanas'} ya vencidos. Barras ámbar: pagos pendientes que impactan el flujo futuro.`;
-  const from=$('purchasesFrom').value,to=$('purchasesTo').value;
-  if(!validRange(from,to)){ $('kCompras').innerHTML='<p class="text-rose-600 text-sm col-span-full">Revise el rango de fechas.</p>'; clearCharts(['cCProv','cCPlazo','cCFut','cCGasto','cCTipo','cCIva']); renderPurchaseDetails([]); return; }
-  const purchasesIn=appState.processed.comprasX.filter(c=>within(c.pago,from,to));
-  if(!purchasesIn.length){ clearCharts(['cCProv','cCPlazo','cCFut','cCGasto','cCTipo','cCIva']); renderPurchaseDetails(purchasesIn); return emptyNote('kCompras','Compras en el rango seleccionado'); }
-  const tot=sum(purchasesIn,c=>c.monto), pp=tot?sum(purchasesIn,c=>c.monto*c.plazo)/tot:0, pendiente=sum(purchasesIn.filter(c=>c.pago>HOY),c=>c.monto);
-  const suppliersWithoutTermNames=[...new Set(purchasesIn.filter(c=>!c.conPlazo).map(c=>c.prov))].sort((a,b)=>a.localeCompare(b,'es'));
-  const suppliersWithoutTerm=suppliersWithoutTermNames.length;
-  kpis('kCompras',[['Compras totales',fmt(tot),`${purchasesIn.length} comprobantes · ${from} a ${to}`,COL.out],['Plazo promedio ponderado',pp.toFixed(1)+' días',suppliersWithoutTerm?`${suppliersWithoutTerm} proveedores usan el plazo por defecto`:'ponderado por importe',COL.blue,suppliersWithoutTermNames],
-    ['Pendiente de pago',fmt(pendiente),`vence después de ${HOY}`,COL.loan],['IVA crédito fiscal',fmt(sum(purchasesIn,c=>c.iva)),'Total IVA de compras',COL.slate]]);
-  const gasto=[
-    ['Neto gravado',sum(purchasesIn,c=>c.netoGravado)],
-    ['No gravado',sum(purchasesIn,c=>c.noGravado)],
-    ['Operaciones exentas',sum(purchasesIn,c=>c.exento)],
-    ['IVA',sum(purchasesIn,c=>c.iva)],
-    ['Otros tributos',sum(purchasesIn,c=>c.otrosTributos)],
-    ['Importe sin desglose',sum(purchasesIn,c=>c.noDesglosado)]
-  ];
-  mk('cCGasto','bar',{labels:gasto.map(([name])=>name),datasets:[{label:'Importe neto',data:gasto.map(([,amount])=>amount),
-    backgroundColor:[COL.blue,'#64748b','#94a3b8',COL.in,COL.loan,'#6d597a'],borderRadius:4}]},{
-    indexAxis:'y',scales:{x:{beginAtZero:true,...money},y:{grid:{display:false}}},
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:item=>{
-      const amount=item.parsed.x, share=tot?amount/tot*100:null;
-      return ` ${fmt(amount)}${share===null?'':` (${share.toFixed(1)}% del neto)`}`;
-    }}}}
-  });
-  const tipos=new Map();
-  purchasesIn.forEach(c=>tipos.set(c.tipo,(tipos.get(c.tipo)||0)+1));
-  const comprobantes=[...tipos].sort((a,b)=>b[1]-a[1]);
-  mk('cCTipo','doughnut',{labels:comprobantes.map(([type])=>type),datasets:[{label:'Registros',data:comprobantes.map(([,count])=>count),
-    backgroundColor:comprobantes.map((_,i)=>PAL[i%PAL.length])}]},{
-    plugins:{tooltip:{callbacks:{label:item=>{
-      const count=item.raw, pct=purchasesIn.length?count/purchasesIn.length*100:0;
-      return ` ${count.toLocaleString('es-AR')} comprobantes (${pct.toFixed(1)}%)`;
-    }}}}
-  });
-  const ivaAmounts=[
-    sum(purchasesIn,c=>c.iva105),
-    sum(purchasesIn,c=>c.iva21),
-    sum(purchasesIn,c=>c.iva27)
-  ];
-  const ivaTotal=sum(ivaAmounts,amount=>amount);
-  const ivaShares=ivaAmounts.map(amount=>ivaTotal?amount/ivaTotal*100:0);
-  mk('cCIva','bar',{labels:['IVA crédito fiscal'],datasets:[
-    {label:'IVA 10,5%',data:[ivaShares[0]],amount:ivaAmounts[0],backgroundColor:COL.blue,stack:'iva'},
-    {label:'IVA 21%',data:[ivaShares[1]],amount:ivaAmounts[1],backgroundColor:COL.in,stack:'iva'},
-    {label:'IVA 27%',data:[ivaShares[2]],amount:ivaAmounts[2],backgroundColor:COL.loan,stack:'iva'}
-  ]},{indexAxis:'y',scales:{x:{stacked:true,beginAtZero:true,ticks:{callback:value=>`${value}%`}},y:{stacked:true,grid:{display:false}}},
-    plugins:{tooltip:{callbacks:{label:item=>{
-      const amount=item.dataset.amount,share=ivaTotal?ivaShares[item.datasetIndex]:null;
-      return ` ${item.dataset.label}: ${fmt(amount)}${share===null?'':` (${share.toFixed(1)}%)`}`;
-    }}}}});
-  renderPurchaseDetails(purchasesIn);
-  const supplierTotals=new Map();
-  purchasesIn.forEach(c=>{
-    const key=c.cuit?`cuit:${c.cuit}`:`nombre:${norm(c.prov)}`;
-    const supplier=supplierTotals.get(key);
-    if(supplier){
-      supplier.amount+=c.monto;
-      if(c.prov.length>supplier.purchase.prov.length) supplier.purchase=c;
-    }else supplierTotals.set(key,{key,label:c.prov,cuit:c.cuit,amount:c.monto,purchase:c});
-  });
-  const pv=[...supplierTotals.values()].sort((a,b)=>b.amount-a.amount), top=pv.slice(0,10);
-  const supplierLabel=supplier=>supplier.cuit?`${supplier.purchase.prov} · ${supplier.cuit}`:supplier.purchase.prov;
-  mk('cCProv','bar',{labels:top.map(supplierLabel),datasets:[{label:'Compras netas',data:top.map(p=>p.amount),
-    backgroundColor:top.map((_,i)=>PAL[i%PAL.length]),borderRadius:4}]},{
-    indexAxis:'y',interaction:{mode:'nearest',intersect:true},scales:{x:money,y:{grid:{display:false}}},
-    plugins:{legend:{display:false},tooltip:{callbacks:{
-      title:items=>items.length?`Proveedor: ${items[0].label}`:'',
-      label:item=>`Compras netas: ${fmt(item.parsed.x)}`
-    }}}});
-  const t10=pv.slice(0,10).map(supplier=>supplier.purchase);
-  const termOrder=new Map(appState.raw.plazos.map((p,i)=>[norm(p.Proveedor),i]));
-  const purchaseOrder=new Map();
-  purchasesIn.forEach((p,i)=>{if(!purchaseOrder.has(p.prov))purchaseOrder.set(p.prov,i);});
-  t10.sort((a,b)=>{
-    const ai=termOrder.get(norm(a.prov)), bi=termOrder.get(norm(b.prov));
-    if(ai!==undefined&&bi!==undefined) return ai-bi;
-    if(ai!==undefined) return -1;
-    if(bi!==undefined) return 1;
-    return purchaseOrder.get(a.prov)-purchaseOrder.get(b.prov);
-  });
-  mk('cCPlazo','bar',{labels:t10.map(c=>c.prov),datasets:[{label:'Plazo (días)',data:t10.map(c=>c.plazo),backgroundColor:t10.map(c=>c.conPlazo?COL.blue:'#94a3b8'),borderRadius:4}]},
-    {indexAxis:'y',interaction:{mode:'nearest',intersect:true},scales:{x:{beginAtZero:true,ticks:{callback:v=>`${v} d`},grid:{color:'#e2e8f0'}},y:{grid:{display:false}}},
-      plugins:{legend:{display:false},tooltip:{callbacks:{
-        title:items=>items.length?`Proveedor: ${items[0].label}`:'',
-        label:item=>`Plazo: ${item.parsed.x} días`,
-        afterLabel:item=>`Origen: ${t10[item.dataIndex].conPlazo?'hoja de plazos':'plazo por defecto'}`
-      }}}});
-  const period=group(purchasesIn,c=>daily?c.pago:weekStart(c.pago),c=>c.monto), ks=Object.keys(period).sort(); let a=0;
-  mk('cCFut','bar',{labels:ks,datasets:[{label:`Pagos ${daily?'del día':'de la semana'}`,data:ks.map(k=>period[k]),backgroundColor:ks.map(k=>k>HOY?COL.loan:COL.blue)},
-    {type:'line',label:'Acumulado',data:ks.map(k=>a+=period[k]),borderColor:'#0f172a',pointRadius:2,tension:.2,yAxisID:'y1'}]},
-    {scales:{x:{ticks:{maxTicksLimit:daily?16:12}},y:money,y1:{position:'right',grid:{drawOnChartArea:false},ticks:{callback:cmp}}}});
+function process(){
+  try{
+    if(S.base.problems.length) throw new Error("El Excel Base no tiene la estructura esperada:\n\n• " + S.base.problems.join("\n• "));
+    const active = Object.entries(S.map).filter(([, m]) => m.target);
+    if(!active.length) throw new Error("Asigna al menos una hoja del Excel Secundario a una hoja del Base.");
+    for(const [sn, m] of active) if(m.mode === "upsert" && !m.key) throw new Error(`Elige la columna clave para la hoja "${sn}".`);
+
+    const out = [], log = (t, c = "") => out.push([t, c]);
+    const work = {};
+    active.forEach(([sn, m]) => {
+      work[m.target] ??= aoa(S.base.wb.Sheets[m.target]);
+      merge(work, m.target, S.sec.wb.Sheets[sn], sn, m, log);
+    });
+
+    const wb = XLSX.utils.book_new();
+    S.base.wb.SheetNames.forEach(n => {
+      let ws = S.base.wb.Sheets[n];
+      if(work[n]){
+        const data = work[n].map(r => r.map(v => v === "" ? null : v));
+        ws = XLSX.utils.aoa_to_sheet(data, {cellDates:true, dateNF:"dd/mm/yyyy"});
+        ws["!cols"] = (data[0] || []).map(h => ({wch: Math.min(40, Math.max(12, String(h ?? "").length + 3))}));
+      }
+      XLSX.utils.book_append_sheet(wb, ws, n);
+    });
+    const d = new Date(), p = x => String(x).padStart(2, "0");
+    const fname = `Excel_Combinado_${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}.xlsx`;
+    XLSX.writeFile(wb, fname, {compression:true});
+    log(`Archivo descargado: ${fname}`);
+
+    $("log").innerHTML = out.map(([t, c]) => `<li class="${c}">${esc(t)}</li>`).join("");
+    $("logCard").hidden = false;
+  }catch(e){
+    alert(e.message || e);
+    $("log").innerHTML = `<li class="e">${esc(e.message || e)}</li>`;
+    $("logCard").hidden = false;
+  }
 }
 
-/* ===== Pestañas ===== */
-const renderers = {inicio:renderHome, flujo:renderFlow, prestamos:renderLoans, ventas:renderSales, compras:renderPurchases};
-appState.filters.current = 'inicio';
-function syncDateFilters(from,to){
-  document.querySelectorAll('.date-from').forEach(input=>{input.value=from;});
-  document.querySelectorAll('.date-to').forEach(input=>{input.value=to;});
-  captureFilters();
-}
-function captureFilters(){
-  appState.filters.values={
-    flow:{from:$('from').value,to:$('to').value,initialBalance:$('ini').value,showAccumulated:$('acc').checked},
-    loans:{from:$('loansFrom').value,to:$('loansTo').value},
-    sales:{from:$('salesFrom').value,to:$('salesTo').value,branch:$('salesBranchFilter').value,
-      details:Object.fromEntries([...document.querySelectorAll('.sales-detail-filter')].map(input=>[input.dataset.salesFilter,input.value]))},
-    purchases:{from:$('purchasesFrom').value,to:$('purchasesTo').value,granularity:$('purchaseCalendarGranularity').value,
-      details:Object.fromEntries([...document.querySelectorAll('.purchase-detail-filter')].map(input=>[input.dataset.purchaseFilter,input.value]))}
-  };
-}
-function show(t){
-  captureFilters();
-  appState.filters.current = t; const v = (!appState.processed.loaded && t!=='inicio') ? 'vacio' : t;
-  [...Object.keys(renderers),'vacio'].forEach(x => $('tab-'+x).classList.toggle('hidden', x!==v));
-  Object.keys(renderers).forEach(x => document.querySelector(`#nav [data-tab="${x}"]`).classList.toggle('active', x===t));
-  if (v!=='vacio') renderers[v](); window.scrollTo({top:0});
-}
-const UIManager = {show, afterLoad, restoreCache, clearCache};
-document.addEventListener('input',captureFilters);
-document.addEventListener('change',captureFilters);
-document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
-document.querySelectorAll('.date-from,.date-to').forEach(input=>input.addEventListener('change',()=>{
-  const from=input.classList.contains('date-from')?input.value:document.querySelector('.date-from').value;
-  const to=input.classList.contains('date-to')?input.value:document.querySelector('.date-to').value;
-  syncDateFilters(from,to);
-  show(appState.filters.current);
-}));
-$('salesBranchFilter').addEventListener('change',()=>{if(appState.processed.loaded) renderSales();});
-document.querySelectorAll('.sales-detail-filter').forEach(input=>input.addEventListener(input.tagName==='SELECT'?'change':'input',()=>{
-  const from=$('salesFrom').value,to=$('salesTo').value,branch=$('salesBranchFilter').value;
-  const rows=validRange(from,to)?appState.processed.ventasOK.filter(v=>within(v.Fecha,from,to)&&(!branch||norm(v.Sucursal)===norm(branch))):[];
-  renderSalesDetails(rows);
-}));
-$('clearSalesDetailFilters').addEventListener('click',()=>{
-  document.querySelectorAll('.sales-detail-filter').forEach(input=>{input.value='';});
-  const from=$('salesFrom').value,to=$('salesTo').value,branch=$('salesBranchFilter').value;
-  const rows=validRange(from,to)?appState.processed.ventasOK.filter(v=>within(v.Fecha,from,to)&&(!branch||norm(v.Sucursal)===norm(branch))):[];
-  renderSalesDetails(rows);
+// Eventos
+["base", "sec"].forEach(k => {
+  const input = $("f-" + k), zone = input.parentElement;
+  input.addEventListener("change", () => load(k, input.files[0]));
+  zone.addEventListener("dragover", e => { e.preventDefault(); zone.classList.add("over"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("over"));
+  zone.addEventListener("drop", e => {
+    e.preventDefault(); zone.classList.remove("over");
+    if(e.dataTransfer.files.length){ input.files = e.dataTransfer.files; load(k, input.files[0]); }
+  });
 });
-$('loansUntilLastPayment').addEventListener('click',()=>{
-  const dates=appState.raw.prestamos.map(p=>p.Vencimiento).filter(Boolean).sort();
-  const lastPayment=dates[dates.length-1];
-  if(!lastPayment) return;
-  syncDateFilters($('loansFrom').value,lastPayment);
-  show(appState.filters.current);
+$("map").addEventListener("change", e => {
+  const row = e.target.closest(".row"), f = e.target.dataset.f;
+  if(!row || !f) return;
+  const m = S.map[row.dataset.s];
+  m[f] = e.target.value;
+  if(f === "target"){ m.mode = "append"; m.key = ""; }
+  renderMap();
 });
-document.querySelectorAll('.purchase-detail-filter').forEach(input=>input.addEventListener('input',()=>{
-  const from=$('purchasesFrom').value,to=$('purchasesTo').value;
-  renderPurchaseDetails(validRange(from,to)?appState.processed.comprasX.filter(c=>within(c.pago,from,to)):[]);
-}));
-$('purchaseCalendarGranularity').addEventListener('change',()=>{
-  if(appState.processed.loaded) renderPurchases();
-});
-$('clearPurchaseDetailFilters').addEventListener('click',()=>{
-  document.querySelectorAll('.purchase-detail-filter').forEach(input=>{input.value='';});
-  const from=$('purchasesFrom').value,to=$('purchasesTo').value;
-  renderPurchaseDetails(validRange(from,to)?appState.processed.comprasX.filter(c=>within(c.pago,from,to)):[]);
-});
-['ini','acc'].forEach(id => $(id).addEventListener('input',()=>{renderFlow(); if(appState.filters.current==='inicio')renderHome();}));
-$('weeklyTable').addEventListener('click',event=>{
-  const more=event.target.closest('.weekly-more');
-  if(more){ loadWeeklyDetail(more.closest('details')); return; }
-  const summary=event.target.closest('summary');
-  if(!summary) return;
-  const details=summary.closest('details');
-  if(details && !details.open) setTimeout(()=>loadWeeklyDetail(details),0);
-});
-$('btnLoad').addEventListener('click', () => $('file').click());
-$('btnClearCache').addEventListener('click', () => UIManager.clearCache());
-$('file').addEventListener('change', e => e.target.files[0] && ExcelProcessor.loadFile(e.target.files[0]));
-const dz = $('drop');
-['dragover','dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.toggle('bg-teal-50', ev==='dragover');
-  if (ev==='drop' && e.dataTransfer.files[0]) ExcelProcessor.loadFile(e.dataTransfer.files[0]); }));
-$('plazoDef').addEventListener('input', () => { if (appState.processed.loaded) { ExcelProcessor.build(); ExcelProcessor.persistCache(); UIManager.show(appState.filters.current); } });
-Chart.defaults.font.family = "'IBM Plex Sans',system-ui,sans-serif";
-if (!UIManager.restoreCache()) UIManager.show('inicio');
+$("go").addEventListener("click", process);
 </script>
 </body>
 </html>

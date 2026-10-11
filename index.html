@@ -17,13 +17,17 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif}
 .tab:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #0f4c5c;outline-offset:2px}
 .kpi{border-left:4px solid var(--c)}
 .chart-badge{display:inline-flex;align-items:center;border-radius:9999px;background:#e6f4f1;color:#0f4c5c;padding:.2rem .55rem;font-size:.65rem;font-weight:700;letter-spacing:.04em}
+.date-range-icon{display:inline-block;width:.75rem;height:.75rem;margin-left:.25rem;background:#0f4c5c;clip-path:polygon(0 0,100% 0,62% 43%,62% 100%,38% 78%,38% 43%);vertical-align:middle}
 .chart-note{color:#64748b;font-size:.75rem;line-height:1.4;margin-bottom:.65rem}
-.weekly-detail{max-height:20rem;overflow:auto;border:1px solid #d9e2e7;border-radius:.5rem;background:#f8fafc;padding:.75rem}
+.weekly-detail{max-height:60vh;overflow:auto;border:1px solid #d9e2e7;border-radius:.5rem;background:#f8fafc;padding:.75rem}
 .weekly-detail thead th{position:sticky;top:0;background:#f8fafc;z-index:1}
 .weekly-detail tbody tr:nth-child(even){background:#f1f5f9}
 .weekly-detail tbody tr:last-child{border-bottom:0}
 .weekly-more{border:1px solid #cbd5e1;background:#fff;border-radius:.375rem;padding:.35rem .65rem}
 .weekly-more:hover{background:#f1f5f9}
+.weekly-modal{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;background:rgba(15,23,42,.55);padding:1rem}
+.weekly-modal.is-open{display:flex}
+.weekly-modal-panel{width:min(64rem,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid #d9e2e7;border-radius:.75rem;box-shadow:0 18px 40px rgba(15,23,42,.28)}
 .purchase-records-scroll{max-height:32rem;overflow:auto;border:1px solid #d9e2e7;border-radius:.5rem}
 .purchase-records-scroll thead th{position:sticky;top:0;background:#f8fafc;z-index:1}
 .purchase-records-scroll tbody tr:nth-child(even){background:#f8fafc}
@@ -102,18 +106,18 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif}
 
 <section id="tab-flujo" class="hidden space-y-5">
   <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm">
-    <label class="grid gap-1">Desde<input id="from" type="date" value="2026-08-01" class="date-from border rounded px-2 py-1"></label>
-    <label class="grid gap-1">Hasta<input id="to" type="date" value="2026-10-31" class="date-to border rounded px-2 py-1"></label>
+    <label class="grid gap-1"><span>Desde<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></span><input id="from" type="date" value="2026-08-01" class="date-from border rounded px-2 py-1"></label>
+    <label class="grid gap-1"><span>Hasta<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></span><input id="to" type="date" value="2026-10-31" class="date-to border rounded px-2 py-1"></label>
     <label class="grid gap-1">Saldo inicial (ARS)<input id="ini" type="number" value="0" step="100000" class="border rounded px-2 py-1 w-40"></label>
     <label class="flex items-center gap-2 pb-1"><input id="acc" type="checkbox" checked> Ver saldo acumulado</label>
   </div>
   <div id="kFlujo" class="grid grid-cols-2 lg:grid-cols-5 gap-3"></div>
   <div class="grid lg:grid-cols-3 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300 lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Resultado neto de cada día</h3><div class="flex items-center gap-2"><span class="chart-badge">RECOMENDADO · INGRESOS VS EGRESOS</span><button id="resetFlowChartZoom" type="button" class="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50">Restablecer zoom</button></div></div><p class="chart-note">Barras verdes: los ingresos superaron a los egresos. Barras rojas: los egresos fueron mayores. Barras grises: resultado igual a cero. El valor es ingresos menos proveedores y préstamos. Use la rueda para acercar o alejar y arrastre para desplazarse entre fechas.</p><div id="flowChartViewport" class="overflow-x-auto"><div id="flowChartContent" class="h-96"><canvas id="cFlujo"></canvas></div></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición de egresos</h3><span class="chart-badge">COMPOSICIÓN</span></div><p class="chart-note">Compara cuánto representan compras y cuotas dentro del período seleccionado.</p><div class="h-56"><canvas id="cEgr"></canvas></div><div id="insFlujo" class="mt-3 space-y-2 text-sm"></div></div>
+    <div class="card hover:shadow-md transition-all duration-300 lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Resultado neto de cada día<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><div class="flex items-center gap-2"><span class="chart-badge">RECOMENDADO · INGRESOS VS EGRESOS</span><button id="resetFlowChartZoom" type="button" class="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50">Restablecer zoom</button></div></div><p class="chart-note">Barras verdes: los ingresos superaron a los egresos. Barras rojas: los egresos fueron mayores. Barras grises: resultado igual a cero. El valor es ingresos menos proveedores y préstamos. Use la rueda para acercar o alejar y arrastre para desplazarse entre fechas.</p><div id="flowChartViewport" class="overflow-x-auto"><div id="flowChartContent" class="h-96"><canvas id="cFlujo"></canvas></div></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición de egresos<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">COMPOSICIÓN</span></div><p class="chart-note">Compara cuánto representan compras y cuotas dentro del período seleccionado.</p><div class="h-56"><canvas id="cEgr"></canvas></div><div id="insFlujo" class="mt-3 space-y-2 text-sm"></div></div>
   </div>
   <div class="card hover:shadow-md transition-all duration-300">
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Resumen semanal del flujo de caja</h3><span class="chart-badge">RECOMENDADO · CONTROL SEMANAL</span></div>
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Resumen semanal del flujo de caja<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">RECOMENDADO · CONTROL SEMANAL</span></div>
     <p class="chart-note">El cierre parte del saldo inicial ingresado arriba. “Ingresos netos” excluye ventas anuladas. Los detalles se cargan al abrir cada semana y muestran egresos con signo negativo.</p>
     <div class="overflow-x-auto"><table class="w-full text-sm min-w-[1050px]"><thead class="text-left text-slate-500 border-b"><tr>
       <th class="py-2 pr-3">Semana</th><th class="text-right px-2">Ingresos netos</th><th class="text-right px-2">Proveedores</th><th class="text-right px-2">Préstamos</th><th class="text-right px-2">Ingresos totales</th><th class="text-right px-2">Egresos totales</th><th class="text-right px-2">Flujo neto</th><th class="text-right px-2">Saldo cierre</th><th class="px-2">Detalle</th>
@@ -122,31 +126,43 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif}
 </section>
 
 <section id="tab-prestamos" class="hidden space-y-5">
-  <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm"><label class="grid gap-1">Desde<input id="loansFrom" class="date-from border rounded px-2 py-1" type="date"></label><label class="grid gap-1">Hasta<input id="loansTo" class="date-to border rounded px-2 py-1" type="date"></label><button id="loansUntilLastPayment" type="button" class="border rounded px-3 py-1 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Hasta última cuota</button><p class="text-xs text-slate-500">El rango filtra las cuotas por fecha de vencimiento.</p></div>
+  <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm"><label class="grid gap-1"><span>Desde<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></span><input id="loansFrom" class="date-from border rounded px-2 py-1" type="date"></label><label class="grid gap-1"><span>Hasta<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></span><input id="loansTo" class="date-to border rounded px-2 py-1" type="date"></label><button id="loansUntilLastPayment" type="button" class="border rounded px-3 py-1 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Hasta última cuota</button><p class="text-xs text-slate-500">El rango filtra las cuotas por fecha de vencimiento.</p></div>
   <div id="kPrest" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3"></div>
   <div class="grid lg:grid-cols-3 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300 lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Cuotas pendientes por mes y préstamo</h3><span class="chart-badge">RECOMENDADO · PLANIFICACIÓN</span></div><p class="chart-note">Las barras apiladas muestran el total de cuotas pendientes de cada préstamo en el rango seleccionado. La línea marca el total mensual combinado.</p><div class="h-80"><canvas id="cCuota"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición de deuda pendiente</h3><span class="chart-badge">COSTO FINANCIERO</span></div><p class="chart-note">Separa capital por amortizar del costo financiero que resta pagar.</p><div class="h-80"><canvas id="cPrestDon"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300 lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Cuotas pendientes por mes y préstamo<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">RECOMENDADO · PLANIFICACIÓN</span></div><p class="chart-note">Las barras apiladas muestran el total de cuotas pendientes de cada préstamo en el rango seleccionado. La línea marca el total mensual combinado.</p><div class="h-80"><canvas id="cCuota"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición de deuda pendiente<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">COSTO FINANCIERO</span></div><p class="chart-note">Separa capital por amortizar del costo financiero que resta pagar.</p><div class="h-80"><canvas id="cPrestDon"></canvas></div></div>
   </div>
+  <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto"><h3 class="font-semibold mb-1">Detalle de deuda pendiente por préstamo</h3><p class="chart-note">Muestra todos los préstamos con cuotas pendientes, sin aplicar el rango de fechas. Los importes consideran todas sus cuotas con vencimiento futuro. Supuesto: se toma como pagadas las cuotas con vencimiento hasta hoy.</p><table id="tDeudaPendiente" class="w-full min-w-[1100px] text-sm"></table></div>
   <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Cuotas pendientes por mes y banco</h3><span class="chart-badge">COMPARACIÓN · PLAN COMPLETO</span></div><p class="chart-note">Muestra todos los meses con cuotas pendientes del plan completo, sin aplicar el filtro de fechas de esta pestaña. Solo incluye vencimientos futuros.</p><div class="h-80"><canvas id="cTimeline"></canvas></div></div>
-  <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto"><h3 class="font-semibold mb-2">Próximos vencimientos</h3><table id="tPrest" class="w-full text-sm"></table></div>
+  <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto"><h3 class="font-semibold mb-1">Próximos vencimientos</h3><p class="chart-note">Muestra las próximas cuotas pendientes de todos los préstamos, sin aplicar el rango de fechas seleccionado.</p><table id="tPrest" class="w-full text-sm"></table></div>
   <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto"><h3 class="font-semibold mb-1">Capital inicial y CFT estimado por préstamo</h3><p class="chart-note">El capital inicial es la suma del capital amortizado de todas sus cuotas. CFT anual efectivo estimado con los flujos de pago; se supone que el préstamo se obtuvo un mes antes del primer vencimiento. Es una estimación, no reemplaza el CFT informado por el banco. El rango selecciona préstamos con al menos un vencimiento en el período, pero los importes y la tasa de esta tabla consideran el plan completo.</p><table id="tCft" class="w-full text-sm"></table></div>
+  <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Movimientos</h3><span id="movimientosCount" class="chart-badge"></span></div>
+    <p class="chart-note">Incluye todas las cuotas del plan, sin aplicar el rango de fechas. Supuesto: se toma como pagadas las cuotas con vencimiento hasta hoy.</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 text-sm">
+      <label class="grid gap-1">Préstamo_ID<input id="movimientoLoanFilter" type="search" class="border rounded px-2 py-1" placeholder="Buscar préstamo"></label>
+      <label class="grid gap-1">Mes<input id="movimientoMonthFilter" type="month" class="border rounded px-2 py-1"></label>
+      <label class="grid gap-1">Estado<select id="movimientoStatusFilter" class="border rounded px-2 py-1"><option value="">Todos</option><option value="Pagada">Pagada</option><option value="Pendiente">Pendiente</option></select></label>
+      <button id="clearMovementFilters" type="button" class="self-end border rounded px-3 py-1 hover:bg-slate-50">Limpiar filtros</button>
+    </div>
+    <div class="purchase-records-scroll"><table id="tMovimientos" class="w-full min-w-[1100px] text-xs"></table></div>
+  </div>
 </section>
 
 <section id="tab-ventas" class="hidden space-y-5">
-  <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm"><label class="grid gap-1">Desde<input id="salesFrom" class="date-from border rounded px-2 py-1" type="date"></label><label class="grid gap-1">Hasta<input id="salesTo" class="date-to border rounded px-2 py-1" type="date"></label><label class="grid gap-1">Sucursal<select id="salesBranchFilter" class="border rounded px-2 py-1"><option value="">Todas las sucursales</option></select></label><p class="text-xs text-slate-500">El rango filtra ventas por fecha del comprobante. El gráfico “Ventas por sucursal” siempre compara todas las sucursales del período.</p></div>
+  <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm"><label class="grid gap-1"><span>Desde<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></span><input id="salesFrom" class="date-from border rounded px-2 py-1" type="date"></label><label class="grid gap-1"><span>Hasta<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></span><input id="salesTo" class="date-to border rounded px-2 py-1" type="date"></label><label class="grid gap-1">Sucursal<select id="salesBranchFilter" class="border rounded px-2 py-1"><option value="">Todas las sucursales</option></select></label><p class="text-xs text-slate-500">El rango filtra ventas por fecha del comprobante. El gráfico “Ventas por sucursal” siempre compara todas las sucursales del período.</p></div>
   <div id="kVentas" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
   <div class="grid lg:grid-cols-3 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300 lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Evolución de ventas</h3><span class="chart-badge">RECOMENDADO · TENDENCIA</span></div><p class="chart-note">Las barras muestran ventas diarias, la línea punteada la media móvil de 7 días y la segunda línea el ticket promedio diario en el eje derecho.</p><div class="h-80"><canvas id="cVEvo"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Ventas por sucursal</h3><span class="chart-badge">COMPARACIÓN</span></div><p class="chart-note">Barras ordenadas: compara el aporte de cada sucursal en importes. No se modifica al filtrar por sucursal.</p><div class="h-80"><canvas id="cVSuc"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300 lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Evolución de ventas<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">RECOMENDADO · TENDENCIA</span></div><p class="chart-note">Las barras muestran ventas diarias, la línea punteada la media móvil de 7 días y la segunda línea el ticket promedio diario en el eje derecho.</p><div class="h-80"><canvas id="cVEvo"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Ventas por sucursal<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">COMPARACIÓN</span></div><p class="chart-note">Barras ordenadas: compara el aporte de cada sucursal en importes. No se modifica al filtrar por sucursal.</p><div class="h-80"><canvas id="cVSuc"></canvas></div></div>
   </div>
   <div class="grid lg:grid-cols-2 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Ventas entregadas y pendientes</h3><span class="chart-badge">BACKLOG OPERATIVO</span></div><p class="chart-note">Participación por cantidad de comprobantes no anulados con estado “SI” o “NO”. Los registros sin estado reconocido se excluyen.</p><div class="h-80"><canvas id="cVEntrega"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Mix de facturación por tipo</h3><span class="chart-badge">COMPOSICIÓN DE VENTAS</span></div><p class="chart-note">Participación de cada tipo de comprobante según el importe facturado en el período y la sucursal seleccionados.</p><div class="h-80"><canvas id="cVTipo"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Ventas entregadas y pendientes<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">BACKLOG OPERATIVO</span></div><p class="chart-note">Participación por cantidad de comprobantes no anulados con estado “SI” o “NO”. Los registros sin estado reconocido se excluyen.</p><div class="h-80"><canvas id="cVEntrega"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Mix de facturación por tipo<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">COMPOSICIÓN DE VENTAS</span></div><p class="chart-note">Participación de cada tipo de comprobante según el importe facturado en el período y la sucursal seleccionados.</p><div class="h-80"><canvas id="cVTipo"></canvas></div></div>
   </div>
   <div class="grid lg:grid-cols-2 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Análisis ABC de clientes</h3><span class="chart-badge">CONCENTRACIÓN</span></div><p class="chart-note">Clientes ordenados por facturación neta: A hasta el 80% acumulado, B hasta el 95% y C para el resto. Se excluyen “Consumidor Final” y “Sin dato”; los porcentajes reales pueden variar al asignar clientes completos.</p><div class="h-72"><canvas id="cVCli"></canvas></div><div id="insABC" class="grid sm:grid-cols-3 gap-2 mt-3"></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Ticket promedio por día</h3><span class="chart-badge">LUNES A DOMINGO</span></div><p class="chart-note">Promedio por comprobante no anulado en cada día de la semana, considerando el rango y la sucursal seleccionados.</p><div class="h-72"><canvas id="cVWeekday"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Análisis ABC de clientes<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">CONCENTRACIÓN</span></div><p class="chart-note">Clientes ordenados por facturación neta: A hasta el 80% acumulado, B hasta el 95% y C para el resto. Se excluyen “Consumidor Final” y “Sin dato”; los porcentajes reales pueden variar al asignar clientes completos.</p><div class="h-72"><canvas id="cVCli"></canvas></div><div id="insABC" class="grid sm:grid-cols-3 gap-2 mt-3"></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Ticket promedio por día<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">LUNES A DOMINGO</span></div><p class="chart-note">Promedio por comprobante no anulado en cada día de la semana, considerando el rango y la sucursal seleccionados.</p><div class="h-72"><canvas id="cVWeekday"></canvas></div></div>
   </div>
   <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Detalle de ventas</h3><span id="salesDetailCount" class="chart-badge"></span></div>
@@ -166,18 +182,17 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif}
 </section>
 
 <section id="tab-compras" class="hidden space-y-5">
-  <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm"><label class="grid gap-1">Desde<input id="purchasesFrom" class="date-from border rounded px-2 py-1" type="date"></label><label class="grid gap-1">Hasta<input id="purchasesTo" class="date-to border rounded px-2 py-1" type="date"></label><p class="text-xs text-slate-500">El rango filtra compras por fecha estimada de pago.</p></div>
+  <div class="card hover:shadow-md transition-all duration-300 flex flex-wrap items-end gap-4 text-sm"><label class="grid gap-1"><span>Desde<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></span><input id="purchasesFrom" class="date-from border rounded px-2 py-1" type="date"></label><label class="grid gap-1"><span>Hasta<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></span><input id="purchasesTo" class="date-to border rounded px-2 py-1" type="date"></label><p class="text-xs text-slate-500">El rango filtra compras por fecha estimada de pago.</p></div>
   <div id="kCompras" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
   <div class="grid lg:grid-cols-2 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Compras netas por proveedor</h3><span class="chart-badge">RECOMENDADO · COMPARACIÓN</span></div><p class="chart-note">Ordena los 10 principales por importe neto; las notas de crédito reducen el valor del proveedor.</p><div class="h-80"><canvas id="cCProv"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Plazos del Top 10 de proveedores</h3><span class="chart-badge">TOP 10 · ORDEN DEL EXCEL</span></div><p class="chart-note">Selecciona los 10 proveedores con mayor compra neta del período y los muestra en el orden de la hoja “Plazo Proveedores”. Los que no figuran allí van al final según su primera aparición en “Compras”. Gris indica que se usa el plazo por defecto.</p><div class="h-80"><canvas id="cCPlazo"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Compras netas por proveedor<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">RECOMENDADO · COMPARACIÓN</span></div><p class="chart-note">Ordena los 10 principales por importe neto; las notas de crédito reducen el valor del proveedor.</p><div class="h-80"><canvas id="cCProv"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Plazos del Top 10 de proveedores<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">TOP 10 · PLAZO DESCENDENTE</span></div><p class="chart-note">Selecciona los 10 proveedores con mayor compra neta del período y los ordena de mayor a menor plazo de pago. Gris indica que se usa el plazo por defecto.</p><div class="h-80"><canvas id="cCPlazo"></canvas></div></div>
   </div>
   <div class="grid lg:grid-cols-2 gap-4">
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición del gasto</h3><span class="chart-badge">IMPORTES NETOS</span></div><p class="chart-note">Desglosa neto gravado, importes no gravados, exentos, IVA y otros tributos. “Importe sin desglose” identifica totales que el Excel no discrimina por concepto (por ejemplo, Factura C). Las notas de crédito reducen los importes; el porcentaje se calcula sobre el gasto neto del período.</p><div class="h-80"><canvas id="cCGasto"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Distribución por comprobante</h3><span class="chart-badge">PARTICIPACIÓN</span></div><p class="chart-note">Muestra qué porcentaje de los registros corresponde a cada tipo de comprobante y la cantidad procesada.</p><div class="h-80"><canvas id="cCTipo"></canvas></div></div>
-    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición del IVA por alícuota</h3><span class="chart-badge">CRÉDITO FISCAL</span></div><p class="chart-note">Distribuye el IVA informado al 10,5%, 21% y 27% como porcentaje del total de esas alícuotas. Las notas de crédito reducen los importes.</p><div class="h-80"><canvas id="cCIva"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Composición del gasto<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">IMPORTES NETOS</span></div><p class="chart-note">Desglosa neto gravado, importes no gravados, exentos, IVA y otros tributos. Al pasar sobre IVA, muestra el importe y la participación de cada alícuota. “Importe sin desglose” identifica totales que el Excel no discrimina por concepto (por ejemplo, Factura C). Las notas de crédito reducen los importes; el porcentaje se calcula sobre el gasto neto del período.</p><div class="h-80"><canvas id="cCGasto"></canvas></div></div>
+    <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 class="font-semibold">Distribución por comprobante<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><span class="chart-badge">PARTICIPACIÓN</span></div><p class="chart-note">Muestra qué porcentaje de los registros corresponde a cada tipo de comprobante y la cantidad procesada.</p><div class="h-80"><canvas id="cCTipo"></canvas></div></div>
   </div>
-  <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 id="purchaseCalendarTitle" class="font-semibold">Calendario de pagos de compras por semana</h3><div class="flex flex-wrap items-center gap-2"><label for="purchaseCalendarGranularity" class="text-xs text-slate-600">Agrupar por</label><select id="purchaseCalendarGranularity" class="border rounded px-2 py-1 text-sm"><option value="week" selected>Semana</option><option value="day">Día</option></select><span class="chart-badge">RECOMENDADO · TESORERÍA</span></div></div>
+  <div class="card hover:shadow-md transition-all duration-300"><div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3 id="purchaseCalendarTitle" class="font-semibold">Calendario de pagos de compras por semana<span class="date-range-icon" role="img" aria-label="Filtrado por rango Desde/Hasta" title="Filtrado por rango Desde/Hasta"></span></h3><div class="flex flex-wrap items-center gap-2"><label for="purchaseCalendarGranularity" class="text-xs text-slate-600">Agrupar por</label><select id="purchaseCalendarGranularity" class="border rounded px-2 py-1 text-sm"><option value="week" selected>Semana</option><option value="day">Día</option></select><span class="chart-badge">RECOMENDADO · TESORERÍA</span></div></div>
     <p id="purchaseCalendarNote" class="text-xs text-slate-500 mb-2">Barras azules: semanas ya vencidas. Barras ámbar: pagos pendientes que impactan el flujo futuro.</p>
     <div class="h-80"><canvas id="cCFut"></canvas></div></div>
   <div class="card hover:shadow-md transition-all duration-300 overflow-x-auto">
@@ -185,24 +200,30 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif}
     <p class="chart-note">Registros incluidos según la fecha estimada de pago del período seleccionado. Los importes de notas de crédito se muestran con signo negativo.</p>
     <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3 mb-3 text-sm">
       <label class="grid gap-1">Fecha emisión<input type="date" data-purchase-filter="fecha" class="purchase-detail-filter border rounded px-2 py-1"></label>
-      <label class="grid gap-1">Pago estimado<input type="date" data-purchase-filter="pago" class="purchase-detail-filter border rounded px-2 py-1"></label>
+      <label class="grid gap-1">Fecha de pago<input type="date" data-purchase-filter="pago" class="purchase-detail-filter border rounded px-2 py-1"></label>
       <label class="grid gap-1">Comprobante<input type="search" data-purchase-filter="tipo" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Buscar texto"></label>
       <label class="grid gap-1">Número<input type="search" data-purchase-filter="numero" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Buscar texto"></label>
       <label class="grid gap-1">Proveedor<input type="search" data-purchase-filter="prov" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Buscar texto"></label>
-      <label class="grid gap-1">Neto gravado<input type="search" data-purchase-filter="netoGravado" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">IVA<input type="search" data-purchase-filter="iva" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">No gravado<input type="search" data-purchase-filter="noGravado" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">Exento<input type="search" data-purchase-filter="exento" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">Otros tributos<input type="search" data-purchase-filter="otrosTributos" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">Sin desglose<input type="search" data-purchase-filter="noDesglosado" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
-      <label class="grid gap-1">Total<input type="search" data-purchase-filter="monto" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Ej. 1000 o >=500"></label>
+      <label class="grid gap-1">Total (mayor que)<input type="number" min="0" step="any" data-purchase-filter="monto" class="purchase-detail-filter border rounded px-2 py-1" placeholder="Importe mínimo"></label>
       <button id="clearPurchaseDetailFilters" type="button" class="self-end border rounded px-3 py-1 hover:bg-slate-50">Limpiar filtros</button>
     </div>
-    <p class="chart-note">Los filtros se aplican solo al detalle; los importes aceptan coincidencia exacta o comparaciones como &gt;=500.</p>
+    <p class="chart-note">Los filtros se aplican solo al detalle. «Total (mayor que)» muestra registros cuyo total supera estrictamente el importe ingresado.</p>
     <div class="purchase-records-scroll"><table id="tComprasDetalle" class="w-full min-w-[1050px] text-xs"></table></div>
   </div>
 </section>
 </main>
+<div id="weeklyDetailModal" class="weekly-modal" aria-hidden="true">
+  <div class="weekly-modal-panel p-4 sm:p-5" role="dialog" aria-modal="true" aria-labelledby="weeklyDetailTitle">
+    <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-200">
+      <div><h3 id="weeklyDetailTitle" class="text-base font-semibold text-slate-800">Detalle semanal</h3><p class="chart-note mt-1 mb-0">Los egresos se muestran con signo negativo.</p></div>
+      <button type="button" id="weeklyDetailClose" class="rounded border border-slate-200 px-2 py-1 text-lg leading-none text-slate-600 hover:bg-slate-100" aria-label="Cerrar detalle" title="Cerrar">×</button>
+    </div>
+    <div class="weekly-detail mt-3 text-xs text-slate-600">
+      <table class="w-full min-w-[650px]"><thead><tr class="text-left border-b"><th class="py-1 pr-2">Fecha</th><th class="px-2">Tipo</th><th class="px-2">Concepto</th><th class="px-2 text-right">Importe</th></tr></thead><tbody id="weeklyDetailRows"></tbody></table>
+    </div>
+    <button type="button" id="weeklyDetailMore" class="weekly-more mt-2 text-teal-800 underline text-xs"></button>
+  </div>
+</div>
 
 <script>
 /* ===== Utilidades ===== */
@@ -567,7 +588,7 @@ function renderHome(){
 /* ===== Flujo general ===== */
 function validRange(from,to){ return !!from && !!to && from<=to; }
 function clearCharts(ids){ ChartRenderer.clear(ids); }
-let weeklyDetails={};
+let weeklyDetails={}, activeWeeklyDetail='', weeklyDetailOffset=0, weeklyDetailTrigger=null;
 function renderWeeklyTable(from,to,initialBalance){
   const weeks=new Map();
   const add=(date,type,description,amount,category,detailAmount=amount)=>{
@@ -590,24 +611,39 @@ function renderWeeklyTable(from,to,initialBalance){
     closing+=net;
     weeklyDetails[start]=week.items.sort((a,b)=>a.date.localeCompare(b.date)||a.type.localeCompare(b.type));
     const end=addDays(start,6);
-    rows.push(`<tr class="border-b border-slate-100 align-top"><td class="py-2 pr-3 whitespace-nowrap">${start} – ${end}</td><td class="text-right px-2">${fmt(week.sales)}</td><td class="text-right px-2">${fmt(week.purchases)}</td><td class="text-right px-2">${fmt(week.loans)}</td><td class="text-right px-2">${fmt(totalIn)}</td><td class="text-right px-2">${fmt(totalOut)}</td><td class="text-right px-2 font-medium ${net>=0?'text-teal-700':'text-rose-700'}">${fmt(net)}</td><td class="text-right px-2 font-medium">${fmt(closing)}</td><td class="px-2 py-2"><details class="weekly-details" data-week="${start}"><summary class="cursor-pointer text-teal-800 underline">Ver (${weeklyDetails[start].length})</summary><div class="weekly-detail mt-2 text-xs text-slate-600"></div></details></td></tr>`);
+    rows.push(`<tr class="border-b border-slate-100 align-top"><td class="py-2 pr-3 whitespace-nowrap">${start} – ${end}</td><td class="text-right px-2">${fmt(week.sales)}</td><td class="text-right px-2">${fmt(week.purchases)}</td><td class="text-right px-2">${fmt(week.loans)}</td><td class="text-right px-2">${fmt(totalIn)}</td><td class="text-right px-2">${fmt(totalOut)}</td><td class="text-right px-2 font-medium ${net>=0?'text-teal-700':'text-rose-700'}">${fmt(net)}</td><td class="text-right px-2 font-medium">${fmt(closing)}</td><td class="px-2 py-2"><button type="button" class="weekly-open cursor-pointer text-teal-800 underline" data-week="${start}">Ver detalle (${weeklyDetails[start].length})</button></td></tr>`);
   }
   $('weeklyTable').innerHTML=rows.join('');
 }
-function loadWeeklyDetail(details){
-  const start=details.dataset.week, items=weeklyDetails[start]||[];
-  const pageSize=100, offset=Number(details.dataset.offset)||0, next=items.slice(offset,offset+pageSize);
+function loadWeeklyDetail(reset=false){
+  const items=weeklyDetails[activeWeeklyDetail]||[];
+  const pageSize=100, offset=reset?0:weeklyDetailOffset, next=items.slice(offset,offset+pageSize);
   const body=next.map(item=>`<tr class="border-b border-slate-100"><td class="py-1 pr-2 whitespace-nowrap">${item.date}</td><td class="px-2 whitespace-nowrap">${item.type}</td><td class="px-2">${esc(item.description)}</td><td class="px-2 text-right whitespace-nowrap ${item.amount<0?'text-rose-700':'text-teal-700'}">${fmt(item.amount)}</td></tr>`).join('');
-  const container=details.querySelector('.weekly-detail');
-  if(details.dataset.loaded!=='true'){
-    container.innerHTML=`<table class="w-full"><thead><tr class="text-left border-b"><th class="py-1 pr-2">Fecha</th><th class="px-2">Tipo</th><th class="px-2">Concepto</th><th class="px-2 text-right">Importe</th></tr></thead><tbody>${body||'<tr><td colspan="4" class="py-2">Sin movimientos en esta semana.</td></tr>'}</tbody></table><button type="button" class="weekly-more mt-2 text-teal-800 underline text-xs"></button>`;
-  } else if(body) container.querySelector('tbody').insertAdjacentHTML('beforeend',body);
-  details.dataset.offset=String(offset+next.length);
-  const more=container.querySelector('.weekly-more');
-  const remaining=items.length-(offset+next.length);
+  const tableBody=$('weeklyDetailRows');
+  if(reset) tableBody.innerHTML=body||'<tr><td colspan="4" class="py-2">Sin movimientos en esta semana.</td></tr>';
+  else if(body) tableBody.insertAdjacentHTML('beforeend',body);
+  weeklyDetailOffset=offset+next.length;
+  const more=$('weeklyDetailMore');
+  const remaining=items.length-weeklyDetailOffset;
   more.hidden=remaining<=0;
   more.textContent=`Mostrar 100 más (${remaining.toLocaleString('es-AR')} restantes)`;
-  details.dataset.loaded='true';
+}
+function openWeeklyDetail(start,trigger){
+  activeWeeklyDetail=start;
+  weeklyDetailTrigger=trigger;
+  const end=addDays(start,6);
+  $('weeklyDetailTitle').textContent=`Detalle semanal · ${start} – ${end}`;
+  loadWeeklyDetail(true);
+  $('weeklyDetailModal').classList.add('is-open');
+  $('weeklyDetailModal').setAttribute('aria-hidden','false');
+  $('weeklyDetailClose').focus();
+}
+function closeWeeklyDetail(){
+  const modal=$('weeklyDetailModal');
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden','true');
+  if(weeklyDetailTrigger?.isConnected) weeklyDetailTrigger.focus();
+  weeklyDetailTrigger=null;
 }
 function renderFlow(){
   const from=$('from').value, to=$('to').value, ini=+$('ini').value||0, showAcc=$('acc').checked;
@@ -650,11 +686,27 @@ function renderFlow(){
 }
 
 /* ===== Préstamos ===== */
+function renderLoanMovements(rows){
+  const loanFilter=norm($('movimientoLoanFilter').value.trim());
+  const monthFilter=$('movimientoMonthFilter').value;
+  const statusFilter=$('movimientoStatusFilter').value;
+  const filtered=rows.filter(p=>(!loanFilter||norm(p.Prestamo_ID||'Sin ID').includes(loanFilter))
+    &&(!monthFilter||p.Vencimiento.startsWith(monthFilter))
+    &&(!statusFilter||(p.Vencimiento<=HOY?'Pagada':'Pendiente')===statusFilter));
+  $('movimientosCount').textContent=filtered.length===rows.length
+    ? `${rows.length.toLocaleString('es-AR')} movimientos`
+    : `${filtered.length.toLocaleString('es-AR')} de ${rows.length.toLocaleString('es-AR')} movimientos`;
+  $('tMovimientos').innerHTML='<thead class="text-left text-slate-500 border-b"><tr><th class="py-2 pr-2">Banco</th><th class="px-2">Prestamo_ID</th><th class="px-2">Cuota</th><th class="px-2">Vencimiento</th><th class="text-right px-2">Capital</th><th class="text-right px-2">Interés</th><th class="text-right px-2">Cargos e impuestos</th><th class="text-right px-2">Total cuota</th><th class="px-2">Mes</th><th class="px-2">Estado</th></tr></thead><tbody>'
+    +(filtered.map(p=>`<tr class="border-b border-slate-100"><td class="py-1 pr-2">${p.Banco}</td><td class="px-2">${esc(p.Prestamo_ID||'Sin ID')}</td><td class="px-2">${p.Cuota}</td><td class="px-2 whitespace-nowrap">${p.Vencimiento}</td><td class="text-right px-2">${fmt(p.Capital)}</td><td class="text-right px-2">${fmt(p.Interes)}</td><td class="text-right px-2">${fmt(p.Cargos_e_Impuestos)}</td><td class="text-right px-2 font-medium">${fmt(p.Total_Cuota)}</td><td class="px-2 whitespace-nowrap">${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][Number(p.Vencimiento.slice(5,7))-1]}-${p.Vencimiento.slice(0,4)}</td><td class="px-2"><span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${p.Vencimiento<=HOY?'bg-green-100 text-green-800':'bg-yellow-100 text-yellow-800'}">${p.Vencimiento<=HOY?'Pagada':'Pendiente'}</span></td></tr>`).join('')||'<tr><td colspan="10" class="py-2 text-slate-500">No hay movimientos que coincidan con los filtros.</td></tr>')+'</tbody>';
+}
 function renderLoans(){
-  if(!appState.raw.prestamos.length){ $('loansUntilLastPayment').disabled=true; clearCharts(['cCuota','cPrestDon','cTimeline']); $('tPrest').innerHTML=''; $('tCft').innerHTML=''; return emptyNote('kPrest','Préstamos'); }
+  if(!appState.raw.prestamos.length){ $('loansUntilLastPayment').disabled=true; clearCharts(['cCuota','cPrestDon','cTimeline']); $('tPrest').innerHTML=''; $('tCft').innerHTML=''; $('tDeudaPendiente').innerHTML=''; $('tMovimientos').innerHTML=''; return emptyNote('kPrest','Préstamos'); }
+  const movements=appState.raw.prestamos.slice().sort((a,b)=>a.Vencimiento.localeCompare(b.Vencimiento)
+    ||a.Banco.localeCompare(b.Banco)||a.Prestamo_ID.localeCompare(b.Prestamo_ID)||a.Cuota-b.Cuota);
+  renderLoanMovements(movements);
   $('loansUntilLastPayment').disabled=false;
   const from=$('loansFrom').value,to=$('loansTo').value;
-  if(!validRange(from,to)){ $('kPrest').innerHTML='<p class="text-rose-600 text-sm col-span-full">Revise el rango de fechas.</p>'; clearCharts(['cCuota','cPrestDon','cTimeline']); $('tPrest').innerHTML=''; $('tCft').innerHTML=''; return; }
+  if(!validRange(from,to)){ $('kPrest').innerHTML='<p class="text-rose-600 text-sm col-span-full">Revise el rango de fechas.</p>'; clearCharts(['cCuota','cPrestDon','cTimeline']); $('tPrest').innerHTML=''; $('tCft').innerHTML=''; $('tDeudaPendiente').innerHTML=''; $('tMovimientos').innerHTML=''; return; }
   const inRange=p=>within(p.Vencimiento,from,to);
   const groups=new Map();
   for(const p of appState.raw.prestamos){
@@ -698,16 +750,28 @@ function renderLoans(){
       pointRadius:3,pointHoverRadius:5,tension:.2,yAxisID:'yTotal',order:0}
   ]},{scales:{x:{stacked:true},y:{stacked:true,...money},
     yTotal:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{callback:cmp}}}});
-  mk('cPrestDon','doughnut',{labels:['Capital','Interés','Cargos e impuestos'],datasets:[{data:[tc,ti,tg],backgroundColor:[COL.in,COL.loan,COL.out]}]},{interaction:{mode:'nearest'}});
-  const todasPendientes=appState.raw.prestamos.filter(p=>p.Vencimiento>HOY);
+  const debtComponents=[tc,ti,tg], debtComponentLabels=['Capital','Interés','Cargos e impuestos'];
+  const totalDebtComponents=sum(debtComponents,value=>value);
+  const debtComponentShares=debtComponents.map(value=>totalDebtComponents?value/totalDebtComponents*100:0);
+  mk('cPrestDon','doughnut',{labels:debtComponentLabels.map((label,index)=>`${label} (${debtComponentShares[index].toFixed(1)}%)`),
+    datasets:[{data:debtComponents,backgroundColor:[COL.in,COL.loan,COL.out]}]},{interaction:{mode:'nearest'},
+    plugins:{tooltip:{callbacks:{label:item=>` ${debtComponentLabels[item.dataIndex]}: ${fmt(item.raw)} (${debtComponentShares[item.dataIndex].toFixed(1)}%)`}}}});
+  const todasPendientes=appState.raw.prestamos.filter(p=>p.Vencimiento>HOY)
+    .sort((a,b)=>a.Vencimiento.localeCompare(b.Vencimiento));
   const mesesCompletos=[...new Set(todasPendientes.map(p=>p.Vencimiento.slice(0,7)))].sort();
   const bancos=[...new Set(todasPendientes.map(p=>p.Banco))], porBancoMes=group(todasPendientes,p=>`${p.Banco}|${p.Vencimiento.slice(0,7)}`,p=>p.Total_Cuota);
   mk('cTimeline','bar',{labels:mesesCompletos,datasets:bancos.map((b,i)=>({label:b,data:mesesCompletos.map(m=>porBancoMes[`${b}|${m}`]||0),
     backgroundColor:PAL[(i*3)%PAL.length],borderRadius:3}))},{scales:{x:{stacked:true},y:{stacked:true,...money}}});
-  $('tPrest').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1 pr-2">Banco</th><th class="pr-2">Cuota</th><th class="pr-2">Vencimiento</th><th class="text-right px-2">Capital</th><th class="text-right px-2">Interés</th><th class="text-right px-2">Cargos</th><th class="text-right px-2">Total</th></tr></thead><tbody>'
-    + (next.slice(0,8).map(p=>`<tr class="border-b border-slate-100"><td class="py-1 pr-2">${p.Banco}</td><td class="pr-2">${p.Cuota}/${mx[`${p.Banco}|${p.Prestamo_ID}`]}</td><td class="pr-2">${p.Vencimiento}</td><td class="text-right px-2">${fmt(p.Capital)}</td><td class="text-right px-2">${fmt(p.Interes)}</td><td class="text-right px-2">${fmt(p.Cargos_e_Impuestos)}</td><td class="text-right px-2 font-medium">${fmt(p.Total_Cuota)}</td></tr>`).join('')||'<tr><td colspan="7" class="py-2 text-slate-500">No hay cuotas pendientes en el rango seleccionado.</td></tr>')+'</tbody>';
-  $('tCft').innerHTML='<thead><tr class="text-left text-slate-500 border-b"><th class="py-1 pr-2">Banco</th><th class="pr-2">Préstamo</th><th class="text-right px-2">Capital inicial</th><th class="text-right px-2">Total a devolver</th><th class="text-right px-2">Intereses y cargos</th><th class="text-right px-2">CFT anual estimado</th></tr></thead><tbody>'
-    +(loanRows.filter(loan=>loan.rows.some(inRange)).map(p=>`<tr class="border-b border-slate-100"><td class="py-1 pr-2">${p.bank}</td><td class="pr-2">${esc(p.id||'Sin ID')}</td><td class="text-right px-2">${fmt(p.principal)}</td><td class="text-right px-2">${fmt(p.total)}</td><td class="text-right px-2">${fmt(p.cost)}</td><td class="text-right px-2 font-medium">${p.cft===null?'No calculable':`${p.cft.toFixed(2)}%`}</td></tr>`).join('')||'<tr><td colspan="6" class="py-2 text-slate-500">No hay préstamos con vencimientos dentro del rango seleccionado.</td></tr>')+'</tbody>';
+  $('tPrest').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1 pr-2">Banco</th><th class="pr-2">Préstamo</th><th class="pr-2">Cuota</th><th class="pr-2">Vencimiento</th><th class="text-right px-2">Capital</th><th class="text-right px-2">Interés</th><th class="text-right px-2">Cargos</th><th class="text-right px-2">Total</th></tr></thead><tbody>'
+    + (todasPendientes.slice(0,8).map(p=>`<tr class="border-b border-slate-100"><td class="py-1 pr-2">${p.Banco}</td><td class="pr-2">${esc(p.Prestamo_ID||'Sin ID')}</td><td class="pr-2">${p.Cuota}/${mx[`${p.Banco}|${p.Prestamo_ID}`]}</td><td class="pr-2">${p.Vencimiento}</td><td class="text-right px-2">${fmt(p.Capital)}</td><td class="text-right px-2">${fmt(p.Interes)}</td><td class="text-right px-2">${fmt(p.Cargos_e_Impuestos)}</td><td class="text-right px-2 font-medium">${fmt(p.Total_Cuota)}</td></tr>`).join('')||'<tr><td colspan="8" class="py-2 text-slate-500">No hay cuotas pendientes.</td></tr>')+'</tbody>';
+  $('tCft').innerHTML='<thead><tr class="text-left text-slate-500 border-b"><th class="py-1 pr-2">Banco</th><th class="pr-2">Préstamo</th><th class="text-right px-2">Capital inicial</th><th class="text-right px-2">Intereses y cargos</th><th class="text-right px-2">Total a devolver</th><th class="text-right px-2">CFT anual estimado</th></tr></thead><tbody>'
+    +(loanRows.filter(loan=>loan.rows.some(inRange)).map(p=>`<tr class="border-b border-slate-100"><td class="py-1 pr-2">${p.bank}</td><td class="pr-2">${esc(p.id||'Sin ID')}</td><td class="text-right px-2">${fmt(p.principal)}</td><td class="text-right px-2">${fmt(p.cost)}</td><td class="text-right px-2">${fmt(p.total)}</td><td class="text-right px-2 font-medium">${p.cft===null?'No calculable':`${p.cft.toFixed(2)}%`}</td></tr>`).join('')||'<tr><td colspan="6" class="py-2 text-slate-500">No hay préstamos con vencimientos dentro del rango seleccionado.</td></tr>')+'</tbody>';
+  const loansWithPending=loanRows.map(loan=>{
+    const pendingRows=loan.rows.filter(p=>p.Vencimiento>HOY);
+    return {...loan,pendingRows};
+  }).filter(loan=>loan.pendingRows.length>0);
+  $('tDeudaPendiente').innerHTML='<thead><tr class="text-left text-slate-500 border-b"><th class="py-1 pr-2">Banco</th><th class="pr-2">Préstamo</th><th class="text-right px-2">Cuotas totales</th><th class="text-right px-2">Cuotas pagadas</th><th class="text-right px-2">Cuotas pendientes</th><th class="text-right px-2">Capital pendiente</th><th class="text-right px-2">Interés pendiente</th><th class="text-right px-2">Cargos e impuestos pendientes</th><th class="text-right px-2">Total pendiente</th></tr></thead><tbody>'
+    +(loansWithPending.map(loan=>`<tr class="border-b border-slate-100"><td class="py-1 pr-2">${loan.bank}</td><td class="pr-2">${esc(loan.id||'Sin ID')}</td><td class="text-right px-2">${mx[`${loan.bank}|${loan.id}`]||loan.rows.length}</td><td class="text-right px-2">${loan.rows.filter(p=>p.Vencimiento<=HOY).length}</td><td class="text-right px-2">${loan.pendingRows.length}</td><td class="text-right px-2">${fmt(sum(loan.pendingRows,p=>p.Capital))}</td><td class="text-right px-2">${fmt(sum(loan.pendingRows,p=>p.Interes))}</td><td class="text-right px-2">${fmt(sum(loan.pendingRows,p=>p.Cargos_e_Impuestos))}</td><td class="text-right px-2 font-medium">${fmt(sum(loan.pendingRows,p=>p.Total_Cuota))}</td></tr>`).join('')||'<tr><td colspan="9" class="py-2 text-slate-500">No hay préstamos con cuotas pendientes.</td></tr>')+'</tbody>';
 }
 
 /* ===== Ventas ===== */
@@ -859,29 +923,14 @@ function renderSales(){
 
 /* ===== Compras y proveedores ===== */
 function renderPurchaseDetails(rows){
-  const fields=[
-    ['fecha','Fecha emisión'],['pago','Pago estimado'],['tipo','Comprobante'],['numero','Número'],['prov','Proveedor'],
-    ['netoGravado','Neto gravado'],['iva','IVA'],['noGravado','No gravado'],['exento','Exento'],
-    ['otrosTributos','Otros tributos'],['noDesglosado','Sin desglose'],['monto','Total']
-  ];
   const filters=Object.fromEntries([...document.querySelectorAll('.purchase-detail-filter')].map(input=>[input.dataset.purchaseFilter,input.value.trim()]));
-  const filtered=rows.filter(c=>fields.every(([field])=>{
-    const query=filters[field];
-    if(!query) return true;
-    const value=c[field];
-    if(field==='fecha'||field==='pago') return value===query;
-    if(typeof value==='number'){
-      const match=query.match(/^\s*(<=|>=|<|>|=)?\s*(-?[\d.,]+)\s*$/);
-      if(!match) return false;
-      const target=num(match[2]), operator=match[1]||'=';
-      if(operator==='>') return value>target;
-      if(operator==='>=') return value>=target;
-      if(operator==='<') return value<target;
-      if(operator==='<=') return value<=target;
-      return Math.abs(value-target)<0.005;
-    }
-    return norm(value).includes(norm(query));
-  }));
+  const totalThreshold=filters.monto===''?null:Number(filters.monto);
+  const filtered=rows.filter(c=>(!filters.fecha||c.fecha===filters.fecha)
+    &&(!filters.pago||c.pago===filters.pago)
+    &&(!filters.tipo||norm(c.tipo).includes(norm(filters.tipo)))
+    &&(!filters.numero||norm(c.numero).includes(norm(filters.numero)))
+    &&(!filters.prov||norm(c.prov).includes(norm(filters.prov)))
+    &&(totalThreshold===null||c.monto>totalThreshold));
   const recordRows=filtered.map(c=>`<tr class="border-b border-slate-100">
     <td class="py-1 pr-2 whitespace-nowrap">${c.fecha}</td><td class="px-2 whitespace-nowrap">${c.pago}</td>
     <td class="px-2">${esc(c.tipo)}</td><td class="px-2 whitespace-nowrap">${esc(c.numero||'—')}</td><td class="px-2">${esc(c.prov)}</td>
@@ -909,9 +958,9 @@ function renderPurchases(){
   $('purchaseCalendarTitle').textContent=`Calendario de pagos de compras por ${daily?'día':'semana'}`;
   $('purchaseCalendarNote').textContent=`Barras azules: ${daily?'días':'semanas'} ya vencidos. Barras ámbar: pagos pendientes que impactan el flujo futuro.`;
   const from=$('purchasesFrom').value,to=$('purchasesTo').value;
-  if(!validRange(from,to)){ $('kCompras').innerHTML='<p class="text-rose-600 text-sm col-span-full">Revise el rango de fechas.</p>'; clearCharts(['cCProv','cCPlazo','cCFut','cCGasto','cCTipo','cCIva']); renderPurchaseDetails([]); return; }
+  if(!validRange(from,to)){ $('kCompras').innerHTML='<p class="text-rose-600 text-sm col-span-full">Revise el rango de fechas.</p>'; clearCharts(['cCProv','cCPlazo','cCFut','cCGasto','cCTipo']); renderPurchaseDetails([]); return; }
   const purchasesIn=appState.processed.comprasX.filter(c=>within(c.pago,from,to));
-  if(!purchasesIn.length){ clearCharts(['cCProv','cCPlazo','cCFut','cCGasto','cCTipo','cCIva']); renderPurchaseDetails(purchasesIn); return emptyNote('kCompras','Compras en el rango seleccionado'); }
+  if(!purchasesIn.length){ clearCharts(['cCProv','cCPlazo','cCFut','cCGasto','cCTipo']); renderPurchaseDetails(purchasesIn); return emptyNote('kCompras','Compras en el rango seleccionado'); }
   const tot=sum(purchasesIn,c=>c.monto), pp=tot?sum(purchasesIn,c=>c.monto*c.plazo)/tot:0, pendiente=sum(purchasesIn.filter(c=>c.pago>HOY),c=>c.monto);
   const suppliersWithoutTermNames=[...new Set(purchasesIn.filter(c=>!c.conPlazo).map(c=>c.prov))].sort((a,b)=>a.localeCompare(b,'es'));
   const suppliersWithoutTerm=suppliersWithoutTermNames.length;
@@ -925,11 +974,25 @@ function renderPurchases(){
     ['Otros tributos',sum(purchasesIn,c=>c.otrosTributos)],
     ['Importe sin desglose',sum(purchasesIn,c=>c.noDesglosado)]
   ];
+  const ivaAmounts=[
+    sum(purchasesIn,c=>c.iva105),
+    sum(purchasesIn,c=>c.iva21),
+    sum(purchasesIn,c=>c.iva27)
+  ];
+  const ivaTotal=sum(ivaAmounts,amount=>amount);
+  const ivaRates=['10,5%','21%','27%'];
+  const ivaShares=ivaAmounts.map(amount=>ivaTotal?amount/ivaTotal*100:0);
   mk('cCGasto','bar',{labels:gasto.map(([name])=>name),datasets:[{label:'Importe neto',data:gasto.map(([,amount])=>amount),
     backgroundColor:[COL.blue,'#64748b','#94a3b8',COL.in,COL.loan,'#6d597a'],borderRadius:4}]},{
     indexAxis:'y',scales:{x:{beginAtZero:true,...money},y:{grid:{display:false}}},
     plugins:{legend:{display:false},tooltip:{callbacks:{label:item=>{
       const amount=item.parsed.x, share=tot?amount/tot*100:null;
+      if(item.dataIndex===3){
+        return [
+          ` IVA total: ${fmt(amount)}${share===null?'':` (${share.toFixed(1)}% del gasto neto)`}`,
+          ...ivaAmounts.map((ivaAmount,index)=>` IVA ${ivaRates[index]}: ${fmt(ivaAmount)} (${ivaShares[index].toFixed(1)}% del IVA total)`)
+        ];
+      }
       return ` ${fmt(amount)}${share===null?'':` (${share.toFixed(1)}% del neto)`}`;
     }}}}
   });
@@ -943,22 +1006,6 @@ function renderPurchases(){
       return ` ${count.toLocaleString('es-AR')} comprobantes (${pct.toFixed(1)}%)`;
     }}}}
   });
-  const ivaAmounts=[
-    sum(purchasesIn,c=>c.iva105),
-    sum(purchasesIn,c=>c.iva21),
-    sum(purchasesIn,c=>c.iva27)
-  ];
-  const ivaTotal=sum(ivaAmounts,amount=>amount);
-  const ivaShares=ivaAmounts.map(amount=>ivaTotal?amount/ivaTotal*100:0);
-  mk('cCIva','bar',{labels:['IVA crédito fiscal'],datasets:[
-    {label:'IVA 10,5%',data:[ivaShares[0]],amount:ivaAmounts[0],backgroundColor:COL.blue,stack:'iva'},
-    {label:'IVA 21%',data:[ivaShares[1]],amount:ivaAmounts[1],backgroundColor:COL.in,stack:'iva'},
-    {label:'IVA 27%',data:[ivaShares[2]],amount:ivaAmounts[2],backgroundColor:COL.loan,stack:'iva'}
-  ]},{indexAxis:'y',scales:{x:{stacked:true,beginAtZero:true,ticks:{callback:value=>`${value}%`}},y:{stacked:true,grid:{display:false}}},
-    plugins:{tooltip:{callbacks:{label:item=>{
-      const amount=item.dataset.amount,share=ivaTotal?ivaShares[item.datasetIndex]:null;
-      return ` ${item.dataset.label}: ${fmt(amount)}${share===null?'':` (${share.toFixed(1)}%)`}`;
-    }}}}});
   renderPurchaseDetails(purchasesIn);
   const supplierTotals=new Map();
   purchasesIn.forEach(c=>{
@@ -975,20 +1022,11 @@ function renderPurchases(){
     backgroundColor:top.map((_,i)=>PAL[i%PAL.length]),borderRadius:4}]},{
     indexAxis:'y',interaction:{mode:'nearest',intersect:true},scales:{x:money,y:{grid:{display:false}}},
     plugins:{legend:{display:false},tooltip:{callbacks:{
-      title:items=>items.length?`Proveedor: ${items[0].label}`:'',
-      label:item=>`Compras netas: ${fmt(item.parsed.x)}`
-    }}}});
-  const t10=pv.slice(0,10).map(supplier=>supplier.purchase);
-  const termOrder=new Map(appState.raw.plazos.map((p,i)=>[norm(p.Proveedor),i]));
-  const purchaseOrder=new Map();
-  purchasesIn.forEach((p,i)=>{if(!purchaseOrder.has(p.prov))purchaseOrder.set(p.prov,i);});
-  t10.sort((a,b)=>{
-    const ai=termOrder.get(norm(a.prov)), bi=termOrder.get(norm(b.prov));
-    if(ai!==undefined&&bi!==undefined) return ai-bi;
-    if(ai!==undefined) return -1;
-    if(bi!==undefined) return 1;
-    return purchaseOrder.get(a.prov)-purchaseOrder.get(b.prov);
-  });
+        title:items=>items.length?`Proveedor: ${items[0].label}`:'',
+        label:item=>`Compras netas: ${fmt(item.parsed.x)}`
+      }}}});
+    const t10=pv.slice(0,10).map(supplier=>supplier.purchase);
+    t10.sort((a,b)=>b.plazo-a.plazo||a.prov.localeCompare(b.prov));
   mk('cCPlazo','bar',{labels:t10.map(c=>c.prov),datasets:[{label:'Plazo (días)',data:t10.map(c=>c.plazo),backgroundColor:t10.map(c=>c.conPlazo?COL.blue:'#94a3b8'),borderRadius:4}]},
     {indexAxis:'y',interaction:{mode:'nearest',intersect:true},scales:{x:{beginAtZero:true,ticks:{callback:v=>`${v} d`},grid:{color:'#e2e8f0'}},y:{grid:{display:false}}},
       plugins:{legend:{display:false},tooltip:{callbacks:{
@@ -1068,14 +1106,31 @@ $('clearPurchaseDetailFilters').addEventListener('click',()=>{
   const from=$('purchasesFrom').value,to=$('purchasesTo').value;
   renderPurchaseDetails(validRange(from,to)?appState.processed.comprasX.filter(c=>within(c.pago,from,to)):[]);
 });
+const refreshLoanMovements=()=>{
+  const movements=appState.raw.prestamos.slice().sort((a,b)=>a.Vencimiento.localeCompare(b.Vencimiento)
+    ||a.Banco.localeCompare(b.Banco)||a.Prestamo_ID.localeCompare(b.Prestamo_ID)||a.Cuota-b.Cuota);
+  renderLoanMovements(movements);
+};
+$('movimientoLoanFilter').addEventListener('input',refreshLoanMovements);
+['movimientoMonthFilter','movimientoStatusFilter'].forEach(id=>$(id).addEventListener('change',refreshLoanMovements));
+$('clearMovementFilters').addEventListener('click',()=>{
+  $('movimientoLoanFilter').value='';
+  $('movimientoMonthFilter').value='';
+  $('movimientoStatusFilter').value='';
+  refreshLoanMovements();
+});
 ['ini','acc'].forEach(id => $(id).addEventListener('input',()=>{renderFlow(); if(appState.filters.current==='inicio')renderHome();}));
 $('weeklyTable').addEventListener('click',event=>{
-  const more=event.target.closest('.weekly-more');
-  if(more){ loadWeeklyDetail(more.closest('details')); return; }
-  const summary=event.target.closest('summary');
-  if(!summary) return;
-  const details=summary.closest('details');
-  if(details && !details.open) setTimeout(()=>loadWeeklyDetail(details),0);
+  const button=event.target.closest('.weekly-open');
+  if(button) openWeeklyDetail(button.dataset.week,button);
+});
+$('weeklyDetailMore').addEventListener('click',()=>loadWeeklyDetail());
+$('weeklyDetailClose').addEventListener('click',closeWeeklyDetail);
+$('weeklyDetailModal').addEventListener('click',event=>{
+  if(event.target===$('weeklyDetailModal')) closeWeeklyDetail();
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&$('weeklyDetailModal').classList.contains('is-open')) closeWeeklyDetail();
 });
 $('btnLoad').addEventListener('click', () => $('file').click());
 $('btnClearCache').addEventListener('click', () => UIManager.clearCache());

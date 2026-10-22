@@ -129,7 +129,7 @@ table th{font-weight:600}
     </div>
     <div id="validation" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4"></div>
     <div id="avisos" class="space-y-2 mt-3"></div>
-    <p class="text-xs text-slate-500 mt-4">Hojas esperadas: las 23 tablas del Excel normalizado (Ventas, Compras, Compras_IVA, Proveedores, Emisores, Clientes, Sucursales, TiposComprobante, Entidades, Financiaciones, Financiaciones_Cuotas, Pagos_Financiaciones, Pagos_Financiaciones_Cuotas, Espacios, Cuentas, MediosPago, ConceptosGasto, ConceptosTesoreria, Gastos, IVA_Mensual, Saldos_Cuentas, Movimientos_Tesoreria) con sus columnas. Basta con que el nombre de la hoja empiece igual; las hojas de control (Indice, Observaciones, etc.) se ignoran. Si falta una hoja o alguna columna, el archivo se rechaza y se conservan los datos anteriores.</p>
+    <p class="text-xs text-slate-500 mt-4">Hojas esperadas: las 24 tablas del Excel normalizado (Ventas, Compras, Compras_IVA, Proveedores, Emisores, Clientes, Sucursales, TiposComprobante, Entidades, Financiaciones, Financiaciones_Cuotas, Pagos_Financiaciones, Pagos_Financiaciones_Cuotas, Espacios, Cuentas, MediosPago, MediosCobro, ConceptosGasto, ConceptosTesoreria, Gastos, IVA_Mensual, Saldos_Cuentas, Movimientos_Tesoreria, Cobranzas_Mensuales) con sus columnas. Basta con que el nombre de la hoja empiece igual; las hojas de control (Indice, Observaciones, etc.) se ignoran. Si falta una hoja o alguna columna, el archivo se rechaza y se conservan los datos anteriores.</p>
   </div>
 
   <div id="homeLoaded" class="hidden space-y-5">
@@ -279,6 +279,13 @@ table th{font-weight:600}
     <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Ventas entregadas y pendientes<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">BACKLOG OPERATIVO</span></div><p class="chart-note">Comprobantes no anulados según la columna “Entregado”. Los registros sin estado reconocido se excluyen.</p><div class="h-64"><canvas id="cVEntrega"></canvas></div></div>
     <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Mix de facturación por tipo<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">COMPOSICIÓN</span></div><p class="chart-note">Importe facturado por tipo de comprobante en el período y la sucursal seleccionados.</p><div class="h-64"><canvas id="cVTipo"></canvas></div></div>
   </div>
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Mix de cobro por mes</h3><div class="seg" id="mixMode"><button type="button" data-v="pct" class="on">% del mes</button><button type="button" data-v="amt">Importes</button></div></div>
+    <p class="chart-note">Ventas brutas de cada mes según el medio con que se cobraron (hoja Cobranzas_Mensuales). Muestra todos los meses cargados: no usa el filtro de fechas ni de sucursal. Los medios con trama rayada no tienen el instrumento identificado (no se sabe si fue crédito, débito o saldo).</p>
+    <div id="mixKpis" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3"></div>
+    <div class="h-80"><canvas id="cVMix"></canvas></div>
+    <div class="scroll-table mt-4 overflow-x-auto"><table id="tMix" class="w-full text-sm num"></table></div>
+  </div>
   <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Clientes identificados · análisis ABC<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">CONCENTRACIÓN</span></div><p class="chart-note">Clientes ordenados por facturación neta, excluyendo “Consumidor Final” y “Sin dato”. A: hasta el 80% acumulado, B: hasta el 95%, C: el resto. El gráfico muestra los 15 principales.</p><p id="abcShare" class="text-sm text-slate-600 mb-2"></p>
     <div class="grid lg:grid-cols-5 gap-4"><div class="lg:col-span-3 h-80"><canvas id="cVCli"></canvas></div><div id="insABC" class="lg:col-span-2 grid gap-2 content-start"></div></div></div>
   <div class="card overflow-x-auto">
@@ -354,11 +361,11 @@ table th{font-weight:600}
     <div class="flex flex-wrap items-center justify-between gap-2"><h3>Gastos sobre ventas<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">% DE LAS VENTAS</span></div>
     <p class="chart-note">Cuánto representa cada gasto sobre las ventas de su mes. Respeta el rango y el filtro de clasificación de arriba.</p>
     <div class="flex flex-wrap items-end gap-4 mb-3">
-      <div class="field">Ventas de referencia<div class="seg" id="gvBase"><button type="button" data-v="auto" class="on">Automática</button><button type="button" data-v="fact">Facturadas</button><button type="button" data-v="cob">Cobradas</button></div></div>
+      <div class="field">Ventas de referencia<div class="seg" id="gvBase"><button type="button" data-v="auto" class="on">Automática</button><button type="button" data-v="fact">Facturadas</button><button type="button" data-v="mix">Mix de cobro</button><button type="button" data-v="cob">Cobradas</button></div></div>
       <div class="field">Mes del gasto<div class="seg" id="gvMes"><button type="button" data-v="imp" class="on">Mes al que corresponde</button><button type="button" data-v="pago">Mes de pago</button></div></div>
       <div class="field">Detalle<div class="seg" id="gvNivel"><button type="button" data-v="clas" class="on">Clasificación</button><button type="button" data-v="con">Concepto</button></div></div>
     </div>
-    <p class="text-xs text-slate-500 mb-3"><b>Facturadas:</b> total de la hoja Ventas (sin anuladas). <b>Cobradas:</b> ingresos de Tesorería por ventas (liquidaciones, cobranzas en efectivo, ventas online y mayoristas; sin rendimientos). Las liquidaciones llegan netas de comisiones y retenciones, así que dan un porcentaje algo más alto. <b>Automática:</b> usa las facturadas y, en los meses sin facturación cargada, las cobradas.</p>
+    <p class="text-xs text-slate-500 mb-3"><b>Facturadas:</b> total de la hoja Ventas (sin anuladas). <b>Mix de cobro:</b> ventas brutas por medio de cobro de la hoja Cobranzas_Mensuales. <b>Cobradas:</b> ingresos de Tesorería por ventas (liquidaciones, cobranzas en efectivo, ventas online y mayoristas; sin rendimientos), que llegan netas de comisiones y retenciones. <b>Automática:</b> en cada mes usa las facturadas; si no hay, el mix de cobro; si tampoco, las cobradas.</p>
     <div id="gvResumen" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3"></div>
     <div class="h-72"><canvas id="cGVen"></canvas></div>
     <div class="scroll-table mt-4 overflow-x-auto"><table id="tGVen" class="w-full text-sm num"></table></div>
@@ -557,7 +564,9 @@ const SCHEMA = {
   pagos:         {label:'Pagos_Financiaciones', sheet:'Pagos_Financiaciones', cols:['PagoID','Fecha','MedioPagoID','Monto','Detalle','DiferenciaVsProgramado','Fuente']},
   pagosCuotas:   {label:'Pagos_Financiaciones_Cuotas', sheet:'Pagos_Financiaciones_Cuotas', cols:['PagoID','FinanciacionID','Cuota']},
   saldos:        {label:'Saldos_Cuentas', sheet:'Saldos_Cuentas', cols:['CuentaID','Fecha','SaldoInicial','Fuente']},
-  movsTes:       {label:'Movimientos_Tesoreria', sheet:'Movimientos_Tesoreria', cols:['MovimientoID','Fecha','CuentaID','ConceptoTesoreriaID','EspacioID','Monto','Fuente']}
+  movsTes:       {label:'Movimientos_Tesoreria', sheet:'Movimientos_Tesoreria', cols:['MovimientoID','Fecha','CuentaID','ConceptoTesoreriaID','EspacioID','Monto','Fuente']},
+  mediosCobro:   {label:'MediosCobro', sheet:'MediosCobro', cols:['MedioCobroID','Nombre','Instrumento','Identificado','Descripcion']},
+  cobranzas:     {label:'Cobranzas_Mensuales', sheet:'Cobranzas_Mensuales', cols:['Periodo','MedioCobroID','Monto','Fuente']}
 };
 const SCHEMA_KEYS = Object.values(SCHEMA).map(s => norm(s.sheet));
 function findSheet(names, sheet){
@@ -696,7 +705,11 @@ function parseModel(d){
 
   const rel = Object.entries(missing);
   if (rel.length) avisos.push({t:'warn', m:`Hay referencias a claves inexistentes: ${rel.map(([k,n]) => `${k} (${int(n)})`).join(', ')}. Esas filas se muestran con el código en lugar del nombre.`});
-  return {raw:{ventas, compras, plazos, prestamos, gastos, iva, espacios, cuentas, saldos, movsTes, pagosFin}, avisos,
+  const mcob = index(d.mediosCobro,'mediocobroid');
+  const mediosCobro = d.mediosCobro.map(r => ({ID: sid(r.mediocobroid), Nombre: sid(r.nombre), Instrumento: sid(r.instrumento), Identificado: !isNo(r.identificado), Desc: sid(r.descripcion)}));
+  const cobranzas = d.cobranzas.map(r => { const m = mcob.get(sid(r.mediocobroid)); if (!m) miss('Cobranzas_Mensuales → MediosCobro');
+    return {Periodo: perOf(r.periodo), MedioID: sid(r.mediocobroid), Medio: m ? sid(m.nombre) : sid(r.mediocobroid), Monto: num(r.monto)}; }).filter(c => c.Periodo);
+  return {raw:{ventas, compras, plazos, prestamos, gastos, iva, espacios, cuentas, saldos, movsTes, pagosFin, mediosCobro, cobranzas}, avisos,
     dropped:[['Ventas', d.ventas.length - ventas.length], ['Compras', d.compras.length - compras.length], ['Financiaciones_Cuotas', d.cuotas.length - prestamos.length - usdSin], ['Gastos', d.gastos.length - gastos.length], ['Movimientos_Tesoreria', d.movsTes.length - movsTes.length]].filter(x => x[1] > 0)};
 }
 
@@ -750,9 +763,9 @@ const FLOW_CATS = [
 ];
 const FLOW_DEFAULT = {prov:true, loan:true, mor:true, gas:true, imp:true, iva:false};
 const appState = {
-  raw: {ventas:[], compras:[], plazos:[], prestamos:[], gastos:[], iva:[], espacios:[], cuentas:[], saldos:[], movsTes:[], pagosFin:[]},
+  raw: {ventas:[], compras:[], plazos:[], prestamos:[], gastos:[], iva:[], espacios:[], cuentas:[], saldos:[], movsTes:[], pagosFin:[], mediosCobro:[], cobranzas:[]},
   processed: {ventasOK:[], comprasX:[], gastosX:[], movs:{}, avisos:[], loaded:false, sourceName:'', savedAt:'', report:null, lastSale:null, firstSale:null, lastGasto:null, sucursales:[], loanKeys:[], bancos:[], clasificaciones:[], espacios:[], espacioNombre:{}},
-  ui: {current:'inicio', flowGran:'day', flowSelKey:null, flowCats:{...FLOW_DEFAULT}, loanTipo:'', loanTimeline:'banco', weekdayMetric:'avg', gvBase:'auto', gvMes:'imp', gvNivel:'clas', calGran:'week', matchFilter:'', salesLimit:300, purchasesLimit:300}
+  ui: {current:'inicio', flowGran:'day', flowSelKey:null, flowCats:{...FLOW_DEFAULT}, loanTipo:'', loanTimeline:'banco', weekdayMetric:'avg', mixMode:'pct', gvBase:'auto', gvMes:'imp', gvNivel:'clas', calGran:'week', matchFilter:'', salesLimit:300, purchasesLimit:300}
 };
 const lastDayOf = per => { const [y,m] = per.split('-').map(Number); return `${per}-${String(new Date(Date.UTC(y,m,0)).getUTCDate()).padStart(2,'0')}`; };
 const dayIn = (per, day) => { const last = +lastDayOf(per).slice(8); return `${per}-${String(Math.min(Math.max(1,Math.round(day)), last)).padStart(2,'0')}`; };
@@ -790,13 +803,13 @@ function build(){
   const clasSet = [...new Set(R.gastos.map(g=>g.Clasificacion))];
   P.clasificaciones = [...CLAS_ORDER.filter(c => clasSet.includes(c)), ...clasSet.filter(c => !CLAS_ORDER.includes(c)).sort()];
   P.espacios = R.espacios.map(e => e.Nombre); P.espacioNombre = Object.fromEntries(P.espacios.map(n => [n, n]));
-  P.loaded = P.ventasOK.length + P.comprasX.length + R.prestamos.length + R.gastos.length + R.movsTes.length > 0;
+  P.loaded = P.ventasOK.length + P.comprasX.length + R.prestamos.length + R.gastos.length + R.movsTes.length + R.cobranzas.length > 0;
 }
 
 /* =====================================================================
    Caché local (IndexedDB con respaldo en localStorage)
    ===================================================================== */
-const CACHE_DB = 'green-house-cashflow', CACHE_STORE = 'cache', CACHE_KEY = 'green-house-cashflow-v4', CACHE_VERSION = 4;
+const CACHE_DB = 'green-house-cashflow', CACHE_STORE = 'cache', CACHE_KEY = 'green-house-cashflow-v5', CACHE_VERSION = 5;
 function idbOpen(){
   return new Promise((resolve,reject) => {
     if (!('indexedDB' in window)) return reject(new Error('IndexedDB no disponible'));
@@ -835,9 +848,9 @@ async function persistCache(){
 }
 function validCache(c){
   if (!c || c.version!==CACHE_VERSION || !c.raw) return false;
-  const k = ['ventas','compras','plazos','prestamos','gastos','iva','espacios','cuentas','saldos','movsTes','pagosFin'];
+  const k = ['ventas','compras','plazos','prestamos','gastos','iva','espacios','cuentas','saldos','movsTes','pagosFin','mediosCobro','cobranzas'];
   if (k.some(x => !Array.isArray(c.raw[x]))) return false;
-  const probe = {ventas:['Fecha','TOTAL','Sucursal'], compras:['fecha','prov','monto','proveedorID'], plazos:['Codigo','Proveedor','Plazo'], prestamos:['Tipo','Banco','Vencimiento','Total_Cuota'], gastos:['Periodo','Concepto','Clasificacion','Monto'], iva:['Periodo','Monto'], espacios:['ID','Nombre'], cuentas:['ID','Nombre'], saldos:['Cuenta','Fecha','Saldo'], movsTes:['Fecha','Cuenta','Tipo','Monto'], pagosFin:['ID','Fecha','Monto']};
+  const probe = {ventas:['Fecha','TOTAL','Sucursal'], compras:['fecha','prov','monto','proveedorID'], plazos:['Codigo','Proveedor','Plazo'], prestamos:['Tipo','Banco','Vencimiento','Total_Cuota'], gastos:['Periodo','Concepto','Clasificacion','Monto'], iva:['Periodo','Monto'], espacios:['ID','Nombre'], cuentas:['ID','Nombre'], saldos:['Cuenta','Fecha','Saldo'], movsTes:['Fecha','Cuenta','Tipo','Monto'], pagosFin:['ID','Fecha','Monto'], mediosCobro:['ID','Nombre'], cobranzas:['Periodo','MedioID','Monto']};
   return k.every(x => !c.raw[x].length || probe[x].filter(Boolean).every(f => f in c.raw[x][0]));
 }
 async function readCache(){
@@ -865,7 +878,7 @@ async function restoreCache(){
 async function clearCache(){
   let existed = false;
   try { existed = !!(await idbDo('readonly', st => st.get(CACHE_KEY))); await idbDo('readwrite', st => st.delete(CACHE_KEY)); } catch {}
-  try { existed = existed || localStorage.getItem(CACHE_KEY)!==null; localStorage.removeItem(CACHE_KEY); localStorage.removeItem('green-house-cashflow-v1'); localStorage.removeItem('green-house-cashflow-v2'); localStorage.removeItem('green-house-cashflow-v3'); idbDo('readwrite', st => { st.delete('green-house-cashflow-v2'); return st.delete('green-house-cashflow-v3'); }).catch(()=>{}); } catch {}
+  try { existed = existed || localStorage.getItem(CACHE_KEY)!==null; localStorage.removeItem(CACHE_KEY); localStorage.removeItem('green-house-cashflow-v1'); localStorage.removeItem('green-house-cashflow-v2'); localStorage.removeItem('green-house-cashflow-v3'); localStorage.removeItem('green-house-cashflow-v4'); idbDo('readwrite', st => { st.delete('green-house-cashflow-v2'); st.delete('green-house-cashflow-v3'); return st.delete('green-house-cashflow-v4'); }).catch(()=>{}); } catch {}
   appState.processed.savedAt = '';
   $('cacheStatus').textContent = existed ? 'Caché borrado; los datos abiertos siguen visibles hasta cerrar la página' : 'No había datos cacheados';
   if (appState.ui.current==='inicio') renderHome();
@@ -927,7 +940,7 @@ function afterLoad(name, fromCache){
   document.querySelectorAll('.sales-detail-filter,.purchase-detail-filter').forEach(i => i.value='');
   ['movimientoLoanFilter','movimientoMonthFilter','movimientoStatusFilter','movimientoBankFilter'].forEach(id => $(id).value='');
   $('salesBranchFilter').value = '';
-  $('hdrSub').textContent = P.loaded ? `${name} · ${int(P.ventasOK.length)} ventas · ${int(R.compras.length)} compras · ${int(R.prestamos.length)} cuotas de préstamos y moratorias · ${int(R.gastos.length)} gastos · ${int(R.movsTes.length)} movimientos de tesorería` : 'Sin Excel cargado · importes en pesos argentinos';
+  $('hdrSub').textContent = P.loaded ? `${name} · ${int(P.ventasOK.length)} ventas · ${int(R.compras.length)} compras · ${int(R.prestamos.length)} cuotas de préstamos y moratorias · ${int(R.gastos.length)} gastos · ${int(R.movsTes.length)} movimientos de tesorería${R.cobranzas.length ? ` · mix de cobro ${fm(R.cobranzas.map(c=>c.Periodo).sort()[0])}–${fm(R.cobranzas.map(c=>c.Periodo).sort().pop())}` : ''}` : 'Sin Excel cargado · importes en pesos argentinos';
   if (P.loaded){ const [a,b] = defaultRange(); syncDateFilters(a,b); show(fromCache ? 'inicio' : 'flujo'); }
   else show('inicio');
 }
@@ -1502,7 +1515,60 @@ function renderHeatmap(rows, from, to){
   $('heatmap').innerHTML = html + '</div>';
   $('heatLegend').innerHTML = `<span>Menos</span>${SEQ.slice(1).map(c=>`<span class="inline-block w-5 h-3 rounded-sm" style="background:${c}"></span>`).join('')}<span>Más · máximo ${fmt(max)}</span>`;
 }
+
+/* ---------- Mix de cobro (Cobranzas_Mensuales) ---------- */
+const MIX_COLOR = {TC:'#2a78d6', TD:'#169b6b', DC:'#eda100', OTR:'#94a3b8', QRF:'#7c6ad9', MPT:'#00a3e0', EF:'#eb6834'};
+function hatch(color){
+  const c = document.createElement('canvas'); c.width = c.height = 8; const x = c.getContext('2d');
+  x.fillStyle = color; x.fillRect(0,0,8,8); x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 2;
+  x.beginPath(); x.moveTo(0,8); x.lineTo(8,0); x.moveTo(-2,2); x.lineTo(2,-2); x.moveTo(6,10); x.lineTo(10,6); x.stroke();
+  return x.createPattern(c, 'repeat');
+}
+function renderMix(){
+  const R = appState.raw, P = appState.processed, mode = appState.ui.mixMode || 'pct';
+  if (!R.cobranzas.length){ clearCharts(['cVMix']); $('tMix').innerHTML = ''; $('mixKpis').innerHTML = '<p class="col-span-full text-sm text-slate-500">La hoja Cobranzas_Mensuales no tiene datos.</p>'; return; }
+  const months = monthsBetween(R.cobranzas.map(c=>c.Periodo).sort()[0], R.cobranzas.map(c=>c.Periodo).sort().pop());
+  const medios = R.mediosCobro.filter(m => R.cobranzas.some(c=>c.MedioID===m.ID));
+  const v = group(R.cobranzas, c=>`${c.MedioID}#${c.Periodo}`, c=>c.Monto);
+  const tm = Object.fromEntries(months.map(m => [m, sum(R.cobranzas.filter(c=>c.Periodo===m), c=>c.Monto)]));
+  const total = sum(R.cobranzas, c=>c.Monto);
+  const col = m => MIX_COLOR[m.ID] || catColor(R.mediosCobro.map(x=>x.ID), m.ID);
+  const sinId = medios.filter(m=>!m.Identificado).map(m=>m.ID);
+  const tarj = ['TC','TD'], last = months[months.length-1];
+  const share = (ids, per) => { const t = per ? tm[per] : total; return t ? sum(R.cobranzas.filter(c=>ids.includes(c.MedioID) && (!per || c.Periodo===per)), c=>c.Monto) / t * 100 : NaN; };
+  const avg = total / months.length;
+  $('mixKpis').innerHTML = [
+    ['Cobrado en el período', fmt(total), `${months.length} meses · promedio ${cmpM(avg)} por mes`],
+    [`Último mes (${fm(last)})`, fmt(tm[last]), months.length>1 && tm[months[months.length-2]] ? `${(tm[last]/tm[months[months.length-2]]-1)>=0?'+':''}${pct((tm[last]/tm[months[months.length-2]]-1)*100)} vs. mes anterior` : ''],
+    ['Efectivo', pct(share(['EF'])), `${pct(share(['EF'], last))} en ${fm(last)}`],
+    ['Sin instrumento identificado', pct(share(sinId)), `${pct(share(sinId, last))} en ${fm(last)} (QR y transferencias pendientes)`]
+  ].map(([t,val,d]) => `<div class="rounded border border-slate-200 p-3"><div class="text-[11px] uppercase tracking-wide text-slate-500">${esc(t)}</div><div class="text-xl font-semibold mt-1">${val}</div><div class="text-xs text-slate-500 mt-0.5">${d}</div></div>`).join('');
+
+  const fact = group(P.ventasOK, x=>x.Fecha.slice(0,7), x=>x.TOTAL);
+  mk('cVMix','bar',{labels:months.map(fm), datasets:[
+      ...medios.map(m => ({label:m.Nombre, data:months.map(p => mode==='pct' ? (tm[p] ? (v[`${m.ID}#${p}`]||0)/tm[p]*100 : 0) : (v[`${m.ID}#${p}`]||0)), monto:months.map(p=>v[`${m.ID}#${p}`]||0),
+        backgroundColor: m.Identificado ? col(m) : hatch(col(m)), borderColor:'#fff', borderWidth:1, maxBarThickness:60, stack:'mix', order:1})),
+      ...(mode==='amt' && months.some(p=>fact[p]) ? [{type:'line', label:'Facturado (hoja Ventas)', data:months.map(p=>fact[p]||null), borderColor:'#0f172a', backgroundColor:'#0f172a', borderDash:[5,4], pointRadius:4, pointStyle:'rectRot', showLine:false, order:0, monto:months.map(p=>fact[p]||0)}] : [])]},
+    {scales:{x:{stacked:true, grid:{display:false}}, y: mode==='pct' ? {stacked:true, max:100, grid:{color:COL.grid}, border:{display:false}, ticks:{callback:x=>pct(x,0)}} : money({stacked:true})},
+     interaction:{mode:'index', intersect:false},
+     plugins:{legend:{labels:{generateLabels:ch => ch.data.datasets.map((d,i) => ({text:d.label, fillStyle: d.type==='line' ? '#0f172a' : (medios[i] ? col(medios[i]) : '#0f172a'), strokeStyle:'#fff', lineWidth:0, hidden:!ch.isDatasetVisible(i), datasetIndex:i, pointStyle: d.type==='line' ? 'rectRot' : undefined}))}, onClick:(e,item,leg)=>{ const ch=leg.chart; ch.setDatasetVisibility(item.datasetIndex, !ch.isDatasetVisible(item.datasetIndex)); ch.update(); }},
+      tooltip:{filter:c=>c.dataset.monto[c.dataIndex], callbacks:{
+        title:it=>it.length?`${months[it[0].dataIndex] && fm(months[it[0].dataIndex])} · cobrado ${fmt(tm[months[it[0].dataIndex]])}`:'',
+        label:c=>{ const p = months[c.dataIndex], a = c.dataset.monto[c.dataIndex]; return c.dataset.type==='line' ? ` Facturado: ${fmt(a)} (diferencia ${fmt(a - tm[p])})` : ` ${c.dataset.label}: ${fmt(a)} (${pct(tm[p]?a/tm[p]*100:NaN)})`; }}}}});
+
+  // Tabla
+  const rowsH = medios.map(m => `<tr class="border-b border-slate-100"><td class="py-1 pr-2 min-w-[11rem]"><span class="inline-block w-2.5 h-2.5 rounded-sm mr-1.5 align-middle" style="background:${col(m)}"></span>${esc(m.Nombre)}${m.Identificado?'':' <span class="pill pill-warn" title="'+esc(m.Desc)+'">sin identificar</span>'}</td>`
+    + months.map(p => { const a = v[`${m.ID}#${p}`]||0; return `<td class="text-right px-2 whitespace-nowrap" title="${fmt(a)}">${a ? (mode==='pct' ? pct(tm[p]?a/tm[p]*100:NaN) : cmpM(a)) : '<span class="text-slate-300">—</span>'}</td>`; }).join('')
+    + (() => { const a = sum(R.cobranzas.filter(c=>c.MedioID===m.ID), c=>c.Monto); return `<td class="text-right px-2 whitespace-nowrap">${fmt(a)}</td><td class="text-right pl-2 font-semibold">${pct(total?a/total*100:NaN)}</td>`; })() + '</tr>').join('');
+  const factRow = months.some(p=>fact[p]) ? `<tr class="text-xs text-slate-500"><td class="py-1 pr-2">Facturado (hoja Ventas)</td>${months.map(p=>`<td class="text-right px-2 whitespace-nowrap">${fact[p]?cmpM(fact[p]):'—'}</td>`).join('')}<td class="text-right px-2">${fmt(sum(months,p=>fact[p]||0))}</td><td></td></tr>`
+    + `<tr class="text-xs text-slate-500"><td class="py-1 pr-2">Diferencia facturado − cobrado</td>${months.map(p=>`<td class="text-right px-2 whitespace-nowrap ${fact[p]&&Math.abs(fact[p]-tm[p])>tm[p]*0.05?'text-amber-700 font-medium':''}">${fact[p]?cmpM(fact[p]-tm[p]):'—'}</td>`).join('')}<td></td><td></td></tr>` : '';
+  $('tMix').style.minWidth = `${Math.max(640, 380 + months.length*84)}px`;
+  $('tMix').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2">Medio de cobro</th>${months.map(p=>`<th class="text-right px-2 whitespace-nowrap">${fm(p)}</th>`).join('')}<th class="text-right px-2">Total</th><th class="text-right pl-2">%</th></tr></thead><tbody>${rowsH}</tbody>`
+    + `<tfoot class="border-t-2"><tr class="font-semibold"><td class="py-2 pr-2">Total cobrado</td>${months.map(p=>`<td class="text-right px-2 whitespace-nowrap">${cmpM(tm[p])}</td>`).join('')}<td class="text-right px-2">${fmt(total)}</td><td class="text-right pl-2">100%</td></tr>${factRow}</tfoot>`;
+}
+
 function renderSales(){
+  try { renderMix(); } catch(e){ console.error(e); }
   const P = appState.processed;
   const ids = ['cVEvo','cVSuc','cVCli','cVEntrega','cVTipo','cVWeekday','cVHist'];
   const sc = salesScope();
@@ -1784,7 +1850,8 @@ function ventasBase(){
   const P = appState.processed, R = appState.raw;
   const fact = group(P.ventasOK, v=>v.Fecha.slice(0,7), v=>v.TOTAL);
   const cob = group(R.movsTes.filter(m=>m.Tipo==='Ingreso' && !TES_NO_VENTA.includes(m.Concepto)), m=>m.Fecha.slice(0,7), m=>m.Monto);
-  return {fact, cob};
+  const mix = group(R.cobranzas, c=>c.Periodo, c=>c.Monto);
+  return {fact, cob, mix};
 }
 function renderGastosVentas(){
   const P = appState.processed, ui = appState.ui;
@@ -1794,13 +1861,14 @@ function renderGastosVentas(){
   const clasF = $('gastoCatFilter').value;
   const mesOf = g => ui.gvMes==='imp' ? (g.MesImput || g.Periodo) : g.Periodo;
   const rows = P.gastosX.filter(g => months.includes(mesOf(g)) && (!clasF || g.Clasificacion===clasF));
-  const {fact, cob} = ventasBase();
+  const {fact, cob, mix} = ventasBase();
   const base = {}, src = {};
   months.forEach(m => {
-    const f = fact[m] || 0, c = cob[m] || 0;
+    const f = fact[m] || 0, c = cob[m] || 0, x = mix[m] || 0;
     if (ui.gvBase==='fact'){ base[m] = f; src[m] = f ? 'facturadas' : ''; }
     else if (ui.gvBase==='cob'){ base[m] = c; src[m] = c ? 'cobradas' : ''; }
-    else { base[m] = f || c; src[m] = f ? 'facturadas' : c ? 'cobradas' : ''; }
+    else if (ui.gvBase==='mix'){ base[m] = x; src[m] = x ? 'del mix de cobro' : ''; }
+    else { base[m] = f || x || c; src[m] = f ? 'facturadas' : x ? 'del mix de cobro' : c ? 'cobradas' : ''; }
   });
   const okM = months.filter(m => base[m] > 0);
   const totBase = sum(okM, m => base[m]);
@@ -1821,7 +1889,7 @@ function renderGastosVentas(){
   // Gráfico: % por clasificación y mes
   const clas = P.clasificaciones.filter(c => rows.some(g=>g.Clasificacion===c));
   const bym = group(rows, g=>`${g.Clasificacion}#${mesOf(g)}`, g=>g.Monto);
-  mk('cGVen','bar',{labels:months.map(m => fm(m) + (src[m]==='cobradas' && ui.gvBase==='auto' ? ' *' : '')), datasets:clas.map(c => ({label:c, data:months.map(m => base[m]>0 ? r(bym[`${c}#${m}`]||0, base[m]) : null), monto:months.map(m=>bym[`${c}#${m}`]||0), backgroundColor:catColor(P.clasificaciones,c), borderColor:'#fff', borderWidth:1, maxBarThickness:56}))},
+  mk('cGVen','bar',{labels:months.map(m => fm(m) + (ui.gvBase==='auto' ? ({'del mix de cobro':' ᴹ', cobradas:' ᶜ'}[src[m]] || '') : '')), datasets:clas.map(c => ({label:c, data:months.map(m => base[m]>0 ? r(bym[`${c}#${m}`]||0, base[m]) : null), monto:months.map(m=>bym[`${c}#${m}`]||0), backgroundColor:catColor(P.clasificaciones,c), borderColor:'#fff', borderWidth:1, maxBarThickness:56}))},
     {scales:{x:{stacked:true, grid:{display:false}}, y:{stacked:true, grid:{color:COL.grid}, border:{display:false}, ticks:{callback:v=>pct(v,0)}}},
      plugins:{tooltip:{filter:c=>c.parsed.y, callbacks:{
        title:it=>{ if(!it.length) return ''; const m = months[it[0].dataIndex]; return `${fm(m)} · ventas ${src[m]} ${fmt(base[m])}`; },
@@ -1848,7 +1916,7 @@ function renderGastosVentas(){
   });
   $('tGVen').style.minWidth = `${Math.max(640, 320 + months.length*92)}px`;
   $('tGVen').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2">${ui.gvNivel==='con'?'Clasificación · concepto':'Clasificación'}</th>${months.map(m=>`<th class="text-right px-2 whitespace-nowrap">${fm(m)}</th>`).join('')}<th class="text-right px-2">Monto</th><th class="text-right pl-2">% ventas</th></tr>`
-    + `<tr class="border-b text-xs"><td class="py-1 pr-2">Ventas de referencia</td>${months.map(m=>`<td class="text-right px-2 whitespace-nowrap" title="${src[m]?`Ventas ${src[m]}`:'Sin ventas cargadas'}">${base[m]>0?`${cmpM(base[m])}${src[m]==='cobradas'?' <span title="Ventas cobradas (Tesorería)">*</span>':''}`:'sin ventas'}</td>`).join('')}<td class="text-right px-2">${fmt(totBase)}</td><td></td></tr></thead><tbody>`
+    + `<tr class="border-b text-xs"><td class="py-1 pr-2">Ventas de referencia${ui.gvBase==='auto'?' <span class="text-slate-400">(F facturadas · M mix · C cobradas)</span>':''}</td>${months.map(m=>`<td class="text-right px-2 whitespace-nowrap" title="${src[m]?`Ventas ${src[m]}`:'Sin ventas cargadas'}">${base[m]>0?`${cmpM(base[m])}${ui.gvBase==='auto'?({'facturadas':' <sup>F</sup>','del mix de cobro':' <sup>M</sup>',cobradas:' <sup>C</sup>'}[src[m]]||''):''}`:'sin ventas'}</td>`).join('')}<td class="text-right px-2">${fmt(totBase)}</td><td></td></tr></thead><tbody>`
     + (body || `<tr><td colspan="${months.length+3}" class="py-3 text-slate-500">No hay gastos en el período.</td></tr>`)
     + `</tbody><tfoot class="font-semibold border-t-2"><tr><td class="py-2 pr-2">Total gastos</td>${months.map(m=>cell(totG(m), base[m])).join('')}${tot(gOk)}</tr></tfoot>`;
 }
@@ -2065,6 +2133,7 @@ bindSeg('flowGran','flowGran', () => { appState.ui.flowSelKey = null; appState.p
 bindSeg('loanTimelineMode','loanTimeline', () => appState.processed.loaded && renderLoans());
 bindSeg('weekdayMetric','weekdayMetric', () => appState.processed.loaded && renderSales());
 ['gvBase','gvMes','gvNivel'].forEach(id => bindSeg(id, id, () => appState.processed.loaded && renderGastosVentas()));
+bindSeg('mixMode','mixMode', () => appState.processed.loaded && renderMix());
 bindSeg('purchaseCalendarGranularity','calGran', () => appState.processed.loaded && renderPurchases());
 bindSeg('matchFilter','matchFilter', () => appState.processed.loaded && renderMatchTable(purchasesScope().rows));
 bindSeg('loanTipo','loanTipo', () => appState.processed.loaded && renderLoans());

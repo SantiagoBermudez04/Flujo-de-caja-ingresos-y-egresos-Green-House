@@ -241,6 +241,18 @@ table th{font-weight:600}
     <div class="card overflow-x-auto"><h3 class="mb-1">Próximos vencimientos</h3><p class="chart-note">Las próximas 10 cuotas pendientes (préstamos y moratorias, según el tipo elegido).</p><table id="tPrest" class="w-full min-w-[720px] text-sm num"></table></div>
     <div class="card overflow-x-auto"><h3 class="mb-1">Capital inicial y CFT estimado<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><p class="chart-note">Capital inicial = suma del capital de todas sus cuotas. CFT anual efectivo estimado con los flujos de pago, suponiendo que el préstamo se obtuvo un mes antes del primer vencimiento. Es una estimación y no reemplaza el CFT informado por el banco. Se listan los que tienen algún vencimiento en el rango; “s/d” indica pagos sin desglose de capital e intereses.</p><table id="tCft" class="w-full min-w-[720px] text-sm num"></table></div>
   </div>
+  <div class="card space-y-4" id="descCard">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Descubiertos en cuenta corriente<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">SALDO DEUDOR · CFT</span></div>
+    <p class="chart-note -mt-2">Días en que una cuenta corriente cerró con saldo negativo (calculado con Saldos_Cuentas y Movimientos_Tesoreria) y débitos de intereses por descubierto (concepto “Descubierto” en Gastos). Cada débito se asigna a los días en negativo de esa cuenta desde el débito anterior del mismo banco. No depende del filtro Tipo.</p>
+    <div id="kDesc" class="grid grid-cols-2 lg:grid-cols-5 gap-3"></div>
+    <div><h4 class="text-sm font-semibold text-slate-700">Saldo deudor diario y débitos de intereses</h4><p class="chart-note">Barras: saldo al cierre del día cuando fue negativo, por cuenta. Triángulos: día en que el banco debitó los intereses (el tooltip muestra el monto y el CFT).</p><div class="h-72"><canvas id="cDesc"></canvas></div></div>
+    <div class="overflow-x-auto"><h4 class="text-sm font-semibold text-slate-700">Débitos por descubierto y su costo</h4>
+      <p class="chart-note">Numeral = suma de los saldos negativos de cada día (saldo × días). Costo diario = interés debitado ÷ numeral. TNA = costo diario × 365. CFT = costo efectivo anual: (1 + costo diario)<sup>365</sup> − 1. El débito puede incluir IVA y cargos, por eso se lo considera costo total.</p>
+      <table id="tDescDeb" class="w-full min-w-[1150px] text-sm num"></table></div>
+    <div class="overflow-x-auto"><h4 class="text-sm font-semibold text-slate-700">Períodos con saldo negativo</h4>
+      <p class="chart-note">Días consecutivos con saldo negativo en una misma cuenta. El interés de cada período es la parte del débito que le corresponde según su numeral. Los períodos todavía sin débito muestran un interés estimado con el costo diario observado en esa cuenta (o el promedio, si no hay).</p>
+      <table id="tDescPer" class="w-full min-w-[1000px] text-sm num"></table></div>
+  </div>
   <div class="card overflow-x-auto">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3>Movimientos</h3><div class="flex items-center gap-2"><span id="movimientosCount" class="chart-badge"></span><button type="button" class="btn" id="exportMov">Exportar CSV</button></div></div>
     <p class="chart-note">Todas las cuotas del tipo elegido, sin aplicar el rango de fechas.</p>
@@ -382,6 +394,7 @@ table th{font-weight:600}
   <div class="card overflow-x-auto">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3>Detalle de gastos<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><div class="flex items-center gap-2"><span id="gastosCount" class="chart-badge"></span><button type="button" class="btn" id="exportGastos">Exportar CSV</button></div></div>
     <p class="chart-note">Cada gasto con su clasificación, espacio, medio de pago y la fecha que usa el flujo de caja (el tooltip indica de dónde sale).</p>
+    <label class="field mb-3 max-w-sm">Concepto<select id="gastosConceptFilter"><option value="">Todos los conceptos</option></select></label>
     <div class="scroll-table"><table id="tGastos" class="w-full min-w-[1300px] text-xs num"></table></div>
     <button type="button" id="gastosMore" class="btn mt-2 hidden"></button>
   </div>
@@ -394,19 +407,21 @@ table th{font-weight:600}
     <button type="button" class="btn eq-from self-end" title="Poner en “Hasta” la misma fecha que “Desde”">= Desde</button>
     <label class="field">Cuenta<select id="tesCuenta" style="max-width:min(20rem,calc(100vw - 5rem))"><option value="">Todas las cuentas</option></select></label>
     <label class="flex items-center gap-2 text-sm pb-1"><input id="tesInternos" type="checkbox"> Incluir movimientos internos</label>
+    <label class="flex items-center gap-2 text-sm pb-1" title="Reparte los “Otros egresos” de cada cuenta y día entre cuotas de préstamos y moratorias, IVA, impuestos, sueldos, gastos bancarios y demás gastos detallados en el Excel"><input id="tesSplit" type="checkbox" checked> Separar “Otros egresos” con el detalle</label>
     <p class="text-xs text-slate-500 max-w-md">Datos reales de las hojas Saldos_Cuentas y Movimientos_Tesoreria. Las transferencias entre cuentas propias son internas y no cuentan como ingreso ni egreso.</p>
     <p class="text-xs text-slate-500 flex items-center gap-1 basis-full"><span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span><span>Los gráficos y tablas con este símbolo se ven afectados por el filtro de fechas.</span></p>
   </div>
   <div id="kTes" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3"></div>
   <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Fondos disponibles por cuenta<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">SALDOS REALES</span></div><p class="chart-note">Saldo al cierre de cada día por cuenta (barras apiladas; los saldos negativos, como un descubierto, quedan bajo cero) y la línea del total. Se calcula con el saldo inicial del mes más los movimientos registrados.</p><div class="h-80"><canvas id="cTFondos"></canvas></div></div>
   <div class="grid lg:grid-cols-2 gap-4">
-    <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Ingresos y egresos por concepto<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">COMPOSICIÓN</span></div><p class="chart-note">Verde: ingresos; rojo: egresos; violeta: propietarios; gris: internos (si se incluyen).</p><div class="h-96"><canvas id="cTConc"></canvas></div></div>
+    <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Ingresos y egresos por concepto<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">COMPOSICIÓN</span></div><p class="chart-note">Verde: ingresos; rojo: egresos; amarillo: cuotas de préstamos; lila: moratorias; rosa: IVA; gris claro: egresos sin detalle; violeta: propietarios; gris: internos (si se incluyen).</p><div class="h-96"><canvas id="cTConc"></canvas></div></div>
     <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Ingresos y egresos diarios<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">MOVIMIENTO DIARIO</span></div><p class="chart-note">Sin movimientos internos. El tooltip muestra el neto del día.</p><div class="h-96"><canvas id="cTDiario"></canvas></div></div>
   </div>
   <div class="card overflow-x-auto"><h3 class="mb-1">Resumen por cuenta<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><p class="chart-note">Saldo inicial, movimientos por tipo y saldo final de cada cuenta en el rango.</p><table id="tTesCuentas" class="w-full min-w-[900px] text-sm num"></table></div>
   <div class="card overflow-x-auto"><h3 class="mb-1">Conciliación con el detalle de gastos<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><p class="chart-note">Compara los “Otros egresos” de las cuentas con los gastos detallados pagados por débito o en efectivo, más las cuotas e IVA pagados. Una diferencia grande indica gastos sin detallar o registrados en otra fila.</p><table id="tTesConc" class="w-full min-w-[760px] text-sm num"></table></div>
   <div class="card overflow-x-auto">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3>Movimientos<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><div class="flex items-center gap-2"><span id="tesCount" class="chart-badge"></span><button type="button" class="btn" id="exportTes">Exportar CSV</button></div></div>
+    <label class="field mb-3 max-w-sm">Concepto<select id="tesConceptoFilter"><option value="">Todos los conceptos</option></select></label>
     <div class="scroll-table"><table id="tMovTes" class="w-full min-w-[800px] text-xs num"></table></div>
     <button type="button" id="tesMore" class="btn mt-2 hidden"></button>
   </div>
@@ -764,7 +779,7 @@ const FLOW_CATS = [
 const FLOW_DEFAULT = {prov:true, loan:true, mor:true, gas:true, imp:true, iva:false};
 const appState = {
   raw: {ventas:[], compras:[], plazos:[], prestamos:[], gastos:[], iva:[], espacios:[], cuentas:[], saldos:[], movsTes:[], pagosFin:[], mediosCobro:[], cobranzas:[]},
-  processed: {ventasOK:[], comprasX:[], gastosX:[], movs:{}, avisos:[], loaded:false, sourceName:'', savedAt:'', report:null, lastSale:null, firstSale:null, lastGasto:null, sucursales:[], loanKeys:[], bancos:[], clasificaciones:[], espacios:[], espacioNombre:{}},
+  processed: {movsTesX:[], ventasOK:[], comprasX:[], gastosX:[], movs:{}, avisos:[], loaded:false, sourceName:'', savedAt:'', report:null, lastSale:null, firstSale:null, lastGasto:null, sucursales:[], loanKeys:[], bancos:[], clasificaciones:[], espacios:[], espacioNombre:{}},
   ui: {current:'inicio', flowGran:'day', flowSelKey:null, flowCats:{...FLOW_DEFAULT}, loanTipo:'', loanTimeline:'banco', weekdayMetric:'avg', mixMode:'pct', gvBase:'auto', gvMes:'imp', gvNivel:'clas', calGran:'week', matchFilter:'', salesLimit:300, purchasesLimit:300}
 };
 const lastDayOf = per => { const [y,m] = per.split('-').map(Number); return `${per}-${String(new Date(Date.UTC(y,m,0)).getUTCDate()).padStart(2,'0')}`; };
@@ -785,6 +800,7 @@ function build(){
     return {...c, plazo, conPlazo: !!m, match: m ? m.tipo : 'defecto', plazoNombre: m ? `${m.p.Proveedor} (${m.p.Codigo})` : '', pago: addDays(c.fecha, plazo)};
   });
   P.gastosX = R.gastos.map(g => ({...g, pago: g.Fecha || dayIn(g.Periodo, g.Dia || diaDef), origenFecha: g.Fecha ? (g.MedioTipo==='Tarjeta de crédito' ? 'Fecha del consumo con tarjeta' : 'Fecha del gasto') : g.Dia ? 'Día de vencimiento' : `Día ${diaDef} del mes (por defecto)`}));
+  P.movsTesX = splitOtrosEgresos(R, P);
   const finMov = (p, txt) => p.Pago ? {date:p.Pago.Fecha, amount:p.Pago.Monto, cap:p.Capital*(p.Pago.Monto/(p.Total_Cuota||1)), d:`${txt} · pago registrado${p.Pago.Compartido?' (débito compartido, prorrateado)':''}`} : {date:p.Vencimiento, amount:p.Total_Cuota, cap:p.Capital, d:txt};
   P.movs = {
     prov: P.comprasX.map(c => ({date:c.pago, amount:c.monto, d:`${c.prov} · ${c.tipo} ${c.numero} · ${c.plazo} días`})),
@@ -1353,7 +1369,124 @@ function renderLoanMovements(){
     + (rows.map(p => `<tr class="border-b border-slate-100"><td class="py-1 px-2">${tipoPill(p.Tipo)}</td><td class="px-2">${esc(p.Banco)}</td><td class="px-2">${esc(p.Prestamo_ID)}</td><td class="px-2">${p.Cuota}</td><td class="px-2 whitespace-nowrap">${fd(p.Vencimiento)}</td><td class="text-right px-2">${p.sinDesglose?'<span class="text-slate-400" title="Sin desglose en el origen">s/d</span>':fmt(p.Capital)}</td><td class="text-right px-2">${p.sinDesglose?'<span class="text-slate-400">s/d</span>':fmt(p.Interes)}</td><td class="text-right px-2">${fmt(p.Cargos_e_Impuestos)}</td><td class="text-right px-2 font-medium">${fmt(p.Total_Cuota)}${p.Moneda!=='ARS'?` <span class="pill pill-info" title="Importe en pesos de una cuota en ${esc(p.Moneda)}">${esc(p.Moneda)}</span>`:''}</td><td class="px-2 whitespace-nowrap"><span class="pill ${p.Pago?'pill-ok':isPaid(p)?'pill-info':'pill-warn'}">${estadoCuota(p)}</span></td><td class="px-2 max-w-[20rem] truncate" title="${esc([p.Pago?`Débito del ${fd(p.Pago.Fecha)} por ${fmt(p.Pago.Monto)}${p.Pago.Compartido?' (prorrateado de un débito compartido)':''}; diferencia ${fmt(p.Pago.Monto-p.Total_Cuota)}`:'', p.Obs].filter(Boolean).join(' · '))}">${esc([p.Pago?`Débito ${fd(p.Pago.Fecha)} · ${fmt(p.Pago.Monto)}`:'', p.Obs].filter(Boolean).join(' · '))}</td></tr>`).join('') || '<tr><td colspan="11" class="py-2 px-2 text-slate-500">No hay movimientos que coincidan con los filtros.</td></tr>')
     + `</tbody>${rows.length?`<tfoot class="font-semibold"><tr><td class="py-2 px-2" colspan="5">Totales filtrados</td><td class="text-right px-2">${fmt(sum(rows,p=>p.sinDesglose?0:p.Capital))}</td><td class="text-right px-2">${fmt(sum(rows,p=>p.Interes))}</td><td class="text-right px-2">${fmt(sum(rows,p=>p.Cargos_e_Impuestos))}</td><td class="text-right px-2">${fmt(sum(rows,p=>p.Total_Cuota))}</td><td colspan="2"></td></tr></tfoot>`:''}`;
 }
+
+/* =====================================================================
+   DESCUBIERTOS (saldo negativo de cuentas corrientes + intereses debitados)
+   ===================================================================== */
+const fmtCts = n => `${n<0?'-':''}$ ${nf2.format(Math.abs(n))}`;
+const shortCuenta = n => n.replace(/ CTA CTE COMUNIDAD GH SRL| COMUNIDAD GH SRL/,'').replace(/^Banco /,'');
+const cftAnual = r => Number.isFinite(r) ? (Math.pow(1+r, 365) - 1) * 100 : NaN;
+function compactDays(list){   // ['2026-09-05','2026-09-06','2026-09-07','2026-09-19'] -> "05/09–07/09, 19/09"
+  const out = []; let a = null, b = null;
+  list.slice().sort().forEach(d => { if (b && addDays(b,1)===d) b = d; else { if (a) out.push(a===b?fdShort(a):`${fdShort(a)}–${fdShort(b)}`); a = b = d; } });
+  if (a) out.push(a===b?fdShort(a):`${fdShort(a)}–${fdShort(b)}`);
+  return out.join(', ');
+}
+function descubiertos(){
+  const R = appState.raw, P = appState.processed;
+  if (!R.saldos.length) return null;
+  const ctas = R.cuentas.filter(c => /corriente/i.test(c.Tipo));
+  const d0 = R.saldos.map(x=>x.Fecha).sort()[0];
+  const lastMov = R.movsTes.map(m=>m.Fecha).sort().pop() || d0;
+  const dEnd = lastMov < HOY ? lastMov : HOY;
+  const days = []; for (let d=d0; d<=dEnd && days.length<1500; d=addDays(d,1)) days.push(d);
+  const neg = [];       // {Cuenta, Nombre, Fecha, Saldo}
+  const serie = {};
+  ctas.forEach(c => { serie[c.ID] = days.map(d => { const v = saldoCuenta(c.ID, d); if (v!==null && v < -0.5) neg.push({Cuenta:c.ID, Nombre:shortCuenta(c.Nombre), Fecha:d, Saldo:v}); return v; }); });
+  const cargos = P.gastosX.filter(g => /descubierto/i.test(g.Concepto)).map(g => ({Fecha: g.Fecha || g.pago, Cuenta: g.Cuenta, Nombre: shortCuenta((R.cuentas.find(c=>c.ID===g.Cuenta)||{}).Nombre || g.Banco || g.Medio || 'Sin cuenta'), Monto: g.Monto, MesImput: g.MesImput || g.Periodo})).sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
+  // asignación de días a cada débito
+  const byCta = {}; cargos.forEach(c => (byCta[c.Cuenta] = byCta[c.Cuenta] || []).push(c));
+  Object.values(byCta).forEach(list => list.forEach((c,i) => {
+    const prev = list[i-1];
+    c.Desde = prev ? prev.Fecha : d0; c.Hasta = addDays(c.Fecha, -1);
+    c.SinDatos = c.Fecha <= d0;
+    c.Dias = c.SinDatos ? [] : neg.filter(n => n.Cuenta===c.Cuenta && n.Fecha>=c.Desde && n.Fecha<c.Fecha);
+    c.Numeral = sum(c.Dias, n => -n.Saldo);
+    c.Max = c.Dias.length ? Math.max(...c.Dias.map(n=>-n.Saldo)) : 0;
+    c.Tasa = c.Numeral ? c.Monto / c.Numeral : NaN;
+  }));
+  const okC = cargos.filter(c => Number.isFinite(c.Tasa));
+  const tasaProm = sum(okC,c=>c.Numeral) ? sum(okC,c=>c.Monto) / sum(okC,c=>c.Numeral) : NaN;
+  const tasaCta = cta => { const l = okC.filter(c=>c.Cuenta===cta); return l.length ? l[l.length-1].Tasa : NaN; };
+  // períodos consecutivos
+  const periodos = [];
+  ctas.forEach(ct => {
+    const nd = neg.filter(n=>n.Cuenta===ct.ID).sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
+    let cur = null;
+    nd.forEach(n => { if (cur && addDays(cur.Hasta,1)===n.Fecha){ cur.Hasta = n.Fecha; cur.Dias.push(n); } else { cur = {Cuenta:ct.ID, Nombre:shortCuenta(ct.Nombre), Desde:n.Fecha, Hasta:n.Fecha, Dias:[n]}; periodos.push(cur); } });
+  });
+  periodos.forEach(p => {
+    p.N = p.Dias.length; p.Numeral = sum(p.Dias, n=>-n.Saldo); p.Min = Math.min(...p.Dias.map(n=>n.Saldo)); p.Prom = p.Numeral / p.N;
+    p.Cargo = cargos.find(c => c.Cuenta===p.Cuenta && !c.SinDatos && p.Hasta>=c.Desde && p.Hasta<c.Fecha) || null;
+    p.Abierto = !p.Cargo && p.Hasta===dEnd;
+    if (p.Cargo && p.Cargo.Numeral){ p.Interes = p.Cargo.Monto * p.Numeral / p.Cargo.Numeral; p.Tasa = p.Cargo.Tasa; p.Estimado = false; }
+    else { const t = Number.isFinite(tasaCta(p.Cuenta)) ? tasaCta(p.Cuenta) : tasaProm; p.Tasa = t; p.Interes = Number.isFinite(t) ? p.Numeral * t : NaN; p.Estimado = true; }
+  });
+  periodos.sort((a,b)=>a.Desde.localeCompare(b.Desde) || a.Nombre.localeCompare(b.Nombre));
+  return {ctas, d0, dEnd, days, serie, neg, cargos, periodos, tasaProm};
+}
+function renderDescubiertos(){
+  const D = descubiertos();
+  if (!D){ clearCharts(['cDesc']); ['tDescDeb','tDescPer'].forEach(id=>$(id).innerHTML=''); $('kDesc').innerHTML = '<p class="col-span-full text-sm text-slate-500">No hay saldos de cuentas cargados (hoja Saldos_Cuentas).</p>'; return; }
+  const from = $('loansFrom').value, to = $('loansTo').value;
+  if (!validRange(from,to)){ clearCharts(['cDesc']); ['tDescDeb','tDescPer'].forEach(id=>$(id).innerHTML=''); $('kDesc').innerHTML=''; return; }
+  const inR = d => d>=from && d<=to;
+  const cargos = D.cargos.filter(c => inR(c.Fecha) || c.Dias.some(n=>inR(n.Fecha)));
+  const per = D.periodos.filter(p => p.Desde<=to && p.Hasta>=from);
+  const negR = D.neg.filter(n => inR(n.Fecha));
+  const okC = cargos.filter(c => Number.isFinite(c.Tasa));
+  const tProm = sum(okC,c=>c.Numeral) ? sum(okC,c=>c.Monto)/sum(okC,c=>c.Numeral) : D.tasaProm;
+  const peor = negR.slice().sort((a,b)=>a.Saldo-b.Saldo)[0];
+  const abiertos = D.periodos.filter(p=>p.Abierto);
+  const card = (t,v,d,c) => [t,v,d,c];
+  kpis('kDesc', [
+    card('Intereses por descubierto', fmtCts(sum(cargos.filter(c=>inR(c.Fecha)),c=>c.Monto)), `${cargos.filter(c=>inR(c.Fecha)).length} débitos en el rango`, COL.fin),
+    card('Días con saldo negativo', int(negR.length), `${new Set(negR.map(n=>n.Cuenta)).size} cuentas · ${per.length} períodos`, COL.out),
+    card('Mayor saldo deudor', peor ? fmt(peor.Saldo) : '—', peor ? `${esc(peor.Nombre)} · ${fd(peor.Fecha)}` : 'sin saldos negativos', COL.out),
+    card('CFT promedio', pct(cftAnual(tProm)), Number.isFinite(tProm) ? `TNA ${pct(tProm*36500)} · ${pct(tProm*100,3)} diario` : 'sin débitos asociados a días negativos', COL.loan),
+    card('Descubierto abierto', abiertos.length ? fmt(sum(abiertos,p=>p.Dias[p.Dias.length-1].Saldo)) : '$ 0', abiertos.length ? abiertos.map(p=>`${esc(p.Nombre)} desde ${fd(p.Desde)} (${p.N} días, interés estimado ${fmtCts(p.Interes)})`).join(' · ') : `sin cuentas en negativo al ${fd(D.dEnd)}`, abiertos.length?COL.out:COL.in)
+  ]);
+
+  // Gráfico
+  const lo = from > D.d0 ? from : D.d0, hi = to < D.dEnd ? to : D.dEnd;
+  const cargoMax = D.cargos.map(c=>c.Fecha).filter(inR).sort().pop();
+  const hi2 = cargoMax && cargoMax > hi ? cargoMax : hi;
+  const days = []; for (let d=lo; d<=hi2 && days.length<800; d=addDays(d,1)) days.push(d);
+  const ctasNeg = D.ctas.filter(c => D.neg.some(n=>n.Cuenta===c.ID && n.Fecha>=lo && n.Fecha<=hi2));
+  const negMap = Object.fromEntries(D.neg.map(n=>[`${n.Cuenta}#${n.Fecha}`, n.Saldo]));
+  const allIds = appState.raw.cuentas.map(c=>c.ID);
+  const minNeg = Math.min(0, ...D.neg.filter(n=>n.Fecha>=lo && n.Fecha<=hi2).map(n=>n.Saldo));
+  const cg = D.cargos.filter(c => c.Fecha>=lo && c.Fecha<=hi2);
+  mk('cDesc','bar',{labels:days.map(fdShort), datasets:[
+      ...ctasNeg.map(c => ({label:shortCuenta(c.Nombre), data:days.map(d=>negMap[`${c.ID}#${d}`] ?? null), backgroundColor:catColor(allIds,c.ID), stack:'neg', maxBarThickness:18, order:2})),
+      {type:'line', label:'Débito de intereses', data:days.map(d => cg.some(c=>c.Fecha===d) ? 0 : null), showLine:false, pointStyle:'triangle', pointRadius:8, pointHoverRadius:10, borderColor:COL.ink, backgroundColor:COL.loan, borderWidth:1.5, order:0}]},
+    {animation:false, scales:{x:{stacked:true, grid:{display:false}, ticks:{maxTicksLimit:16, maxRotation:0}}, y:money({stacked:true, suggestedMin:minNeg*1.1, suggestedMax:Math.abs(minNeg)*0.15})},
+     interaction:{mode:'index', intersect:false},
+     plugins:{refLines:{y:[{value:0, color:'#334155'}]}, tooltip:{filter:c=>c.raw!==null, callbacks:{
+       title:it=>it.length?fd(days[it[0].dataIndex]):'',
+       label:c=>{ if (c.dataset.type!=='line') return ` ${c.dataset.label}: saldo ${fmt(c.raw)}`;
+         return cg.filter(x=>x.Fecha===days[c.dataIndex]).map(x=>` Débito ${x.Nombre}: ${fmtCts(x.Monto)}${Number.isFinite(x.Tasa)?` · ${x.Dias.length} días · CFT ${pct(cftAnual(x.Tasa))}`:x.SinDatos?' · período sin datos de saldo':' · sin días negativos registrados'}`); }}}}});
+
+  // Tabla de débitos
+  const th = 'class="text-right px-2 whitespace-nowrap"';
+  $('tDescDeb').innerHTML = `<thead class="text-slate-500"><tr class="border-b text-left"><th class="py-1.5 pr-2">Fecha del débito</th><th class="px-2">Cuenta</th><th class="px-2">Período que cubre</th><th class="px-2">Días con saldo negativo</th><th ${th}>Días</th><th ${th}>Saldo deudor máx.</th><th ${th}>Saldo deudor prom.</th><th ${th}>Numeral</th><th ${th}>Interés debitado</th><th ${th}>Costo diario</th><th ${th}>TNA</th><th ${th}>CFT anual</th></tr></thead><tbody>`
+    + (cargos.map(c => {
+      const ok = Number.isFinite(c.Tasa);
+      const nota = c.SinDatos ? `<span class="pill pill-warn whitespace-nowrap" title="El débito corresponde a ${fm(c.MesImput)}, antes del primer saldo de cuentas cargado (${fd(D.d0)}).">sin datos de saldo (${fm(c.MesImput)})</span>` : !c.Dias.length ? '<span class="pill pill-warn whitespace-nowrap" title="Puede corresponder a un saldo negativo dentro del día o a un período sin datos.">sin cierres negativos registrados</span>' : esc(compactDays(c.Dias.map(n=>n.Fecha)));
+      return `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2 whitespace-nowrap font-medium">${fd(c.Fecha)}</td><td class="px-2 whitespace-nowrap">${esc(c.Nombre)}</td><td class="px-2 whitespace-nowrap text-slate-500">${c.SinDatos?'—':`${fd(c.Desde)} a ${fd(c.Hasta)}`}</td><td class="px-2 min-w-[10rem]">${nota}</td>`
+        + `<td ${th}>${ok?c.Dias.length:'—'}</td><td ${th}>${ok?fmt(-c.Max):'—'}</td><td ${th}>${ok?fmt(-c.Numeral/c.Dias.length):'—'}</td><td ${th}>${ok?fmt(c.Numeral):'—'}</td><td class="text-right px-2 font-semibold whitespace-nowrap">${fmtCts(c.Monto)}</td><td ${th}>${ok?pct(c.Tasa*100,3):'—'}</td><td ${th}>${ok?pct(c.Tasa*36500):'—'}</td><td class="text-right px-2 font-semibold ${ok&&cftAnual(c.Tasa)>100?'text-rose-700':''}">${ok?pct(cftAnual(c.Tasa)):'—'}</td></tr>`;
+    }).join('') || '<tr><td colspan="12" class="py-3 text-slate-500">No hay débitos por descubierto en el rango.</td></tr>')
+    + `</tbody>${okC.length?`<tfoot class="font-semibold border-t-2"><tr><td class="py-2 pr-2" colspan="4">Total con días asociados</td><td ${th}>${sum(okC,c=>c.Dias.length)}</td><td></td><td></td><td ${th}>${fmt(sum(okC,c=>c.Numeral))}</td><td ${th}>${fmtCts(sum(okC,c=>c.Monto))}</td><td ${th}>${pct(tProm*100,3)}</td><td ${th}>${pct(tProm*36500)}</td><td ${th}>${pct(cftAnual(tProm))}</td></tr></tfoot>`:''}`;
+
+  // Tabla de períodos
+  $('tDescPer').innerHTML = `<thead class="text-slate-500"><tr class="border-b text-left"><th class="py-1.5 pr-2">Cuenta</th><th class="px-2">Desde</th><th class="px-2">Hasta</th><th ${th}>Días</th><th ${th}>Saldo mínimo</th><th ${th}>Saldo prom.</th><th ${th}>Numeral</th><th class="px-2">Débito de intereses</th><th ${th}>Interés del período</th><th ${th}>CFT anual</th></tr></thead><tbody>`
+    + (per.map(p => `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2 whitespace-nowrap">${esc(p.Nombre)}</td><td class="px-2 whitespace-nowrap">${fd(p.Desde)}</td><td class="px-2 whitespace-nowrap">${fd(p.Hasta)}${p.Abierto?' <span class="pill pill-warn">en curso</span>':''}</td><td ${th}>${p.N}</td><td class="text-right px-2 text-rose-700">${fmt(p.Min)}</td><td ${th}>${fmt(-p.Prom)}</td><td ${th}>${fmt(p.Numeral)}</td>`
+      + `<td class="px-2 whitespace-nowrap">${p.Cargo?`${fd(p.Cargo.Fecha)} · ${fmtCts(p.Cargo.Monto)}`:'<span class="text-slate-500">todavía no debitado</span>'}</td><td class="text-right px-2 font-semibold">${Number.isFinite(p.Interes)?`${p.Estimado?'≈ ':''}${fmtCts(p.Interes)}`:'—'}</td><td ${th} title="${p.Estimado?'Estimado con el costo diario observado':''}">${Number.isFinite(p.Tasa)?`${p.Estimado?'≈ ':''}${pct(cftAnual(p.Tasa))}`:'—'}</td></tr>`).join('') || '<tr><td colspan="10" class="py-3 text-slate-500">Ninguna cuenta corriente cerró con saldo negativo en el rango.</td></tr>')
+    + '</tbody>';
+}
+
 function renderLoans(){
+  try { renderDescubiertos(); } catch(e){ console.error(e); }
   const P = appState.processed, L = loanData();
   const ids = ['cCuota','cPrestDon','cTimeline','cDeuda'];
   const resetTables = () => ['tPrest','tCft','tDeudaPendiente'].forEach(id => $(id).innerHTML='');
@@ -1833,6 +1966,10 @@ function gastosScope(){
 }
 const monthsBetween = (pf, pt) => { const out = []; let m = pf+'-01'; while (m.slice(0,7) <= pt && out.length < 240){ out.push(m.slice(0,7)); m = shiftMonth(m,1); } return out; };
 const gastoSort = (a,b) => (a.Fecha||a.Periodo).localeCompare(b.Fecha||b.Periodo) || a.Clasificacion.localeCompare(b.Clasificacion) || a.Concepto.localeCompare(b.Concepto);
+function gastoDetailRows(rows){
+  const concepto = $('gastosConceptFilter').value;
+  return concepto ? rows.filter(g=>g.Concepto===concepto) : rows;
+}
 function renderGastosDetail(rows){
   const shown = rows.slice(0, gastosLimit);
   $('gastosCount').textContent = `${int(rows.length)} registros`;
@@ -1925,12 +2062,16 @@ function renderGastos(){
   const P = appState.processed;
   const ids = ['cGMes','cGCon','cGLoc','cGItf','cGIva'];
   const prev = $('gastoCatFilter').value;
+  const prevConcept = $('gastosConceptFilter').value;
   $('gastoCatFilter').innerHTML = '<option value="">Todas las clasificaciones</option>' + P.clasificaciones.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
   $('gastoCatFilter').value = P.clasificaciones.includes(prev) ? prev : '';
   const sc = gastosScope();
   renderGastosVentas();
-  if (!sc.ok){ rangeError('kGastos'); clearCharts(ids); $('tGastos').innerHTML=''; return; }
-  renderGastosDetail(sc.rows.slice().sort(gastoSort));
+  if (!sc.ok){ rangeError('kGastos'); clearCharts(ids); $('tGastos').innerHTML=''; $('gastosConceptFilter').innerHTML='<option value="">Todos los conceptos</option>'; return; }
+  const conceptos = [...new Set(sc.rows.map(g=>g.Concepto).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+  $('gastosConceptFilter').innerHTML = '<option value="">Todos los conceptos</option>' + conceptos.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  $('gastosConceptFilter').value = conceptos.includes(prevConcept) ? prevConcept : '';
+  renderGastosDetail(gastoDetailRows(sc.rows).slice().sort(gastoSort));
   const months = monthsBetween(sc.pf, sc.pt);
   const tot = sum(sc.rows,g=>g.Monto), totAll = sum(sc.all,g=>g.Monto), ivaT = sum(sc.iva,v=>v.Monto);
   const byClas = group(sc.all, g=>g.Clasificacion, g=>g.Monto);
@@ -1991,6 +2132,47 @@ function renderGastos(){
 let tesLimit = 300;
 const TES_TIPO_COLOR = {Ingreso:'#169b6b', Egreso:'#e34948', Propietarios:'#6250d6', Ajuste:'#94a3b8', Interno:'#64748b'};
 // Saldo de una cuenta al cierre del día "d" (null si no hay saldo inicial anterior)
+
+/* ---------- Desglose de "Otros egresos" de Tesorería con el detalle del Excel ---------- */
+const OTROS_EGR = /^otros egresos/i;
+const DESG = {loan:'Cuotas de préstamos', mor:'Cuotas de moratorias', iva:'Pago de IVA', imp:'Impuestos, retenciones e ITF', sue:'Sueldos y cargas sociales', fin:'Gastos bancarios y descubiertos',
+  fijo:'Gastos fijos', var:'Gastos variables y CMV', otro:'Otros gastos detallados', resto:'Otros egresos sin detalle'};
+const DESG_COLOR = {[DESG.loan]:'#eda100', [DESG.mor]:'#b57edc', [DESG.iva]:'#e87ba4', [DESG.resto]:'#cbd5e1'};
+function splitOtrosEgresos(R, P){
+  const tipoPago = {}; R.prestamos.forEach(p => { if (p.Pago) (tipoPago[p.Pago.PagoID] = tipoPago[p.Pago.PagoID] || []).push(p); });
+  const items = [];
+  R.pagosFin.forEach(pg => { if (!pg.Cuenta) return; const cs = tipoPago[pg.ID] || [];
+    const mor = cs.length && cs.every(c=>c.Tipo==='Moratoria');
+    items.push({Cuenta:pg.Cuenta, Fecha:pg.Fecha, Monto:pg.Monto, Concepto: mor ? DESG.mor : DESG.loan, Detalle: cs.length ? [...new Set(cs.map(c=>`${c.Banco} ${c.Prestamo_ID}`))].join(', ') + ` · cuota${cs.length>1?'s':''} ${cs.map(c=>c.Cuota).join(', ')}` : 'pago de financiación'}); });
+  R.iva.forEach(v => { if (v.FechaPago && v.Cuenta) items.push({Cuenta:v.Cuenta, Fecha:v.FechaPago, Monto:v.MontoPagado ?? v.Monto, Concepto:DESG.iva, Detalle:`IVA ${fm(v.Periodo)}`}); });
+  P.gastosX.forEach(g => { if (!g.Fecha || !g.Cuenta || g.MedioTipo==='Tarjeta de crédito') return;
+    const c = g.Clasificacion==='IMPUESTOS' ? DESG.imp : g.Clasificacion==='SUELDOS' ? DESG.sue : g.Clasificacion==='FINANCIERO' ? DESG.fin : g.Clasificacion==='FIJO' ? DESG.fijo : (g.Clasificacion==='VARIABLE' || g.Clasificacion==='CMV') ? DESG.var : DESG.otro;
+    items.push({Cuenta:g.Cuenta, Fecha:g.Fecha, Monto:g.Monto, Concepto:c, Detalle:`${g.Concepto}${g.Detalle?` (${g.Detalle})`:''}`}); });
+  const otros = R.movsTes.filter(m => OTROS_EGR.test(m.Concepto) && m.Monto < 0);
+  const key = (c,d) => `${c}#${d}`;
+  const byDay = {}; otros.forEach(m => { (byDay[key(m.Cuenta,m.Fecha)] = byDay[key(m.Cuenta,m.Fecha)] || []).push(m); });
+  // cada detalle va al "otros egresos" de su cuenta y día; si ese día no hay, al más cercano (±4 días, p. ej. fines de semana)
+  const asign = new Map(); otros.forEach(m => asign.set(m, []));
+  items.forEach(it => {
+    let target = (byDay[key(it.Cuenta,it.Fecha)] || [])[0];
+    if (!target) for (let k=1; k<=4 && !target; k++) target = (byDay[key(it.Cuenta,addDays(it.Fecha,-k))] || [])[0] || (byDay[key(it.Cuenta,addDays(it.Fecha,k))] || [])[0];
+    if (target) asign.get(target).push(it);
+  });
+  let detallado = 0, sinDetalle = 0;
+  const out = [];
+  R.movsTes.forEach(m => {
+    if (!asign.has(m)){ out.push(m); return; }
+    const T = -m.Monto, its = asign.get(m), D = sum(its, x=>x.Monto);
+    const k = D > T && D > 0 ? T / D : 1;     // si el detalle supera el débito, se prorratea para conservar el saldo
+    const grp = {}; its.forEach(x => { const g = grp[x.Concepto] = grp[x.Concepto] || {Monto:0, det:[]}; g.Monto += x.Monto * k; g.det.push(x.Detalle); });
+    Object.entries(grp).forEach(([c,g]) => { if (Math.abs(g.Monto) < 0.005) return; out.push({...m, Concepto:c, Monto:-g.Monto, Detalle:[...new Set(g.det)].slice(0,6).join(' · ') + (g.det.length>6?` · y ${g.det.length-6} más`:''), Desglose:true, Original:m.Concepto}); detallado += g.Monto; });
+    const resto = T - D * k;
+    if (Math.abs(resto) >= 0.005){ out.push({...m, Concepto: resto > 0 ? DESG.resto : DESG.otro, Monto:-resto, Detalle: resto > 0 ? 'Parte del débito sin gasto detallado en el Excel' : 'Ajuste: el detalle supera al débito', Desglose:true, Original:m.Concepto}); if (resto > 0) sinDetalle += resto; }
+  });
+  out.desglose = {detallado, sinDetalle, total: -sum(otros, m=>m.Monto)};
+  return out;
+}
+
 function saldoCuenta(cuenta, d){
   const R = appState.raw;
   const base = R.saldos.filter(s => s.Cuenta===cuenta && s.Fecha <= addDays(d,1)).sort((a,b)=>b.Fecha.localeCompare(a.Fecha))[0];
@@ -2007,14 +2189,19 @@ function tesScope(){
   const from=$('tesFrom').value, to=$('tesTo').value;
   if (!validRange(from,to)) return {ok:false};
   const cuenta = $('tesCuenta').value, internos = $('tesInternos').checked;
-  const all = appState.raw.movsTes.filter(m => within(m.Fecha,from,to) && (!cuenta || m.Cuenta===cuenta));
+  const src = $('tesSplit').checked && appState.processed.movsTesX.length ? appState.processed.movsTesX : appState.raw.movsTes;
+  const all = src.filter(m => within(m.Fecha,from,to) && (!cuenta || m.Cuenta===cuenta));
   return {ok:true, from, to, cuenta, internos, all, rows: internos ? all : all.filter(m=>m.Tipo!=='Interno')};
+}
+function tesMovementRows(rows){
+  const concepto = $('tesConceptoFilter').value;
+  return concepto ? rows.filter(m=>m.Concepto===concepto) : rows;
 }
 function renderTesDetail(rows){
   const shown = rows.slice(0, tesLimit);
   $('tesCount').textContent = `${int(rows.length)} movimientos`;
   $('tMovTes').innerHTML = '<thead class="text-left text-slate-500"><tr><th class="py-2 px-2">Fecha</th><th class="px-2">Cuenta</th><th class="px-2">Concepto</th><th class="px-2">Tipo</th><th class="px-2">Espacio</th><th class="text-right px-2">Monto</th></tr></thead><tbody>'
-    + (shown.map(m => `<tr class="border-b border-slate-100"><td class="py-1 px-2 whitespace-nowrap">${fd(m.Fecha)}</td><td class="px-2">${esc(m.CuentaNombre)}</td><td class="px-2">${esc(m.Concepto)}</td><td class="px-2"><span class="pill" style="background:${TES_TIPO_COLOR[m.Tipo]||'#94a3b8'}22;color:${TES_TIPO_COLOR[m.Tipo]||'#475569'}">${esc(m.Tipo)}</span></td><td class="px-2">${esc(m.Espacio||'—')}</td><td class="px-2 text-right font-medium ${m.Monto<0?'text-rose-700':'text-emerald-700'}">${fmt(m.Monto)}</td></tr>`).join('') || '<tr><td colspan="6" class="py-3 px-2 text-slate-500">No hay movimientos en el período.</td></tr>')
+    + (shown.map(m => `<tr class="border-b border-slate-100"><td class="py-1 px-2 whitespace-nowrap">${fd(m.Fecha)}</td><td class="px-2">${esc(m.CuentaNombre)}</td><td class="px-2">${esc(m.Concepto)}${m.Detalle?`<div class="text-[11px] text-slate-500 max-w-[28rem] truncate" title="${esc(m.Detalle)}">${esc(m.Detalle)}</div>`:''}</td><td class="px-2"><span class="pill" style="background:${TES_TIPO_COLOR[m.Tipo]||'#94a3b8'}22;color:${TES_TIPO_COLOR[m.Tipo]||'#475569'}">${esc(m.Tipo)}</span></td><td class="px-2">${esc(m.Espacio||'—')}</td><td class="px-2 text-right font-medium ${m.Monto<0?'text-rose-700':'text-emerald-700'}">${fmt(m.Monto)}</td></tr>`).join('') || '<tr><td colspan="6" class="py-3 px-2 text-slate-500">No hay movimientos en el período.</td></tr>')
     + `</tbody>${rows.length?`<tfoot class="font-semibold"><tr><td class="py-2 px-2" colspan="5">Neto de los ${int(rows.length)} movimientos</td><td class="text-right px-2">${fmt(sum(rows,m=>m.Monto))}</td></tr></tfoot>`:''}`;
   const rem = rows.length - shown.length;
   $('tesMore').classList.toggle('hidden', rem<=0);
@@ -2024,12 +2211,16 @@ function renderTesoreria(){
   const R = appState.raw, P = appState.processed;
   const ids = ['cTFondos','cTConc','cTDiario'];
   const prev = $('tesCuenta').value;
+  const prevConcept = $('tesConceptoFilter').value;
   $('tesCuenta').innerHTML = '<option value="">Todas las cuentas</option>' + R.cuentas.map(c=>`<option value="${esc(c.ID)}">${esc(c.Nombre)}</option>`).join('');
   $('tesCuenta').value = R.cuentas.some(c=>c.ID===prev) ? prev : '';
   if (!R.movsTes.length && !R.saldos.length){ clearCharts(ids); ['tTesCuentas','tMovTes','tTesConc'].forEach(id=>$(id).innerHTML=''); return emptyNote('kTes','tesorería (hojas Saldos_Cuentas y Movimientos_Tesoreria)'); }
   const sc = tesScope();
   if (!sc.ok){ rangeError('kTes'); clearCharts(ids); return; }
-  renderTesDetail(sc.rows.slice().sort((a,b)=>a.Fecha.localeCompare(b.Fecha) || a.Cuenta.localeCompare(b.Cuenta)));
+  const conceptos = [...new Set(sc.rows.map(m=>m.Concepto).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+  $('tesConceptoFilter').innerHTML = '<option value="">Todos los conceptos</option>' + conceptos.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  $('tesConceptoFilter').value = conceptos.includes(prevConcept) ? prevConcept : '';
+  renderTesDetail(tesMovementRows(sc.rows).slice().sort((a,b)=>a.Fecha.localeCompare(b.Fecha) || a.Cuenta.localeCompare(b.Cuenta)));
   const cuentas = sc.cuenta ? R.cuentas.filter(c=>c.ID===sc.cuenta) : R.cuentas;
   const lastMov = R.movsTes.map(m=>m.Fecha).sort().pop() || sc.to;
   const dEnd = sc.to < lastMov ? sc.to : lastMov;
@@ -2042,7 +2233,7 @@ function renderTesoreria(){
     ['Fondos al inicio', fmt(ini), `${fd(iniDate)}${iniDate!==sc.from?' (primer saldo registrado)':''}${sc.cuenta?` · ${esc(cuentas[0].Nombre)}`:` · ${cuentas.length} cuentas`}`, COL.bal],
     ['Fondos al cierre', fmt(fin), `${fd(dEnd)} (último movimiento ${fd(lastMov)})`, fin>=0?COL.bal:COL.out],
     ['Ingresos', fmt(byTipo.Ingreso||0), 'cobranzas, liquidaciones y otros ingresos', TES_TIPO_COLOR.Ingreso],
-    ['Egresos', fmt(-(byTipo.Egreso||0)), 'proveedores, gastos, sueldos e impuestos', TES_TIPO_COLOR.Egreso],
+    ['Egresos', fmt(-(byTipo.Egreso||0)), (() => { const cu = -sum(sc.all.filter(m=>m.Concepto===DESG.loan||m.Concepto===DESG.mor), m=>m.Monto); return $('tesSplit').checked && cu ? `incluye ${cmpM(cu)} de cuotas de préstamos y moratorias` : 'proveedores, gastos, sueldos e impuestos'; })(), TES_TIPO_COLOR.Egreso],
     ['Propietarios (neto)', fmt(byTipo.Propietarios||0), 'aportes y retiros', TES_TIPO_COLOR.Propietarios],
     ['Movimientos internos', fmt(byTipo.Interno||0), sc.internos ? 'incluidos en gráficos y tabla' : 'excluidos: transferencias entre cuentas propias', TES_TIPO_COLOR.Interno]
   ]);
@@ -2059,8 +2250,8 @@ function renderTesoreria(){
 
   // Por concepto
   const byC = Object.entries(group(sc.rows.filter(m=>m.Tipo!=='Ajuste'), m=>`${m.Concepto}|${m.Tipo}`, m=>m.Monto)).sort((a,b)=>b[1]-a[1]);
-  mk('cTConc','bar',{labels:byC.map(([k])=>k.split('|')[0]), datasets:[{label:'Monto', data:byC.map(([,v])=>v), backgroundColor:byC.map(([k])=>TES_TIPO_COLOR[k.split('|')[1]]||'#94a3b8'), borderSkipped:'start', maxBarThickness:20}]},
-    {indexAxis:'y', layout:{padding:{right:60}}, interaction:{mode:'nearest', axis:'y', intersect:false}, scales:{x:money(), y:{grid:{display:false}, ticks:{font:{size:10.5}}}},
+  mk('cTConc','bar',{labels:byC.map(([k])=>k.split('|')[0]), datasets:[{label:'Monto', data:byC.map(([,v])=>v), backgroundColor:byC.map(([k])=>DESG_COLOR[k.split('|')[0]]||TES_TIPO_COLOR[k.split('|')[1]]||'#94a3b8'), borderSkipped:'start', maxBarThickness:20}]},
+    {indexAxis:'y', layout:{padding:{right:60}}, interaction:{mode:'nearest', axis:'y', intersect:false}, scales:{x:money(), y:{grid:{display:false}, ticks:{autoSkip:false, font:{size:10}}}},
      plugins:{legend:{display:false}, refLines:{}, barValue:{format:v=>cmpM(v)}, tooltip:{callbacks:{label:c=>` ${fmt(c.parsed.x)}`, afterLabel:c=>` ${byC[c.dataIndex][0].split('|')[1]}`}}}});
 
   // Ingresos y egresos diarios
@@ -2143,15 +2334,16 @@ $('flowCats').addEventListener('change', async e => {
   if (appState.processed.loaded){ rerender(); await persistCache(); }
 });
 $('gastoCatFilter').addEventListener('change', () => { gastosLimit = 300; appState.processed.loaded && renderGastos(); });
-$('gastosMore').addEventListener('click', () => { gastosLimit += 300; const sc = gastosScope(); if (sc.ok) renderGastosDetail(sc.rows.slice().sort(gastoSort)); });
-['tesCuenta','tesInternos'].forEach(id => $(id).addEventListener('change', () => { tesLimit = 300; appState.processed.loaded && renderTesoreria(); }));
-$('tesMore').addEventListener('click', () => { tesLimit += 300; const sc = tesScope(); if (sc.ok) renderTesDetail(sc.rows.slice().sort((a,b)=>a.Fecha.localeCompare(b.Fecha) || a.Cuenta.localeCompare(b.Cuenta))); });
+$('gastosConceptFilter').addEventListener('change', () => { gastosLimit = 300; appState.processed.loaded && renderGastos(); });
+$('gastosMore').addEventListener('click', () => { gastosLimit += 300; const sc = gastosScope(); if (sc.ok) renderGastosDetail(gastoDetailRows(sc.rows).slice().sort(gastoSort)); });
+['tesCuenta','tesInternos','tesConceptoFilter','tesSplit'].forEach(id => $(id).addEventListener('change', () => { tesLimit = 300; appState.processed.loaded && renderTesoreria(); }));
+$('tesMore').addEventListener('click', () => { tesLimit += 300; const sc = tesScope(); if (sc.ok) renderTesDetail(tesMovementRows(sc.rows).slice().sort((a,b)=>a.Fecha.localeCompare(b.Fecha) || a.Cuenta.localeCompare(b.Cuenta))); });
 $('exportTes').addEventListener('click', () => { const sc = tesScope(); if (!sc.ok) return;
-  downloadCSV(`tesoreria_${$('tesFrom').value}_${$('tesTo').value}.csv`, ['Fecha','Cuenta','Concepto','Tipo','Espacio','Monto'], sc.rows.map(m=>[fd(m.Fecha),m.CuentaNombre,m.Concepto,m.Tipo,m.Espacio,m.Monto])); });
+  downloadCSV(`tesoreria_${$('tesFrom').value}_${$('tesTo').value}.csv`, ['Fecha','Cuenta','Concepto','Detalle','Concepto original','Tipo','Espacio','Monto'], tesMovementRows(sc.rows).map(m=>[fd(m.Fecha),m.CuentaNombre,m.Concepto,m.Detalle||'',m.Original||m.Concepto,m.Tipo,m.Espacio,m.Monto])); });
 $('useRealBalance').addEventListener('click', () => { const fr = fondosAl($('from').value); if (fr===null) return; $('ini').value = Math.round(fr); renderFlow(); });
 $('exportGastos').addEventListener('click', () => { const sc = gastosScope(); if (!sc.ok) return;
   downloadCSV(`gastos_${$('gastosFrom').value}_${$('gastosTo').value}.csv`, ['Fecha','Período (mes de pago)','Mes de imputación','Clasificación','Categoría','Concepto','Espacio','Medio de pago','Fecha usada en el flujo','Monto','Detalle','Observación'],
-    sc.rows.slice().sort(gastoSort).map(g=>[g.Fecha?fd(g.Fecha):'',g.Periodo,g.MesImput||'',g.Clasificacion,g.Categoria,g.Concepto,g.Espacio,g.Medio,fd(g.pago),g.Monto,g.Detalle,g.Obs])); });
+    gastoDetailRows(sc.rows).slice().sort(gastoSort).map(g=>[g.Fecha?fd(g.Fecha):'',g.Periodo,g.MesImput||'',g.Clasificacion,g.Categoria,g.Concepto,g.Espacio,g.Medio,fd(g.pago),g.Monto,g.Detalle,g.Obs])); });
 let iniTimer;
 $('ini').addEventListener('input', () => { clearTimeout(iniTimer); iniTimer = setTimeout(() => appState.processed.loaded && renderFlow(), 250); });
 ['acc'].forEach(id => $(id).addEventListener('change', () => appState.processed.loaded && renderFlow()));

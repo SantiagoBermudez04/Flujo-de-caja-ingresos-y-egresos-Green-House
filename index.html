@@ -99,8 +99,8 @@ table th{font-weight:600}
 <nav id="nav" class="bg-white border-b border-slate-200 sticky top-0 z-20">
   <div class="max-w-7xl mx-auto px-4 py-2 flex gap-1 overflow-x-auto">
     <button class="tab px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="inicio">Inicio</button>
-    <button class="tab px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="flujo">Flujo general</button>
-    <button class="tab px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="tesoreria">Tesorería</button>
+    <button class="tab px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="tesoreria">Flujo de Fondos</button>
+    <button class="tab px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="contable">Resultados y balance</button>
     <button class="tab px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="prestamos">Préstamos y moratorias</button>
     <button class="tab px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="ventas">Ventas</button>
     <button class="tab px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap" data-tab="compras">Compras y proveedores</button>
@@ -129,13 +129,13 @@ table th{font-weight:600}
     </div>
     <div id="validation" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4"></div>
     <div id="avisos" class="space-y-2 mt-3"></div>
-    <p class="text-xs text-slate-500 mt-4">Hojas esperadas: las 24 tablas del Excel normalizado (Ventas, Compras, Compras_IVA, Proveedores, Emisores, Clientes, Sucursales, TiposComprobante, Entidades, Financiaciones, Financiaciones_Cuotas, Pagos_Financiaciones, Pagos_Financiaciones_Cuotas, Espacios, Cuentas, MediosPago, MediosCobro, ConceptosGasto, ConceptosTesoreria, Gastos, IVA_Mensual, Saldos_Cuentas, Movimientos_Tesoreria, Cobranzas_Mensuales) con sus columnas. Basta con que el nombre de la hoja empiece igual; las hojas de control (Indice, Observaciones, etc.) se ignoran. Si falta una hoja o alguna columna, el archivo se rechaza y se conservan los datos anteriores.</p>
+    <p class="text-xs text-slate-500 mt-4">Hojas esperadas: las 26 tablas del Excel normalizado v4 (Ventas, Compras, Compras_IVA, Proveedores, Emisores, Clientes, Sucursales, TiposComprobante, Entidades, Financiaciones, Financiaciones_Cuotas, Pagos_Financiaciones, Pagos_Financiaciones_Cuotas, Tasas_Prestamos, Tasas_Descubierto, Espacios, Cuentas, MediosPago, MediosCobro, ConceptosGasto, ConceptosTesoreria, Gastos, IVA_Mensual, Saldos_Cuentas, Movimientos_Tesoreria, Cobranzas_Mensuales) con sus columnas. Basta con que el nombre de la hoja empiece igual; las hojas de control (Indice, Observaciones, etc.) se ignoran. Si falta una hoja o alguna columna, el archivo se rechaza y se conservan los datos anteriores.</p>
   </div>
 
   <div id="homeLoaded" class="hidden space-y-5">
     <div class="card">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3>Resumen del período seleccionado<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span id="homeRange" class="chart-badge"></span></div>
-      <p class="chart-note">Usa el rango y el saldo inicial definidos en “Flujo general”.</p>
+      <p class="chart-note">Usa el rango de fechas y el saldo inicial de la proyección definidos en “Flujo de Fondos”.</p>
       <div id="homeInsights" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
     </div>
     <div class="card">
@@ -153,16 +153,16 @@ table th{font-weight:600}
         <li><b>Préstamos y moratorias:</b> el total de cada cuota en su vencimiento (capital, interés y cargos). Las cuotas en dólares usan su importe en pesos.</li>
         <li><b>Gastos e impuestos:</b> cada gasto en su fecha; los que sólo tienen mes, en su día de vencimiento o en el día por defecto. Los consumos con tarjeta usan la fecha del consumo.</li>
         <li><b>Cuotas con débito registrado:</b> usan la fecha y el importe real del débito. El IVA mensual (opcional) usa su pago registrado o el mes de pago proyectado.</li>
-        <li><b>Tesorería:</b> saldos reales por cuenta a partir del saldo inicial del mes y los movimientos diarios; las transferencias entre cuentas propias son movimientos internos.</li>
+        <li><b>Flujo de Fondos:</b> saldos reales por cuenta a partir del saldo inicial del mes y los movimientos diarios; las transferencias entre cuentas propias son movimientos internos.</li>
         <li><b>Saldo acumulado:</b> saldo inicial más la suma diaria de ingresos menos egresos.</li>
       </ul></div>
     <div class="card"><h3 class="mb-2">Cómo navegar</h3>
       <div class="grid gap-2 text-sm">
-        <button type="button" data-tab="flujo" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Flujo general.</b> Ingresos vs. egresos por día, semana o mes, saldo acumulado y puente de saldo.</button>
         <button type="button" data-tab="prestamos" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Préstamos y moratorias.</b> Vencimientos, evolución de la deuda, costo financiero y CFT estimado.</button>
         <button type="button" data-tab="ventas" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Ventas.</b> Sucursales, calendario de ventas, distribución de tickets y clientes.</button>
+        <button type="button" data-tab="contable" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Resultados y balance.</b> Estado de resultados con intereses reales, balance, ratios de liquidez, deuda y rentabilidad, y la proyección del cliente.</button>
         <button type="button" data-tab="compras" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Compras y proveedores.</b> Concentración, plazos, vencimientos próximos y calendario de pagos.</button>
-        <button type="button" data-tab="tesoreria" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Tesorería.</b> Fondos reales por cuenta, ingresos y egresos por concepto y conciliación con los gastos.</button>
+        <button type="button" data-tab="tesoreria" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Flujo de Fondos.</b> Fondos reales por cuenta, flujo operativo, ingresos y egresos por concepto y la proyección de compromisos (proveedores, cuotas, gastos e impuestos) por día, semana o mes.</button>
         <button type="button" data-tab="gastos" class="text-left p-3 rounded border border-slate-200 hover:bg-slate-50"><b>Gastos e impuestos.</b> Gastos por clasificación, concepto y espacio, ITF bancario e IVA mensual.</button>
       </div>
       <p class="text-xs text-slate-500 mt-3">El símbolo <span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span> indica que el gráfico o tabla se ve afectado por el filtro de fechas Desde/Hasta. Pase el cursor sobre cualquier gráfico para ver los importes exactos. Haga clic en una leyenda para ocultar o mostrar esa serie.</p></div>
@@ -172,99 +172,67 @@ table th{font-weight:600}
 <section id="tab-vacio" class="hidden"><div class="card text-center py-16"><h2 class="text-lg font-semibold">Todavía no hay datos</h2><p class="text-slate-600 mt-1">Cargue el Excel para ver este panel.</p><button type="button" data-tab="inicio" class="btn btn-brand mt-4">Ir a Inicio y cargar el Excel</button></div></section>
 
 <!-- ================= FLUJO ================= -->
-<section id="tab-flujo" class="hidden space-y-5">
-  <div class="card flex flex-wrap items-end gap-4">
-    <label class="field"><span>Desde<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></span><input id="from" type="date" class="date-from"></label>
-    <label class="field"><span>Hasta<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></span><input id="to" type="date" class="date-to"></label>
-    <button type="button" class="btn eq-from self-end" title="Poner en “Hasta” la misma fecha que “Desde”">= Desde</button>
-    <label class="field">Saldo inicial (ARS)<input id="ini" type="number" value="0" step="100000" class="w-40"></label>
-    <div class="field">Agrupar por<div class="seg" id="flowGran"><button type="button" data-v="day" class="on">Día</button><button type="button" data-v="week">Semana</button><button type="button" data-v="month">Mes</button></div></div>
-    <label class="flex items-center gap-2 text-sm pb-1"><input id="acc" type="checkbox" checked> Ver saldo acumulado</label>
-    <div class="flex gap-2 pb-0.5 flex-wrap"><button type="button" class="btn" data-preset="loaded">Período cargado</button><button type="button" class="btn" data-preset="next90">Hoy + 90 días</button><button type="button" class="btn" id="useRealBalance" disabled>Usar fondos reales</button></div>
-    <div id="flowCats" class="basis-full flex flex-wrap items-center gap-x-4 gap-y-2 text-sm border-t border-slate-100 pt-3"></div>
-    <p class="text-xs text-slate-500 flex items-center gap-1 basis-full"><span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span><span>Los gráficos y tablas con este símbolo se ven afectados por el filtro de fechas.</span></p>
-  </div>
-  <div id="kFlujo" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3"></div>
-  <div class="card">
-    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Ingresos y egresos por <span id="flowGranLabel">día</span><span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">INGRESOS VS EGRESOS</span></div>
-    <p class="chart-note">Ingresos hacia arriba y egresos hacia abajo, separados por categoría (las incluidas arriba). La línea vertical marca la fecha de hoy. Haga clic en una barra para marcar ese período aquí y en el saldo acumulado; vuelva a hacer clic para quitar la marca.</p>
-    <div class="h-96"><canvas id="cFlujo" aria-label="Ingresos y egresos por período"></canvas></div>
-    <div id="flowSel" class="sel-panel hidden" aria-live="polite"></div>
-  </div>
-  <div id="accCard" class="card">
-    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Saldo acumulado diario<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">TESORERÍA</span></div>
-    <p class="chart-note">Parte del saldo inicial. El tramo rojo indica saldo negativo; el punto marca el saldo mínimo del período. La banda azul marca el período seleccionado (también puede hacer clic aquí).</p>
-    <div class="h-72"><canvas id="cSaldo"></canvas></div>
-  </div>
-  <div class="grid lg:grid-cols-3 gap-4">
-    <div class="card lg:col-span-2">
-      <div class="flex flex-wrap items-center justify-between gap-2"><h3>Puente de saldo del período<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">CASCADA</span></div>
-      <p class="chart-note">Cómo se pasa del saldo inicial al saldo final: suman las ventas y restan cada categoría de egresos incluida.</p>
-      <div class="h-72"><canvas id="cPuente"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="flex flex-wrap items-center justify-between gap-2"><h3>Composición de egresos<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">COMPOSICIÓN</span></div>
-      <p class="chart-note">Participación de cada categoría en los egresos del período.</p>
-      <div class="h-56"><canvas id="cEgr"></canvas></div>
-      <div id="insFlujo" class="mt-3 space-y-2 text-sm"></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Resumen semanal del flujo de caja<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">CONTROL SEMANAL</span></div>
-    <p class="chart-note">El cierre parte del saldo inicial ingresado arriba. “Ventas” excluye ventas anuladas. El detalle muestra los egresos con signo negativo.</p>
-    <div class="overflow-x-auto"><table class="w-full text-sm min-w-[1100px] num"><thead class="text-left text-slate-500 border-b"><tr>
-      <th class="py-2 pr-3">Semana</th><th class="text-right px-2">Ventas</th><th class="text-right px-2">Proveedores</th><th class="text-right px-2">Préstamos y moratorias</th><th class="text-right px-2">Gastos fijos e impuestos</th><th class="text-right px-2">Flujo neto</th><th class="px-2 w-28"></th><th class="text-right px-2">Saldo cierre</th><th class="px-2">Detalle</th>
-    </tr></thead><tbody id="weeklyTable"></tbody></table></div>
-  </div>
-</section>
+
 
 <!-- ================= PRÉSTAMOS ================= -->
 <section id="tab-prestamos" class="hidden space-y-5">
   <div class="card flex flex-wrap items-end gap-4">
-    <label class="field"><span>Desde<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></span><input id="loansFrom" class="date-from" type="date"></label>
-    <label class="field"><span>Hasta<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></span><input id="loansTo" class="date-to" type="date"></label>
+    <label class="field"><span>Desde</span><input id="loansFrom" class="date-from" type="date"></label>
+    <label class="field"><span>Hasta</span><input id="loansTo" class="date-to" type="date"></label>
     <button type="button" class="btn eq-from self-end" title="Poner en “Hasta” la misma fecha que “Desde”">= Desde</button>
     <button id="loansUntilLastPayment" type="button" class="btn" disabled>Hasta última cuota</button>
     <div class="field">Tipo<div class="seg" id="loanTipo"><button type="button" data-v="" class="on">Todos</button><button type="button" data-v="Préstamo">Préstamos</button><button type="button" data-v="Moratoria">Moratorias</button></div></div>
-    <p class="text-xs text-slate-500">El rango filtra las cuotas por fecha de vencimiento. Las cuotas con débito registrado figuran como pagadas; las demás vencidas hasta hoy se suponen pagadas.</p>
-    <p class="text-xs text-slate-500 flex items-center gap-1 basis-full"><span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span><span>Los gráficos y tablas con este símbolo se ven afectados por el filtro de fechas.</span></p>
+    <p class="text-xs text-slate-500 basis-full">El rango Desde/Hasta aplica a toda la pestaña (cuotas por fecha de vencimiento), salvo <b>Próximos vencimientos</b>, que siempre parte de hoy. Las cuotas con débito registrado figuran como pagadas; las demás vencidas hasta hoy se suponen pagadas.</p>
   </div>
+
   <div id="kPrest" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
+
+  <div class="card overflow-x-auto"><div class="flex flex-wrap items-center justify-between gap-2"><h3 class="mb-1">Próximos vencimientos</h3><span class="chart-badge">DESDE HOY</span></div><p class="chart-note">Las próximas 10 cuotas pendientes (préstamos y moratorias, según el tipo elegido).</p><table id="tPrest" class="w-full min-w-[720px] text-sm num"></table></div>
+
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Cuotas por mes y flujo operativo</h3><div class="flex items-center gap-2"><div class="seg" id="loanTimelineMode"><button type="button" data-v="banco" class="on">Por entidad</button><button type="button" data-v="prestamo">Por préstamo</button><button type="button" data-v="concepto">Por concepto</button></div></div></div>
+    <p class="chart-note">Barras: cuotas que vencen cada mes (las 7 financiaciones más grandes del rango y “Otros”, en la vista por préstamo). Línea verde: flujo operativo real del mes (cobros menos proveedores, sueldos, gastos e impuestos). Línea punteada: promedio de los últimos 6 meses completos, como referencia para los meses futuros. Cuando las barras superan la línea, el negocio no genera lo necesario para pagar las cuotas de ese mes.</p>
+    <div class="h-80"><canvas id="cTimeline"></canvas></div>
+  </div>
+
   <div class="grid lg:grid-cols-3 gap-4">
-    <div class="card lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Cuotas pendientes por mes y préstamo<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">PLANIFICACIÓN</span></div><p class="chart-note">Barras apiladas con los 7 préstamos o planes con más cuotas pendientes en el rango; el resto se agrupa en “Otros”. El tooltip muestra el total mensual.</p><div class="h-80"><canvas id="cCuota"></canvas></div></div>
-    <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Composición de la deuda pendiente<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">COSTO FINANCIERO</span></div><p class="chart-note">Capital por amortizar frente al costo financiero que resta pagar en el rango.</p><div class="h-80"><canvas id="cPrestDon"></canvas></div></div>
+    <div class="card lg:col-span-2"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Evolución del capital adeudado</h3><span class="chart-badge">DESENDEUDAMIENTO</span></div><p class="chart-note">Capital que queda por amortizar al cierre de cada mes, apilado por entidad. Los préstamos de pago único sin desglose aparecen sólo el mes anterior a su vencimiento. La línea vertical marca el mes actual.</p><div class="h-80"><canvas id="cDeuda"></canvas></div></div>
+    <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Composición de la deuda pendiente</h3><span class="chart-badge">COSTO FINANCIERO</span></div><p class="chart-note">Capital por amortizar frente al interés y los cargos que restan pagar en el rango.</p><div class="h-80"><canvas id="cPrestDon"></canvas></div></div>
   </div>
-  <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Evolución del capital adeudado</h3><span class="chart-badge">DESENDEUDAMIENTO · PLAN COMPLETO</span></div><p class="chart-note">Capital que queda por amortizar al cierre de cada mes, apilado por entidad. Los préstamos de pago único sin desglose aparecen sólo el mes anterior a su vencimiento, porque no se conoce su fecha de otorgamiento. Muestra el plan completo, sin aplicar el rango; la línea vertical marca el mes actual.</p><div class="h-80"><canvas id="cDeuda"></canvas></div></div>
-  <div class="card overflow-x-auto"><h3 class="mb-1">Detalle de deuda pendiente</h3><p class="chart-note">Todos los préstamos y planes con cuotas pendientes, sin aplicar el rango de fechas.</p><table id="tDeudaPendiente" class="w-full min-w-[1200px] text-sm num"></table></div>
-  <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Cuotas pendientes por mes</h3><div class="flex items-center gap-2"><div class="seg" id="loanTimelineMode"><button type="button" data-v="banco" class="on">Por entidad</button><button type="button" data-v="concepto">Por concepto</button></div><span class="chart-badge">PLAN COMPLETO</span></div></div><p class="chart-note">Todos los meses con cuotas pendientes del plan, sin aplicar el filtro de fechas. “Por concepto” separa capital, interés y cargos de cada mes.</p><div class="h-80"><canvas id="cTimeline"></canvas></div></div>
-  <div class="grid gap-4">
-    <div class="card overflow-x-auto"><h3 class="mb-1">Próximos vencimientos</h3><p class="chart-note">Las próximas 10 cuotas pendientes (préstamos y moratorias, según el tipo elegido).</p><table id="tPrest" class="w-full min-w-[720px] text-sm num"></table></div>
-    <div class="card overflow-x-auto"><h3 class="mb-1">Capital inicial y CFT estimado<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><p class="chart-note">Capital inicial = suma del capital de todas sus cuotas. CFT anual efectivo estimado con los flujos de pago, suponiendo que el préstamo se obtuvo un mes antes del primer vencimiento. Es una estimación y no reemplaza el CFT informado por el banco. Se listan los que tienen algún vencimiento en el rango y el total es el promedio de esos CFT ponderado por capital (los marcados con ⚠ tienen un cronograma anómalo y no entran en el promedio); “s/d” indica pagos sin desglose de capital e intereses.</p><table id="tCft" class="w-full min-w-[720px] text-sm num"></table></div>
+
+  <div class="card overflow-x-auto">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="mb-1">Préstamos y planes: plazos, tasas y costo</h3><span class="chart-badge">DEL MÁS CARO AL MÁS BARATO</span></div>
+    <p class="chart-note">Una fila por préstamo o plan con vencimientos en el rango, ordenadas por CFT. <b>1ª cuota</b>: vencimiento de la primera cuota (debajo, la última). <b>TNA informada</b>: la que informa el banco (actual y, debajo, la de la primera cuota). <b>TNA implícita</b>: la que surge del cronograma (interés de la cuota ÷ capital adeudado × 365 ÷ días entre cuotas); se muestra la de la última cuota vencida y, debajo, la del comienzo (desde la 2ª cuota, porque no se conoce la fecha exacta de otorgamiento). Si el banco bajó la tasa y el cronograma no se actualizó, la implícita queda por encima de la informada. <b>CFT anual</b>: costo efectivo con todos los pagos (capital, interés y cargos), suponiendo que el préstamo se recibió un mes antes de la primera cuota; es una estimación. Los marcados con ⚠ tienen un cronograma anómalo y no entran en el promedio; “s/d” = pagos sin desglose de capital e intereses.</p>
+    <table id="tCft" class="w-full min-w-[1250px] text-sm num"></table>
   </div>
+
   <div class="card space-y-4" id="descCard">
-    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Descubiertos en cuenta corriente<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">SALDO DEUDOR · CFT</span></div>
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Descubiertos en cuenta corriente</h3><span class="chart-badge">SALDO DEUDOR · CFT</span></div>
     <p class="chart-note -mt-2">Días en que una cuenta corriente cerró con saldo negativo (calculado con Saldos_Cuentas y Movimientos_Tesoreria) y débitos de intereses por descubierto (concepto “Descubierto” en Gastos). Cada débito se asigna a los días en negativo de esa cuenta desde el débito anterior del mismo banco. No depende del filtro Tipo.</p>
     <div id="kDesc" class="grid grid-cols-2 lg:grid-cols-5 gap-3"></div>
     <div><h4 class="text-sm font-semibold text-slate-700">Saldo deudor diario y débitos de intereses</h4><p class="chart-note">Barras: saldo al cierre del día cuando fue negativo, por cuenta. Triángulos: día en que el banco debitó los intereses (el tooltip muestra el monto y el CFT).</p><div class="h-72"><canvas id="cDesc"></canvas></div></div>
-    <div class="overflow-x-auto"><h4 class="text-sm font-semibold text-slate-700">Débitos por descubierto y su costo</h4>
-      <p class="chart-note">Numeral = suma de los saldos negativos de cada día (saldo × días). Costo diario = interés debitado ÷ numeral. TNA = costo diario × 365. CFT = costo efectivo anual: (1 + costo diario)<sup>365</sup> − 1. El débito puede incluir IVA y cargos, por eso se lo considera costo total.</p>
-      <table id="tDescDeb" class="w-full min-w-[1150px] text-sm num"></table></div>
-    <div class="overflow-x-auto"><h4 class="text-sm font-semibold text-slate-700">Períodos con saldo negativo</h4>
-      <p class="chart-note">Días consecutivos con saldo negativo en una misma cuenta. El interés de cada período es la parte del débito que le corresponde según su numeral. Los períodos todavía sin débito muestran un interés estimado con el costo diario observado en esa cuenta (o el promedio, si no hay).</p>
-      <table id="tDescPer" class="w-full min-w-[1000px] text-sm num"></table></div>
+    <details class="group border-t border-slate-200 pt-3"><summary class="cursor-pointer text-sm font-semibold text-slate-700">Débitos por descubierto y su costo</summary>
+      <div class="overflow-x-auto mt-2"><p class="chart-note">Numeral = suma de los saldos negativos de cada día (saldo × días). Costo diario = interés debitado ÷ numeral. TNA = costo diario × 365; “TNA informada” es la que publica el banco para ese mes (hoy sólo el Nación). CFT = costo efectivo anual: (1 + costo diario)<sup>365</sup> − 1. El débito puede incluir IVA y cargos, por eso se lo considera costo total.</p>
+      <table id="tDescDeb" class="w-full min-w-[1150px] text-sm num"></table></div></details>
+    <details class="group border-t border-slate-200 pt-3"><summary class="cursor-pointer text-sm font-semibold text-slate-700">Períodos con saldo negativo</summary>
+      <div class="overflow-x-auto mt-2"><p class="chart-note">Días consecutivos con saldo negativo en una misma cuenta. El interés de cada período es la parte del débito que le corresponde según su numeral. Los períodos todavía sin débito muestran un interés estimado con el costo diario observado en esa cuenta (o el promedio, si no hay).</p>
+      <table id="tDescPer" class="w-full min-w-[1000px] text-sm num"></table></div></details>
   </div>
-  <div class="card overflow-x-auto">
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3>Movimientos</h3><div class="flex items-center gap-2"><span id="movimientosCount" class="chart-badge"></span><button type="button" class="btn" id="exportMov">Exportar CSV</button></div></div>
-    <p class="chart-note">Todas las cuotas del tipo elegido, sin aplicar el rango de fechas.</p>
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
-      <label class="field">Préstamo / plan<input id="movimientoLoanFilter" type="search" placeholder="Buscar número"></label>
-      <label class="field">Entidad<select id="movimientoBankFilter"><option value="">Todas</option></select></label>
-      <label class="field">Mes<input id="movimientoMonthFilter" type="month"></label>
-      <label class="field">Estado<select id="movimientoStatusFilter"><option value="">Todos</option><option value="Pagada">Pagada</option><option value="Pendiente">Pendiente</option></select></label>
-      <button id="clearMovementFilters" type="button" class="btn self-end">Limpiar filtros</button>
+
+  <details class="card group">
+    <summary class="cursor-pointer flex flex-wrap items-center justify-between gap-2"><h3 class="inline">Todas las cuotas</h3><span id="movimientosCount" class="chart-badge"></span></summary>
+    <div class="mt-3 overflow-x-auto">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2"><p class="chart-note">Cuotas del tipo elegido que vencen en el rango, con su estado y el débito registrado.</p><button type="button" class="btn" id="exportMov">Exportar CSV</button></div>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+        <label class="field">Préstamo / plan<input id="movimientoLoanFilter" type="search" placeholder="Buscar número"></label>
+        <label class="field">Entidad<select id="movimientoBankFilter"><option value="">Todas</option></select></label>
+        <label class="field">Mes<input id="movimientoMonthFilter" type="month"></label>
+        <label class="field">Estado<select id="movimientoStatusFilter"><option value="">Todos</option><option value="Pagada">Pagada</option><option value="Pendiente">Pendiente</option></select></label>
+        <button id="clearMovementFilters" type="button" class="btn self-end">Limpiar filtros</button>
+      </div>
+      <div class="scroll-table"><table id="tMovimientos" class="w-full min-w-[1200px] text-xs num"></table></div>
     </div>
-    <div class="scroll-table"><table id="tMovimientos" class="w-full min-w-[1200px] text-xs num"></table></div>
-  </div>
+  </details>
 </section>
 
 <!-- ================= VENTAS ================= -->
@@ -331,7 +299,7 @@ table th{font-weight:600}
     <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Compras netas por proveedor<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">TOP 10 + RESTO</span></div><p class="chart-note">Los 10 proveedores con mayor compra neta y el resto agrupado. Las notas de crédito reducen el importe. La etiqueta indica la participación sobre el total.</p><div class="h-80"><canvas id="cCProv"></canvas></div></div>
     <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Plazo de pago vs. volumen de compra<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">NEGOCIACIÓN</span></div><p class="chart-note">Cada burbuja es un proveedor: eje horizontal, plazo en días; eje vertical, compra neta; tamaño, cantidad de comprobantes. Gris: usa el plazo por defecto. Los grandes proveedores con plazos cortos son candidatos a renegociar.</p><div class="h-80"><canvas id="cCPlazo"></canvas></div></div>
   </div>
-  <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3><span id="purchaseCalendarTitle">Calendario de pagos de compras por semana</span><span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><div class="flex flex-wrap items-center gap-2"><div class="seg" id="purchaseCalendarGranularity"><button type="button" data-v="week" class="on">Semana</button><button type="button" data-v="day">Día</button></div><span class="chart-badge">TESORERÍA</span></div></div>
+  <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3><span id="purchaseCalendarTitle">Calendario de pagos de compras por semana</span><span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><div class="flex flex-wrap items-center gap-2"><div class="seg" id="purchaseCalendarGranularity"><button type="button" data-v="week" class="on">Semana</button><button type="button" data-v="day">Día</button></div><span class="chart-badge">PROYECCIÓN</span></div></div>
     <p class="chart-note">Azul: pagos con fecha ya cumplida. Naranja: pagos pendientes que impactan el flujo futuro. El tooltip muestra el acumulado.</p>
     <div class="h-80"><canvas id="cCFut"></canvas></div></div>
   <div class="grid lg:grid-cols-2 gap-4">
@@ -411,10 +379,11 @@ table th{font-weight:600}
     <p class="text-xs text-slate-500 max-w-md">Datos reales de las hojas Saldos_Cuentas y Movimientos_Tesoreria. Las transferencias entre cuentas propias son internas y no cuentan como ingreso ni egreso.</p>
     <p class="text-xs text-slate-500 flex items-center gap-1 basis-full"><span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span><span>Los gráficos y tablas con este símbolo se ven afectados por el filtro de fechas.</span></p>
   </div>
-  <div id="kTes" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3"></div>
+  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 pt-1"><h2 class="text-lg font-semibold text-slate-800">Movimientos reales de las cuentas</h2><p class="text-sm text-slate-500">Lo que efectivamente entró y salió de la caja y los bancos (hojas Saldos_Cuentas y Movimientos_Tesoreria).</p></div>
+  <div id="kTes" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
   <div class="card space-y-3" id="operCard">
     <div class="flex flex-wrap items-center justify-between gap-2"><h3>Flujo operativo<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">¿LA OPERACIÓN GENERA FONDOS?</span></div>
-    <p class="chart-note -mt-2">Separa lo que genera la operación habitual (cobros por ventas menos proveedores, sueldos, gastos e impuestos) de lo que no es operación: cuotas de préstamos y moratorias, intereses bancarios, compras de bienes de uso y movimientos de los socios. Usa los movimientos reales de las cuentas con los “otros egresos” separados por el detalle de gastos. Respeta el rango de fechas; siempre muestra la empresa completa (todas las cuentas), porque por cuenta las transferencias internas distorsionan el resultado.</p>
+    <p class="chart-note -mt-2">Separa lo que genera la operación habitual (cobros por ventas menos proveedores, sueldos, gastos e impuestos) de lo que no es operación: préstamos recibidos, cuotas de préstamos y moratorias, intereses bancarios, compras de bienes de uso y movimientos de los socios. Usa los movimientos reales de las cuentas con los “otros egresos” separados por el detalle de gastos. Respeta el rango de fechas; siempre muestra la empresa completa (todas las cuentas), porque por cuenta las transferencias internas distorsionan el resultado.</p>
     <div id="kOper" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3"></div>
     <div class="grid lg:grid-cols-5 gap-4">
       <div class="lg:col-span-3"><h4 class="text-sm font-semibold text-slate-700">Cascada del período</h4><p class="chart-note">De los cobros al flujo operativo y, después de financiación, inversión y socios, a la variación de los fondos.</p><div class="h-80"><canvas id="cOper"></canvas></div></div>
@@ -428,7 +397,7 @@ table th{font-weight:600}
     <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Ingresos y egresos por concepto<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">COMPOSICIÓN</span></div><p class="chart-note">Verde: ingresos; rojo: egresos; amarillo: cuotas de préstamos; lila: moratorias; rosa: IVA; gris claro: egresos sin detalle; violeta: propietarios; gris: internos (si se incluyen).</p><div class="h-96"><canvas id="cTConc"></canvas></div></div>
     <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Ingresos y egresos diarios<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">MOVIMIENTO DIARIO</span></div><p class="chart-note">Sin movimientos internos. El tooltip muestra el neto del día.</p><div class="h-96"><canvas id="cTDiario"></canvas></div></div>
   </div>
-  <div class="card overflow-x-auto"><h3 class="mb-1">Resumen por cuenta<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><p class="chart-note">Saldo inicial, movimientos por tipo y saldo final de cada cuenta en el rango.</p><table id="tTesCuentas" class="w-full min-w-[900px] text-sm num"></table></div>
+  <div class="card overflow-x-auto"><h3 class="mb-1">Resumen por cuenta<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><p class="chart-note">Saldo inicial, movimientos por tipo y saldo final de cada cuenta en el rango.</p><table id="tTesCuentas" class="w-full min-w-[1020px] text-sm num"></table></div>
   <div class="card overflow-x-auto"><h3 class="mb-1">Conciliación con el detalle de gastos<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><p class="chart-note">Compara los “Otros egresos” de las cuentas con los gastos detallados pagados por débito o en efectivo, más las cuotas e IVA pagados. Una diferencia grande indica gastos sin detallar o registrados en otra fila.</p><table id="tTesConc" class="w-full min-w-[760px] text-sm num"></table></div>
   <div class="card overflow-x-auto">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3>Movimientos<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><div class="flex items-center gap-2"><span id="tesCount" class="chart-badge"></span><button type="button" class="btn" id="exportTes">Exportar CSV</button></div></div>
@@ -436,7 +405,105 @@ table th{font-weight:600}
     <div class="scroll-table"><table id="tMovTes" class="w-full min-w-[800px] text-xs num"></table></div>
     <button type="button" id="tesMore" class="btn mt-2 hidden"></button>
   </div>
+  <div id="proyWarn" class="hidden"></div>
+  <div id="proyeccion" class="flex flex-wrap items-baseline gap-x-3 gap-y-1 pt-4 border-t border-slate-300"><h2 class="text-lg font-semibold text-slate-800">Proyección de compromisos</h2><p class="text-sm text-slate-500">Flujo armado con las ventas, las facturas de compra por vencer, las cuotas, los gastos y el IVA. Usa el mismo rango de fechas de arriba; el saldo inicial se ingresa acá o se toma de los fondos reales.</p></div>
+
+  <div class="card flex flex-wrap items-end gap-4">
+    <label class="field hidden" aria-hidden="true"><span>Desde<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></span><input id="from" type="date" class="date-from"></label>
+    <label class="field hidden" aria-hidden="true"><span>Hasta<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></span><input id="to" type="date" class="date-to"></label>
+    <button type="button" class="btn eq-from self-end hidden" title="Poner en “Hasta” la misma fecha que “Desde”">= Desde</button>
+    <label class="field">Saldo inicial (ARS)<input id="ini" type="number" value="0" step="100000" class="w-40"></label>
+    <div class="field">Agrupar por<div class="seg" id="flowGran"><button type="button" data-v="day" class="on">Día</button><button type="button" data-v="week">Semana</button><button type="button" data-v="month">Mes</button></div></div>
+    <label class="flex items-center gap-2 text-sm pb-1"><input id="acc" type="checkbox" checked> Ver saldo acumulado</label>
+    <div class="flex gap-2 pb-0.5 flex-wrap"><button type="button" class="btn" data-preset="loaded">Período cargado</button><button type="button" class="btn" data-preset="next90">Hoy + 90 días</button><button type="button" class="btn" id="useRealBalance" disabled>Usar fondos reales</button></div>
+    <div id="flowCats" class="basis-full flex flex-wrap items-center gap-x-4 gap-y-2 text-sm border-t border-slate-100 pt-3"></div>
+    <p class="text-xs text-slate-500 flex items-center gap-1 basis-full"><span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span><span>Los gráficos y tablas con este símbolo se ven afectados por el filtro de fechas.</span></p>
+  </div>
+  <div id="kFlujo" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3"></div>
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Ingresos y egresos por <span id="flowGranLabel">día</span><span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">INGRESOS VS EGRESOS</span></div>
+    <p class="chart-note">Ingresos hacia arriba y egresos hacia abajo, separados por categoría (las incluidas arriba). La línea vertical marca la fecha de hoy. Haga clic en una barra para marcar ese período aquí y en el saldo acumulado; vuelva a hacer clic para quitar la marca.</p>
+    <div class="h-96"><canvas id="cFlujo" aria-label="Ingresos y egresos por período"></canvas></div>
+    <div id="flowSel" class="sel-panel hidden" aria-live="polite"></div>
+  </div>
+  <div id="accCard" class="card">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Saldo acumulado diario<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">PROYECCIÓN</span></div>
+    <p class="chart-note">Parte del saldo inicial. El tramo rojo indica saldo negativo; el punto marca el saldo mínimo del período. La banda azul marca el período seleccionado (también puede hacer clic aquí).</p>
+    <div class="h-72"><canvas id="cSaldo"></canvas></div>
+  </div>
+  <div class="grid lg:grid-cols-3 gap-4">
+    <div class="card lg:col-span-2">
+      <div class="flex flex-wrap items-center justify-between gap-2"><h3>Puente de saldo del período<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">CASCADA</span></div>
+      <p class="chart-note">Cómo se pasa del saldo inicial al saldo final: suman las ventas y restan cada categoría de egresos incluida.</p>
+      <div class="h-72"><canvas id="cPuente"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="flex flex-wrap items-center justify-between gap-2"><h3>Composición de egresos<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">COMPOSICIÓN</span></div>
+      <p class="chart-note">Participación de cada categoría en los egresos del período.</p>
+      <div class="h-56"><canvas id="cEgr"></canvas></div>
+      <div id="insFlujo" class="mt-3 space-y-2 text-sm"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Resumen semanal del flujo de caja<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">CONTROL SEMANAL</span></div>
+    <p class="chart-note">El cierre parte del saldo inicial ingresado arriba. “Ventas” excluye ventas anuladas. El detalle muestra los egresos con signo negativo.</p>
+    <div class="overflow-x-auto"><table class="w-full text-sm min-w-[1100px] num"><thead class="text-left text-slate-500 border-b"><tr>
+      <th class="py-2 pr-3">Semana</th><th class="text-right px-2">Ventas</th><th class="text-right px-2">Proveedores</th><th class="text-right px-2">Préstamos y moratorias</th><th class="text-right px-2">Gastos fijos e impuestos</th><th class="text-right px-2">Flujo neto</th><th class="px-2 w-28"></th><th class="text-right px-2">Saldo cierre</th><th class="px-2">Detalle</th>
+    </tr></thead><tbody id="weeklyTable"></tbody></table></div>
+  </div>
 </section>
+
+<!-- ================= RESULTADOS Y BALANCE ================= -->
+<section id="tab-contable" class="hidden space-y-5">
+  <div class="card">
+    <div class="flex flex-wrap items-baseline justify-between gap-2"><h2 class="text-lg font-semibold text-slate-800">Resultados, balance y ratios</h2><span id="ecPeriodo" class="chart-badge"></span></div>
+    <p class="text-sm text-slate-600 mt-1">Estado de resultados y balance internos del cliente (hojas Resultados_Mensuales y Balance_Saldos), con tres correcciones: las cuentas corrientes se restan una sola vez, el balance incluye el Banco Hipotecario y los servicios se cuentan una vez. Los saldos bancarios negativos (descubiertos) se pasan al pasivo. Al resultado se le restan los <b>intereses reales</b> (cuotas de préstamos y moratorias que vencen en el mes, según los cronogramas, más los débitos de descubierto y comisiones de préstamos) en lugar del 10% estimado del origen. Esta pestaña no usa el filtro de fechas.</p>
+    <div id="ecAvisos" class="mt-3 space-y-2"></div>
+  </div>
+  <div id="kEC" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3"></div>
+
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Estado de resultados mensual</h3><span class="chart-badge">DEVENGADO</span></div>
+    <p class="chart-note">Barras: resultado operativo (antes de intereses) y resultado después de intereses reales. Si la segunda barra queda por debajo de cero, la operación no alcanza para pagar el costo de la deuda.</p>
+    <div class="h-72"><canvas id="cEERR" aria-label="Resultado operativo y después de intereses por mes"></canvas></div>
+    <div class="overflow-x-auto mt-4"><table id="tEERR" class="w-full min-w-[860px] text-sm num"></table></div>
+    <p id="eerrNote" class="text-xs text-slate-500 mt-2"></p>
+  </div>
+
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Ratios</h3><span class="chart-badge">LIQUIDEZ · DEUDA · RENTABILIDAD · CICLO</span></div>
+    <p class="chart-note">Verde: razonable; ámbar: a vigilar; rojo: problema. Los ratios de balance usan el saldo a fin de cada mes; los de resultados, el mes (la columna “Acumulado” usa todo el período).</p>
+    <div class="overflow-x-auto"><table id="tRatios" class="w-full min-w-[900px] text-sm num"></table></div>
+    <div class="grid lg:grid-cols-2 gap-4 mt-4">
+      <div><h4 class="text-sm font-semibold text-slate-700">Ventas reales y ventas de equilibrio</h4><p class="chart-note">Ventas netas necesarias para cubrir los costos fijos (sueldos y costos fijos), y además los intereses reales, con el margen de contribución de cada mes.</p><div class="h-64"><canvas id="cEquilibrio"></canvas></div></div>
+      <div><h4 class="text-sm font-semibold text-slate-700">Deuda financiera y resultado operativo</h4><p class="chart-note">Barras: deuda financiera a fin de mes (préstamos, moratorias y descubiertos del balance). Línea: resultado operativo anualizado (últimos 3 meses × 4). Cuanto más lejos está la línea de las barras, más años de operación se necesitan para pagar la deuda.</p><div class="h-64"><canvas id="cECDeuda"></canvas></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Resultado por local</h3><span class="chart-badge">CONTRIBUCIÓN</span></div>
+    <p class="chart-note">Lo que deja cada local después de su mercadería, sueldos y costos propios, antes de IVA, comisiones, impuestos, costos de la empresa e intereses (esos se registran sólo en el total).</p>
+    <div class="h-64"><canvas id="cLocales"></canvas></div>
+    <div class="overflow-x-auto mt-4"><table id="tLocales" class="w-full min-w-[760px] text-sm num"></table></div>
+  </div>
+
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Balance mensual</h3><span class="chart-badge">PATRIMONIO</span></div>
+    <p class="chart-note">Líneas: activo y pasivo a fin de mes. Barras: patrimonio neto (activo − pasivo).</p>
+    <div class="h-72"><canvas id="cBalance"></canvas></div>
+    <div class="overflow-x-auto mt-4"><table id="tBalance" class="w-full min-w-[860px] text-sm num"></table></div>
+    <p id="balNote" class="text-xs text-slate-500 mt-2"></p>
+  </div>
+
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3>Proyección financiera del cliente</h3><span class="chart-badge">PROYECCIÓN</span></div>
+    <p class="chart-note">La proyección que armó el cliente (hoja Financiero). Barras: neto de cada mes. Línea: saldo acumulado, partiendo de los fondos reales al último día con movimientos. Abajo se comparan las cuotas que proyectó el cliente con las de los cronogramas cargados.</p>
+    <div class="h-72"><canvas id="cProy"></canvas></div>
+    <div class="overflow-x-auto mt-4"><table id="tProy" class="w-full min-w-[1100px] text-sm num"></table></div>
+    <p id="proyNote" class="text-xs text-slate-500 mt-2"></p>
+  </div>
+</section>
+
 </main>
 <footer class="max-w-7xl mx-auto px-4 pb-8 text-xs text-slate-500">Green House · Los datos se procesan localmente en este navegador.</footer>
 
@@ -591,8 +658,14 @@ const SCHEMA = {
   pagosCuotas:   {label:'Pagos_Financiaciones_Cuotas', sheet:'Pagos_Financiaciones_Cuotas', cols:['PagoID','FinanciacionID','Cuota']},
   saldos:        {label:'Saldos_Cuentas', sheet:'Saldos_Cuentas', cols:['CuentaID','Fecha','SaldoInicial','Fuente']},
   movsTes:       {label:'Movimientos_Tesoreria', sheet:'Movimientos_Tesoreria', cols:['MovimientoID','Fecha','CuentaID','ConceptoTesoreriaID','EspacioID','Monto','Fuente']},
+  tasasPrest:    {label:'Tasas_Prestamos', sheet:'Tasas_Prestamos', cols:['FinanciacionID','PrimeraCuota','CantidadCuotas','TNA_PrimeraCuota','TNA_Actual','Fuente']},
+  tasasDesc:     {label:'Tasas_Descubierto', sheet:'Tasas_Descubierto', cols:['Periodo','EntidadID','TNA','Fuente']},
   mediosCobro:   {label:'MediosCobro', sheet:'MediosCobro', cols:['MedioCobroID','Nombre','Instrumento','Identificado','Descripcion']},
-  cobranzas:     {label:'Cobranzas_Mensuales', sheet:'Cobranzas_Mensuales', cols:['Periodo','MedioCobroID','Monto','Fuente']}
+  cobranzas:     {label:'Cobranzas_Mensuales', sheet:'Cobranzas_Mensuales', cols:['Periodo','MedioCobroID','Monto','Fuente']},
+  balance:       {label:'Balance_Saldos', sheet:'Balance_Saldos', cols:['Fecha','Rubro','Grupo','Cuenta','Monto'], optional:true},
+  resultados:    {label:'Resultados_Mensuales', sheet:'Resultados_Mensuales', cols:['Periodo','EspacioID','Concepto','Detalle','Monto','Tipo'], optional:true},
+  ipc:           {label:'IPC_Mensual', sheet:'IPC_Mensual', cols:['Periodo','Variacion'], optional:true},
+  proy:          {label:'Proyeccion_Financiera', sheet:'Proyeccion_Financiera', cols:['Periodo','Concepto','Monto'], optional:true}
 };
 const SCHEMA_KEYS = Object.values(SCHEMA).map(s => norm(s.sheet));
 function findSheet(names, sheet){
@@ -605,8 +678,8 @@ function validateWorkbook(wb){
   const report=[], data={};
   for (const [key,spec] of Object.entries(SCHEMA)){
     const sheetName = findSheet(wb.SheetNames, spec.sheet);
-    const entry = {key, label:spec.label, sheet:sheetName, missing:[], rows:0};
-    if (!sheetName){ entry.missing = spec.cols.slice(); report.push(entry); continue; }
+    const entry = {key, label:spec.label, sheet:sheetName, missing:[], rows:0, optional:!!spec.optional};
+    if (!sheetName){ if (spec.optional){ data[key] = []; } else entry.missing = spec.cols.slice(); report.push(entry); continue; }
     const matrix = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {header:1, defval:null, blankrows:false, raw:true});
     const headerIdx = matrix.findIndex(r => Array.isArray(r) && r.some(c => c!==null && String(c).trim()!==''));
     const header = headerIdx>=0 ? matrix[headerIdx].map(h => norm(h)) : [];
@@ -621,7 +694,7 @@ function validateWorkbook(wb){
     }
     entry.rows = rows.length; data[key] = rows; report.push(entry);
   }
-  return {ok: report.every(r => r.sheet && !r.missing.length), report, data};
+  return {ok: report.every(r => (r.sheet || r.optional) && !r.missing.length), report, data};
 }
 
 /* =====================================================================
@@ -735,7 +808,16 @@ function parseModel(d){
   const mediosCobro = d.mediosCobro.map(r => ({ID: sid(r.mediocobroid), Nombre: sid(r.nombre), Instrumento: sid(r.instrumento), Identificado: !isNo(r.identificado), Desc: sid(r.descripcion)}));
   const cobranzas = d.cobranzas.map(r => { const m = mcob.get(sid(r.mediocobroid)); if (!m) miss('Cobranzas_Mensuales → MediosCobro');
     return {Periodo: perOf(r.periodo), MedioID: sid(r.mediocobroid), Medio: m ? sid(m.nombre) : sid(r.mediocobroid), Monto: num(r.monto)}; }).filter(c => c.Periodo);
-  return {raw:{ventas, compras, plazos, prestamos, gastos, iva, espacios, cuentas, saldos, movsTes, pagosFin, mediosCobro, cobranzas}, avisos,
+  const tasasDesc = d.tasasDesc.map(r => { const e = ent.get(sid(r.entidadid)); if (!e) miss('Tasas_Descubierto → Entidades');
+    return {Periodo: perOf(r.periodo), Banco: e ? sid(e.nombre) : sid(r.entidadid), TNA: numOrNull(r.tna)}; }).filter(t => t.Periodo && t.TNA !== null);
+  const tasasPrest = d.tasasPrest.map(r => { const f = fin.get(sid(r.financiacionid)); if (!f) miss('Tasas_Prestamos → Financiaciones');
+    return {FinID: sid(r.financiacionid), Numero: f ? sid(f.numerooperacion) : '', TNA0: numOrNull(r.tnaprimeracuota), TNA: numOrNull(r.tnaactual)}; });
+  const balance = (d.balance||[]).map(r => ({Fecha: toISO(r.fecha), Rubro: sid(r.rubro), Grupo: sid(r.grupo), Cuenta: sid(r.cuenta), Monto: num(r.monto)})).filter(b => b.Fecha);
+  const resultados = (d.resultados||[]).map(r => { const e = sid(r.espacioid); if (e && !esp.get(e)) miss('Resultados_Mensuales → Espacios');
+    return {Periodo: perOf(r.periodo), Espacio: e, EspacioNombre: e ? (espName.get(e) || e) : '', Concepto: sid(r.concepto), Detalle: sid(r.detalle), Monto: num(r.monto), Tipo: sid(r.tipo)}; }).filter(x => x.Periodo);
+  const ipc = (d.ipc||[]).map(r => ({Periodo: perOf(r.periodo), Var: numOrNull(r.variacion)})).filter(x => x.Periodo && x.Var !== null);
+  const proy = (d.proy||[]).map(r => ({Periodo: perOf(r.periodo), Concepto: sid(r.concepto), Monto: num(r.monto)})).filter(x => x.Periodo);
+  return {raw:{ventas, compras, plazos, prestamos, gastos, iva, espacios, cuentas, saldos, movsTes, pagosFin, mediosCobro, cobranzas, tasasDesc, tasasPrest, balance, resultados, ipc, proy}, avisos,
     dropped:[['Ventas', d.ventas.length - ventas.length], ['Compras', d.compras.length - compras.length], ['Financiaciones_Cuotas', d.cuotas.length - prestamos.length - usdSin], ['Gastos', d.gastos.length - gastos.length], ['Movimientos_Tesoreria', d.movsTes.length - movsTes.length]].filter(x => x[1] > 0)};
 }
 
@@ -789,7 +871,7 @@ const FLOW_CATS = [
 ];
 const FLOW_DEFAULT = {prov:true, loan:true, mor:true, gas:true, imp:true, iva:false};
 const appState = {
-  raw: {ventas:[], compras:[], plazos:[], prestamos:[], gastos:[], iva:[], espacios:[], cuentas:[], saldos:[], movsTes:[], pagosFin:[], mediosCobro:[], cobranzas:[]},
+  raw: {ventas:[], compras:[], plazos:[], prestamos:[], gastos:[], iva:[], espacios:[], cuentas:[], saldos:[], movsTes:[], pagosFin:[], mediosCobro:[], cobranzas:[], tasasDesc:[], tasasPrest:[], balance:[], resultados:[], ipc:[], proy:[]},
   processed: {movsTesX:[], ventasOK:[], comprasX:[], gastosX:[], movs:{}, avisos:[], loaded:false, sourceName:'', savedAt:'', report:null, lastSale:null, firstSale:null, lastGasto:null, sucursales:[], loanKeys:[], bancos:[], clasificaciones:[], espacios:[], espacioNombre:{}},
   ui: {current:'inicio', flowGran:'day', flowSelKey:null, flowCats:{...FLOW_DEFAULT}, loanTipo:'', loanTimeline:'banco', weekdayMetric:'avg', mixMode:'pct', gvBase:'auto', gvMes:'imp', gvNivel:'clas', calGran:'week', matchFilter:'', salesLimit:300, purchasesLimit:300}
 };
@@ -836,7 +918,7 @@ function build(){
 /* =====================================================================
    Caché local (IndexedDB con respaldo en localStorage)
    ===================================================================== */
-const CACHE_DB = 'green-house-cashflow', CACHE_STORE = 'cache', CACHE_KEY = 'green-house-cashflow-v5', CACHE_VERSION = 5;
+const CACHE_DB = 'green-house-cashflow', CACHE_STORE = 'cache', CACHE_KEY = 'green-house-cashflow-v7', CACHE_VERSION = 7;
 function idbOpen(){
   return new Promise((resolve,reject) => {
     if (!('indexedDB' in window)) return reject(new Error('IndexedDB no disponible'));
@@ -875,9 +957,9 @@ async function persistCache(){
 }
 function validCache(c){
   if (!c || c.version!==CACHE_VERSION || !c.raw) return false;
-  const k = ['ventas','compras','plazos','prestamos','gastos','iva','espacios','cuentas','saldos','movsTes','pagosFin','mediosCobro','cobranzas'];
+  const k = ['ventas','compras','plazos','prestamos','gastos','iva','espacios','cuentas','saldos','movsTes','pagosFin','mediosCobro','cobranzas','tasasDesc','tasasPrest','balance','resultados','ipc','proy'];
   if (k.some(x => !Array.isArray(c.raw[x]))) return false;
-  const probe = {ventas:['Fecha','TOTAL','Sucursal'], compras:['fecha','prov','monto','proveedorID'], plazos:['Codigo','Proveedor','Plazo'], prestamos:['Tipo','Banco','Vencimiento','Total_Cuota'], gastos:['Periodo','Concepto','Clasificacion','Monto'], iva:['Periodo','Monto'], espacios:['ID','Nombre'], cuentas:['ID','Nombre'], saldos:['Cuenta','Fecha','Saldo'], movsTes:['Fecha','Cuenta','Tipo','Monto'], pagosFin:['ID','Fecha','Monto'], mediosCobro:['ID','Nombre'], cobranzas:['Periodo','MedioID','Monto']};
+  const probe = {ventas:['Fecha','TOTAL','Sucursal'], compras:['fecha','prov','monto','proveedorID'], plazos:['Codigo','Proveedor','Plazo'], prestamos:['Tipo','Banco','Vencimiento','Total_Cuota'], gastos:['Periodo','Concepto','Clasificacion','Monto'], iva:['Periodo','Monto'], espacios:['ID','Nombre'], cuentas:['ID','Nombre'], saldos:['Cuenta','Fecha','Saldo'], movsTes:['Fecha','Cuenta','Tipo','Monto'], pagosFin:['ID','Fecha','Monto'], mediosCobro:['ID','Nombre'], cobranzas:['Periodo','MedioID','Monto'], tasasDesc:['Periodo','Banco','TNA'], tasasPrest:['FinID'], balance:['Fecha','Rubro','Grupo','Cuenta','Monto'], resultados:['Periodo','Espacio','Concepto','Monto'], ipc:['Periodo','Var'], proy:['Periodo','Concepto','Monto']};
   return k.every(x => !c.raw[x].length || probe[x].filter(Boolean).every(f => f in c.raw[x][0]));
 }
 async function readCache(){
@@ -905,7 +987,7 @@ async function restoreCache(){
 async function clearCache(){
   let existed = false;
   try { existed = !!(await idbDo('readonly', st => st.get(CACHE_KEY))); await idbDo('readwrite', st => st.delete(CACHE_KEY)); } catch {}
-  try { existed = existed || localStorage.getItem(CACHE_KEY)!==null; localStorage.removeItem(CACHE_KEY); localStorage.removeItem('green-house-cashflow-v1'); localStorage.removeItem('green-house-cashflow-v2'); localStorage.removeItem('green-house-cashflow-v3'); localStorage.removeItem('green-house-cashflow-v4'); idbDo('readwrite', st => { st.delete('green-house-cashflow-v2'); st.delete('green-house-cashflow-v3'); return st.delete('green-house-cashflow-v4'); }).catch(()=>{}); } catch {}
+  try { existed = existed || localStorage.getItem(CACHE_KEY)!==null; localStorage.removeItem(CACHE_KEY); localStorage.removeItem('green-house-cashflow-v1'); localStorage.removeItem('green-house-cashflow-v2'); localStorage.removeItem('green-house-cashflow-v3'); localStorage.removeItem('green-house-cashflow-v4'); localStorage.removeItem('green-house-cashflow-v5'); idbDo('readwrite', st => { st.delete('green-house-cashflow-v2'); st.delete('green-house-cashflow-v3'); st.delete('green-house-cashflow-v4'); return st.delete('green-house-cashflow-v5'); }).catch(()=>{}); } catch {}
   appState.processed.savedAt = '';
   $('cacheStatus').textContent = existed ? 'Caché borrado; los datos abiertos siguen visibles hasta cerrar la página' : 'No había datos cacheados';
   if (appState.ui.current==='inicio') renderHome();
@@ -967,8 +1049,8 @@ function afterLoad(name, fromCache){
   document.querySelectorAll('.sales-detail-filter,.purchase-detail-filter').forEach(i => i.value='');
   ['movimientoLoanFilter','movimientoMonthFilter','movimientoStatusFilter','movimientoBankFilter'].forEach(id => $(id).value='');
   $('salesBranchFilter').value = '';
-  $('hdrSub').textContent = P.loaded ? `${name} · ${int(P.ventasOK.length)} ventas · ${int(R.compras.length)} compras · ${int(R.prestamos.length)} cuotas de préstamos y moratorias · ${int(R.gastos.length)} gastos · ${int(R.movsTes.length)} movimientos de tesorería${R.cobranzas.length ? ` · mix de cobro ${fm(R.cobranzas.map(c=>c.Periodo).sort()[0])}–${fm(R.cobranzas.map(c=>c.Periodo).sort().pop())}` : ''}` : 'Sin Excel cargado · importes en pesos argentinos';
-  if (P.loaded){ const [a,b] = defaultRange(); syncDateFilters(a,b); show(fromCache ? 'inicio' : 'flujo'); }
+  $('hdrSub').textContent = P.loaded ? `${name} · ${int(P.ventasOK.length)} ventas · ${int(R.compras.length)} compras · ${int(R.prestamos.length)} cuotas de préstamos y moratorias · ${int(R.gastos.length)} gastos · ${int(R.movsTes.length)} movimientos de tesorería${R.resultados.length ? ` · resultados ${fm(R.resultados.map(r=>r.Periodo).sort()[0])}–${fm(R.resultados.map(r=>r.Periodo).sort().pop())}` : ''}${R.cobranzas.length ? ` · mix de cobro ${fm(R.cobranzas.map(c=>c.Periodo).sort()[0])}–${fm(R.cobranzas.map(c=>c.Periodo).sort().pop())}` : ''}` : 'Sin Excel cargado · importes en pesos argentinos';
+  if (P.loaded){ const [a,b] = defaultRange(); syncDateFilters(a,b); show(fromCache ? 'inicio' : 'tesoreria'); }
   else show('inicio');
 }
 
@@ -1131,10 +1213,11 @@ const bucketTitle = (k,g) => g==='week' ? `Semana del ${fd(k)} al ${fd(addDays(k
 function renderValidation(){
   const rep = appState.processed.report;
   if (!rep){
-    $('validation').innerHTML = appState.processed.loaded ? '' : Object.values(SCHEMA).map(s => `<div class="p-3 rounded-lg border border-slate-200 bg-slate-50 text-sm"><div class="font-semibold">${s.label}</div><div class="text-xs text-slate-500 mt-0.5">${s.cols.length} columnas requeridas</div></div>`).join('');
+    $('validation').innerHTML = appState.processed.loaded ? '' : Object.values(SCHEMA).map(s => `<div class="p-3 rounded-lg border border-slate-200 bg-slate-50 text-sm"><div class="font-semibold">${s.label}</div><div class="text-xs text-slate-500 mt-0.5">${s.cols.length} columnas requeridas${s.optional?' · hoja opcional':''}</div></div>`).join('');
     return;
   }
   $('validation').innerHTML = rep.map(r => {
+    if (!r.sheet && r.optional) return `<div class="p-3 rounded-lg border border-amber-200 bg-amber-50/60 text-sm"><div class="flex items-center justify-between gap-2"><span class="font-semibold">${esc(r.label)}</span><span class="pill">Opcional</span></div><div class="text-xs text-slate-600 mt-1">No está en el Excel; la pestaña Resultados y balance queda sin esos datos.</div></div>`;
     const ok = r.sheet && !r.missing.length;
     const status = !r.sheet ? '<span class="pill pill-bad">✕ Hoja no encontrada</span>' : r.missing.length ? `<span class="pill pill-bad">✕ Faltan ${r.missing.length} columnas</span>` : '<span class="pill pill-ok">✓ Correcta</span>';
     const detail = !r.sheet ? `<div class="text-xs text-slate-600 mt-1">Ninguna hoja se llama ni empieza con “${esc(r.label)}”.</div>`
@@ -1152,7 +1235,7 @@ function renderHome(){
   $('homeLoaded').classList.toggle('hidden', !P.loaded);
   if (!P.loaded) return;
   const from=$('from').value, to=$('to').value, ini=+$('ini').value||0;
-  if (!validRange(from,to)){ $('homeInsights').innerHTML='<p class="text-sm text-rose-700 col-span-full">El rango de fechas de “Flujo general” no es válido.</p>'; $('homeAlerts').innerHTML=''; return; }
+  if (!validRange(from,to)){ $('homeInsights').innerHTML='<p class="text-sm text-rose-700 col-span-full">El rango de fechas de “Flujo de Fondos” no es válido.</p>'; $('homeAlerts').innerHTML=''; return; }
   const f = computeFlow(from,to,ini);
   $('homeRange').textContent = `${fd(from)} – ${fd(to)} · ${int(f.days.length)} días`;
   $('homeInsights').innerHTML = [
@@ -1165,11 +1248,14 @@ function renderHome(){
   const alerts = [];
   if (f.firstNeg >= 0) alerts.push(alertBox('bad', `El saldo acumulado pasa a negativo el <b>${fd(f.days[f.firstNeg])}</b> y llega a <b>${fmt(f.A[f.minI])}</b> el ${fd(f.days[f.minI])}. Revise el saldo inicial o reprograme pagos.`));
   else alerts.push(alertBox('ok', `El saldo acumulado se mantiene positivo en todo el período (mínimo ${fmt(f.A[f.minI])}).`));
+  { const mv = new Set(P.ventasOK.map(v=>v.Fecha.slice(0,7))), mc = new Set(P.comprasX.map(c=>(c.fecha||'').slice(0,7)).filter(Boolean));
+    const faltan = [...mv].filter(m => !mc.has(m) && m >= from.slice(0,7) && m <= to.slice(0,7)).sort();
+    if (faltan.length) alerts.push(alertBox('warn', `Hay ventas pero no facturas de compra cargadas para ${faltan.map(fm).join(', ')}. La proyección de Flujo de Fondos suma esas ventas pero no resta los pagos a proveedores de esos meses, así que el saldo proyectado sale más alto de lo real.`)); }
   if (P.lastSale && to > P.lastSale) alerts.push(alertBox('info', `Las ventas cargadas llegan hasta el <b>${fd(P.lastSale)}</b>; después de esa fecha el flujo solo muestra egresos registrados.`));
   if (P.lastGasto && to.slice(0,7) > P.lastGasto && appState.ui.flowCats.gas) alerts.push(alertBox('info', `Los gastos cargados llegan hasta <b>${fm(P.lastGasto)}</b>; los meses posteriores del rango no tienen gastos registrados.`));
-  if (!appState.ui.flowCats.iva && R.iva.length) alerts.push(alertBox('info', `El IVA mensual no está incluido en el flujo (${R.iva.filter(v=>v.FechaPago).length} período(s) con pago registrado; el resto usa el mes de pago proyectado). Puede activarlo en Flujo general.`));
+  if (!appState.ui.flowCats.iva && R.iva.length) alerts.push(alertBox('info', `El IVA mensual no está incluido en el flujo (${R.iva.filter(v=>v.FechaPago).length} período(s) con pago registrado; el resto usa el mes de pago proyectado). Puede activarlo en Flujo de Fondos (proyección).`));
   if (R.movsTes.length){ const lm = R.movsTes.map(m=>m.Fecha).sort().pop(), fondos = sum(R.cuentas, c => saldoCuenta(c.ID, lm) ?? 0);
-    alerts.push(alertBox('info', `Tesorería: movimientos registrados hasta el <b>${fd(lm)}</b>; fondos al cierre de ese día <b>${fmt(fondos)}</b> en ${R.cuentas.length} cuentas. Vea la pestaña Tesorería.`)); }
+    alerts.push(alertBox('info', `Flujo de Fondos: movimientos registrados hasta el <b>${fd(lm)}</b>; fondos al cierre de ese día <b>${fmt(fondos)}</b> en ${R.cuentas.length} cuentas. Vea la pestaña Flujo de Fondos.`)); }
   const pagReg = R.prestamos.filter(p=>p.Pago).length; if (pagReg) alerts.push(alertBox('info', `${int(pagReg)} cuotas de préstamos y moratorias tienen pago real registrado; el flujo usa la fecha y el importe del débito.`));
   const def = P.comprasX.filter(c => !c.conPlazo), defProv = new Set(def.map(c=>c.prov));
   if (defProv.size) alerts.push(alertBox('warn', `<b>${defProv.size}</b> emisores (${fmt(sum(def,c=>c.monto))} en compras) no tienen plazo en la tabla Proveedores y usan ${+$('plazoDef').value||0} días por defecto.`));
@@ -1182,6 +1268,8 @@ function renderHome(){
     alerts.push(alertBox('info', `Próximo vencimiento de préstamos y moratorias: <b>${fd(d0)}</b> (en ${dayDiff(HOY,d0)} días) por <b>${fmt(sum(same,p=>p.Total_Cuota))}</b> · ${[...new Set(same.map(p=>`${p.Banco} ${p.Prestamo_ID}`))].map(esc).join(', ')}.`)); }
   const debtL = nextLoan.filter(p=>p.Tipo!=='Moratoria'), debtM = nextLoan.filter(p=>p.Tipo==='Moratoria');
   if (nextLoan.length) alerts.push(alertBox('info', `Deuda pendiente: préstamos <b>${fmt(sum(debtL,p=>p.Total_Cuota))}</b> y moratorias <b>${fmt(sum(debtM,p=>p.Total_Cuota))}</b>; ${fmt(sum(nextLoan,p=>p.Interes+p.Cargos_e_Impuestos))} es costo financiero.`));
+  { const ec = ecModel(); if (ec && ec.meses.length){ const T = ec.tot, ul = ec.bal.length ? ec.bal[ec.bal.length-1] : null;
+      alerts.push(alertBox(T.neto < 0 || (ul && ul.pn < 0) ? 'bad' : 'info', `Resultados ${fm(ec.meses[0])}–${fm(ec.meses[ec.meses.length-1])}: resultado operativo <b>${fmt(T.ebitda)}</b> (${pct(T.vn?T.ebitda/T.vn*100:NaN)} de las ventas netas); después de intereses reales <b>${fmt(T.neto)}</b>.${ul ? ` Patrimonio neto al ${fd(ul.fecha)}: <b>${fmt(ul.pn)}</b>.` : ''} Vea la pestaña Resultados y balance.`)); } }
   const anul = R.ventas.filter(v=>v.Anul==='S').length;
   if (anul) alerts.push(alertBox('info', `${int(anul)} ventas anuladas se excluyeron de los ingresos.`));
   $('homeAlerts').innerHTML = alerts.join('');
@@ -1233,6 +1321,10 @@ function renderFlow(){
   if (dayDiff(from,to)+1 > 1500){ $('kFlujo').innerHTML='<div class="card col-span-full text-sm text-rose-700">El rango supera el máximo de 1.500 días. Seleccione un período menor.</div>'; $('weeklyTable').innerHTML=''; clearCharts(ids); return; }
   const fr = fondosAl(from);
   $('useRealBalance').disabled = fr===null; $('useRealBalance').textContent = fr===null ? 'Fondos reales: sin datos para esa fecha' : `Usar fondos reales al ${fdShort(from)} (${cmpM(fr)})`;
+  { const mv = new Set(appState.processed.ventasOK.map(v=>v.Fecha.slice(0,7))), mc = new Set(appState.processed.comprasX.map(c=>(c.fecha||'').slice(0,7)).filter(Boolean));
+    const faltan = [...mv].filter(m => !mc.has(m) && m >= from.slice(0,7) && m <= to.slice(0,7)).sort();
+    $('proyWarn').className = faltan.length ? '' : 'hidden';
+    $('proyWarn').innerHTML = faltan.length ? alertBox('warn', `Las facturas de compra sólo están cargadas para ${[...mc].sort().map(fm).join(', ')}. En ${faltan.map(fm).join(', ')} la proyección suma las ventas pero no resta los pagos a proveedores: el saldo proyectado sale más alto de lo real. Para esos meses, use los movimientos reales de arriba.`) : ''; }
   const f = computeFlow(from,to,ini);
   const on = k => appState.ui.flowCats[k];
   const nRows = k => f.cats[k] ? f.cats[k].rows.length : 0;
@@ -1371,11 +1463,12 @@ const estadoCuota = p => p.Pago ? 'Pagada (registrada)' : p.Vencimiento <= HOY ?
 const tipoPill = t => t==='Moratoria' ? '<span class="pill" style="background:#ece9fb;color:#4c3db8">Moratoria</span>' : '<span class="pill" style="background:#fdf3d8;color:#8a5a00">Préstamo</span>';
 function filteredMovements(){
   const lf = norm($('movimientoLoanFilter').value.trim()), bf = $('movimientoBankFilter').value, mf = $('movimientoMonthFilter').value, sf = $('movimientoStatusFilter').value;
-  return sortedLoans().filter(p => (!lf || norm(p.Prestamo_ID).includes(lf)) && (!bf || p.Banco===bf) && (!mf || p.Vencimiento.startsWith(mf)) && (!sf || (isPaid(p)?'Pagada':'Pendiente')===sf));
+  const from = $('loansFrom').value, to = $('loansTo').value, okR = validRange(from, to);
+  return sortedLoans().filter(p => (!okR || within(p.Vencimiento, from, to)) && (!lf || norm(p.Prestamo_ID).includes(lf)) && (!bf || p.Banco===bf) && (!mf || p.Vencimiento.startsWith(mf)) && (!sf || (isPaid(p)?'Pagada':'Pendiente')===sf));
 }
 function renderLoanMovements(){
-  const all = loanData().length, rows = filteredMovements();
-  $('movimientosCount').textContent = rows.length===all ? `${int(all)} movimientos` : `${int(rows.length)} de ${int(all)} movimientos`;
+  const rows = filteredMovements();
+  $('movimientosCount').textContent = `${int(rows.length)} cuotas`;
   $('tMovimientos').innerHTML = '<thead class="text-left text-slate-500"><tr><th class="py-2 px-2">Tipo</th><th class="px-2">Entidad</th><th class="px-2">Préstamo / plan</th><th class="px-2">Cuota</th><th class="px-2">Vencimiento</th><th class="text-right px-2">Capital</th><th class="text-right px-2">Interés</th><th class="text-right px-2">Cargos e impuestos</th><th class="text-right px-2">Total cuota</th><th class="px-2">Estado</th><th class="px-2">Observación</th></tr></thead><tbody>'
     + (rows.map(p => `<tr class="border-b border-slate-100"><td class="py-1 px-2">${tipoPill(p.Tipo)}</td><td class="px-2">${esc(p.Banco)}</td><td class="px-2">${esc(p.Prestamo_ID)}</td><td class="px-2">${p.Cuota}</td><td class="px-2 whitespace-nowrap">${fd(p.Vencimiento)}</td><td class="text-right px-2">${p.sinDesglose?'<span class="text-slate-400" title="Sin desglose en el origen">s/d</span>':fmt(p.Capital)}</td><td class="text-right px-2">${p.sinDesglose?'<span class="text-slate-400">s/d</span>':fmt(p.Interes)}</td><td class="text-right px-2">${fmt(p.Cargos_e_Impuestos)}</td><td class="text-right px-2 font-medium">${fmt(p.Total_Cuota)}${p.Moneda!=='ARS'?` <span class="pill pill-info" title="Importe en pesos de una cuota en ${esc(p.Moneda)}">${esc(p.Moneda)}</span>`:''}</td><td class="px-2 whitespace-nowrap"><span class="pill ${p.Pago?'pill-ok':isPaid(p)?'pill-info':'pill-warn'}">${estadoCuota(p)}</span></td><td class="px-2 max-w-[20rem] truncate" title="${esc([p.Pago?`Débito del ${fd(p.Pago.Fecha)} por ${fmt(p.Pago.Monto)}${p.Pago.Compartido?' (prorrateado de un débito compartido)':''}; diferencia ${fmt(p.Pago.Monto-p.Total_Cuota)}`:'', p.Obs].filter(Boolean).join(' · '))}">${esc([p.Pago?`Débito ${fd(p.Pago.Fecha)} · ${fmt(p.Pago.Monto)}`:'', p.Obs].filter(Boolean).join(' · '))}</td></tr>`).join('') || '<tr><td colspan="11" class="py-2 px-2 text-slate-500">No hay movimientos que coincidan con los filtros.</td></tr>')
     + `</tbody>${rows.length?`<tfoot class="font-semibold"><tr><td class="py-2 px-2" colspan="5">Totales filtrados</td><td class="text-right px-2">${fmt(sum(rows,p=>p.sinDesglose?0:p.Capital))}</td><td class="text-right px-2">${fmt(sum(rows,p=>p.Interes))}</td><td class="text-right px-2">${fmt(sum(rows,p=>p.Cargos_e_Impuestos))}</td><td class="text-right px-2">${fmt(sum(rows,p=>p.Total_Cuota))}</td><td colspan="2"></td></tr></tfoot>`:''}`;
@@ -1436,6 +1529,12 @@ function descubiertos(){
   periodos.sort((a,b)=>a.Desde.localeCompare(b.Desde) || a.Nombre.localeCompare(b.Nombre));
   return {ctas, d0, dEnd, days, serie, neg, cargos, periodos, tasaProm};
 }
+function tnaInformada(c){
+  const R = appState.raw; if (!R.tasasDesc.length) return null;
+  const banco = (R.cuentas.find(x=>x.ID===c.Cuenta)||{}).Nombre || c.Nombre || '';
+  const t = R.tasasDesc.find(x => x.Periodo===c.MesImput && norm(banco).includes(norm(x.Banco)));
+  return t ? t.TNA : null;
+}
 function renderDescubiertos(){
   const D = descubiertos();
   if (!D){ clearCharts(['cDesc']); ['tDescDeb','tDescPer'].forEach(id=>$(id).innerHTML=''); $('kDesc').innerHTML = '<p class="col-span-full text-sm text-slate-500">No hay saldos de cuentas cargados (hoja Saldos_Cuentas).</p>'; return; }
@@ -1480,14 +1579,14 @@ function renderDescubiertos(){
 
   // Tabla de débitos
   const th = 'class="text-right px-2 whitespace-nowrap"';
-  $('tDescDeb').innerHTML = `<thead class="text-slate-500"><tr class="border-b text-left"><th class="py-1.5 pr-2">Fecha del débito</th><th class="px-2">Cuenta</th><th class="px-2">Período que cubre</th><th class="px-2">Días con saldo negativo</th><th ${th}>Días</th><th ${th}>Saldo deudor máx.</th><th ${th}>Saldo deudor prom.</th><th ${th}>Numeral</th><th ${th}>Interés debitado</th><th ${th}>Costo diario</th><th ${th}>TNA</th><th ${th}>CFT anual</th></tr></thead><tbody>`
+  $('tDescDeb').innerHTML = `<thead class="text-slate-500"><tr class="border-b text-left"><th class="py-1.5 pr-2">Fecha del débito</th><th class="px-2">Cuenta</th><th class="px-2">Período que cubre</th><th class="px-2">Días con saldo negativo</th><th ${th}>Días</th><th ${th}>Saldo deudor máx.</th><th ${th}>Saldo deudor prom.</th><th ${th}>Numeral</th><th ${th}>Interés debitado</th><th ${th}>Costo diario</th><th ${th}>TNA</th><th ${th} title="TNA del descubierto informada por el banco (hoja Tasas_Descubierto) para el mes al que corresponde el débito">TNA informada</th><th ${th}>CFT anual</th></tr></thead><tbody>`
     + (cargos.map(c => {
       const ok = Number.isFinite(c.Tasa);
       const nota = c.SinDatos ? `<span class="pill pill-warn whitespace-nowrap" title="El débito corresponde a ${fm(c.MesImput)}, antes del primer saldo de cuentas cargado (${fd(D.d0)}).">sin datos de saldo (${fm(c.MesImput)})</span>` : !c.Dias.length ? '<span class="pill pill-warn whitespace-nowrap" title="Puede corresponder a un saldo negativo dentro del día o a un período sin datos.">sin cierres negativos registrados</span>' : esc(compactDays(c.Dias.map(n=>n.Fecha)));
       return `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2 whitespace-nowrap font-medium">${fd(c.Fecha)}</td><td class="px-2 whitespace-nowrap">${esc(c.Nombre)}</td><td class="px-2 whitespace-nowrap text-slate-500">${c.SinDatos?'—':`${fd(c.Desde)} a ${fd(c.Hasta)}`}</td><td class="px-2 min-w-[10rem]">${nota}</td>`
-        + `<td ${th}>${ok?c.Dias.length:'—'}</td><td ${th}>${ok?fmt(-c.Max):'—'}</td><td ${th}>${ok?fmt(-c.Numeral/c.Dias.length):'—'}</td><td ${th}>${ok?fmt(c.Numeral):'—'}</td><td class="text-right px-2 font-semibold whitespace-nowrap">${fmtCts(c.Monto)}</td><td ${th}>${ok?pct(c.Tasa*100,3):'—'}</td><td ${th}>${ok?pct(c.Tasa*36500):'—'}</td><td class="text-right px-2 font-semibold ${ok&&cftAnual(c.Tasa)>100?'text-rose-700':''}">${ok?pct(cftAnual(c.Tasa)):'—'}</td></tr>`;
-    }).join('') || '<tr><td colspan="12" class="py-3 text-slate-500">No hay débitos por descubierto en el rango.</td></tr>')
-    + `</tbody>${okC.length?`<tfoot class="font-semibold border-t-2"><tr><td class="py-2 pr-2" colspan="4">Total con días asociados</td><td ${th}>${sum(okC,c=>c.Dias.length)}</td><td></td><td></td><td ${th}>${fmt(sum(okC,c=>c.Numeral))}</td><td ${th}>${fmtCts(sum(okC,c=>c.Monto))}</td><td ${th}>${pct(tProm*100,3)}</td><td ${th}>${pct(tProm*36500)}</td><td ${th}>${pct(cftAnual(tProm))}</td></tr></tfoot>`:''}`;
+        + `<td ${th}>${ok?c.Dias.length:'—'}</td><td ${th}>${ok?fmt(-c.Max):'—'}</td><td ${th}>${ok?fmt(-c.Numeral/c.Dias.length):'—'}</td><td ${th}>${ok?fmt(c.Numeral):'—'}</td><td class="text-right px-2 font-semibold whitespace-nowrap">${fmtCts(c.Monto)}</td><td ${th}>${ok?pct(c.Tasa*100,3):'—'}</td><td ${th}>${ok?pct(c.Tasa*36500):'—'}</td><td ${th}>${(() => { const t = tnaInformada(c); return t===null ? '<span class="text-slate-300">—</span>' : pct(t*100); })()}</td><td class="text-right px-2 font-semibold ${ok&&cftAnual(c.Tasa)>100?'text-rose-700':''}">${ok?pct(cftAnual(c.Tasa)):'—'}</td></tr>`;
+    }).join('') || '<tr><td colspan="13" class="py-3 text-slate-500">No hay débitos por descubierto en el rango.</td></tr>')
+    + `</tbody>${okC.length?`<tfoot class="font-semibold border-t-2"><tr><td class="py-2 pr-2" colspan="4">Total con días asociados</td><td ${th}>${sum(okC,c=>c.Dias.length)}</td><td></td><td></td><td ${th}>${fmt(sum(okC,c=>c.Numeral))}</td><td ${th}>${fmtCts(sum(okC,c=>c.Monto))}</td><td ${th}>${pct(tProm*100,3)}</td><td ${th}>${pct(tProm*36500)}</td><td></td><td ${th}>${pct(cftAnual(tProm))}</td></tr></tfoot>`:''}`;
 
   // Tabla de períodos
   $('tDescPer').innerHTML = `<thead class="text-slate-500"><tr class="border-b text-left"><th class="py-1.5 pr-2">Cuenta</th><th class="px-2">Desde</th><th class="px-2">Hasta</th><th ${th}>Días</th><th ${th}>Saldo mínimo</th><th ${th}>Saldo prom.</th><th ${th}>Numeral</th><th class="px-2">Débito de intereses</th><th ${th}>Interés del período</th><th ${th}>CFT anual</th></tr></thead><tbody>`
@@ -1496,11 +1595,27 @@ function renderDescubiertos(){
     + '</tbody>';
 }
 
+// TNA implícita del cronograma: interés de cada cuota / capital adeudado × 365 / días del período
+function tnaImplicita(rows){
+  const r = rows.filter(p => !p.sinDesglose).slice().sort((a,b)=>a.Vencimiento.localeCompare(b.Vencimiento));
+  if (!r.length || !r.some(p => p.Interes > 0)) return null;
+  let saldo = sum(r, p=>p.Capital); if (saldo <= 0) return null;
+  const out = [];
+  r.forEach((p,i) => { const ant = i ? r[i-1].Vencimiento : shiftMonth(p.Vencimiento,-1), d = dayDiff(ant, p.Vencimiento);
+    if (saldo > 0.5 && d > 0 && p.Interes > 0) out.push({f:p.Vencimiento, t:p.Interes/saldo*365/d*100});
+    saldo -= p.Capital; });
+  if (!out.length) return null;
+  // la primera cuota no se usa si hay otras: no se conoce la fecha exacta de otorgamiento
+  if (out.length > 1 && out[0].f === r[0].Vencimiento) out.shift();
+  const venc = out.filter(o => o.f <= HOY);
+  return {ini: out[0].t, act: (venc.length ? venc[venc.length-1] : out[0]).t};
+}
+const nCuotas = rows => Math.max(rows.length, Math.max(...rows.map(p=>p.Cuota)) - Math.min(...rows.map(p=>p.Cuota)) + 1);
 function renderLoans(){
   try { renderDescubiertos(); } catch(e){ console.error(e); }
-  const P = appState.processed, L = loanData();
-  const ids = ['cCuota','cPrestDon','cTimeline','cDeuda'];
-  const resetTables = () => ['tPrest','tCft','tDeudaPendiente'].forEach(id => $(id).innerHTML='');
+  const P = appState.processed, R = appState.raw, L = loanData();
+  const ids = ['cTimeline','cDeuda','cPrestDon'];
+  const resetTables = () => ['tPrest','tCft'].forEach(id => $(id).innerHTML='');
   const bancos = P.bancos.filter(b => L.some(p => p.Banco===b));
   const prevBank = $('movimientoBankFilter').value;
   $('movimientoBankFilter').innerHTML = '<option value="">Todas</option>' + bancos.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
@@ -1516,86 +1631,118 @@ function renderLoans(){
     rows.sort((a,b)=>a.Vencimiento.localeCompare(b.Vencimiento));
     const principal = sum(rows,p=>p.Capital), total = sum(rows,p=>p.Total_Cuota), sd = rows.some(p=>p.sinDesglose);
     const fueraSec = rows.some((p,i) => i && p.Cuota < rows[i-1].Cuota) || rows.some(p => !p.Capital && p.Total_Cuota > principal*0.3);
+    const tz = R.tasasPrest.find(t => t.FinID === rows[0].FinID) || null;
     return {key:k, tipo:rows[0].Tipo, bank:rows[0].Banco, id:rows[0].Prestamo_ID, principal, total, cost:total-principal, sinDesglose:sd, fueraSec, cft: sd ? null : estimateCft(rows), rows,
-      n:Math.max(rows.length, ...rows.map(p=>p.Cuota)), paid:rows.filter(isPaid).length, pending:rows.filter(p=>!isPaid(p)), first:rows[0].Vencimiento, last:rows[rows.length-1].Vencimiento};
-  }).sort((a,b)=>a.first.localeCompare(b.first) || a.key.localeCompare(b.key));
+      n:nCuotas(rows), paid:rows.filter(isPaid).length, pending:rows.filter(p=>!isPaid(p)), first:rows[0].Vencimiento, last:rows[rows.length-1].Vencimiento, firstRow:rows[0],
+      tnaInf: tz, tnaImp: sd ? null : tnaImplicita(rows)};
+  });
+  const byKey = new Map(loanRows.map(l => [l.key, l]));
   const enRango = loanRows.filter(l => l.rows.some(inRange));
   const calc = enRango.filter(l => l.cft!==null && l.principal>0 && !l.fueraSec), wP = sum(calc,l=>l.principal);
   const wCft = wP ? sum(calc,l=>l.cft*l.principal)/wP : null;
-  const pend = L.filter(p => inRange(p) && !isPaid(p));
+  const enR = L.filter(inRange), pend = enR.filter(p => !isPaid(p));
   const allPend = L.filter(p => !isPaid(p)).sort((a,b)=>a.Vencimiento.localeCompare(b.Vencimiento));
   const tc=sum(pend,p=>p.Capital), ti=sum(pend,p=>p.Interes), tg=sum(pend,p=>p.Cargos_e_Impuestos);
-  const next30 = allPend.filter(p => p.Vencimiento <= addDays(HOY,30));
-  const lastDate = L.map(p=>p.Vencimiento).sort().pop();
-  const totalPlan = sum(L,p=>p.Capital), capPaid = sum(L.filter(isPaid),p=>p.Capital);
+  const next30 = allPend.filter(p => p.Vencimiento <= addDays(HOY,30)), next90 = allPend.filter(p => p.Vencimiento <= addDays(HOY,90));
   const what = appState.ui.loanTipo==='Moratoria' ? 'planes' : appState.ui.loanTipo==='Préstamo' ? 'préstamos' : 'financiaciones';
+  // deuda por tipo (siempre todas las financiaciones) y descubierto al último día con movimientos
+  const pendAll = R.prestamos.filter(p => !isPaid(p));
+  const pPres = pendAll.filter(p => p.Tipo!=='Moratoria'), pMor = pendAll.filter(p => p.Tipo==='Moratoria');
+  const lm = R.movsTes.map(m=>m.Fecha).sort().pop();
+  const descHoy = lm ? -sum(R.cuentas, c => Math.min(0, saldoCuenta(c.ID, lm) ?? 0)) : 0;
+  // flujo operativo mensual real (tesorería) y promedio de los últimos 6 meses completos
+  const src = P.movsTesX && P.movsTesX.length ? P.movsTesX : R.movsTes;
+  const opByM = group(src.filter(m => ['cobros','prov','sue','gas','imp'].includes(operCat(m))), m=>m.Fecha.slice(0,7), m=>m.Monto);
+  const mesesOp = Object.keys(opByM).sort().filter(m => lm && lastDayOf(m) <= lm);
+  const ult6 = mesesOp.slice(-6), opProm = ult6.length ? sum(ult6, m=>opByM[m]) / ult6.length : NaN;
+  const prox6 = Array.from({length:6}, (_,i) => shiftMonth(HOY.slice(0,7)+'-01', i+1).slice(0,7));
+  const cuotaProm = sum(R.prestamos.filter(p => prox6.includes(p.Vencimiento.slice(0,7))), p=>p.Total_Cuota) / 6;
+  const cob = cuotaProm > 0 ? opProm / cuotaProm : NaN;
   kpis('kPrest', [
-    ['Cuotas pendientes en el rango', fmt(tc+ti+tg), `${int(pend.length)} cuotas · ${fd(from)} a ${fd(to)}`, COL.loan],
-    ['Capital pendiente en el rango', fmt(tc), 'amortiza deuda', CAT[0]],
-    ['Costo financiero pendiente', fmt(ti+tg), `interés + cargos · ${pct(tc+ti+tg?(ti+tg)/(tc+ti+tg)*100:NaN)} de las cuotas`, COL.out],
-    ['Próxima cuota', allPend[0] ? fmt(allPend[0].Total_Cuota) : '—', allPend[0] ? `${esc(allPend[0].Banco)} ${esc(allPend[0].Prestamo_ID)} · ${fd(allPend[0].Vencimiento)} · en ${dayDiff(HOY,allPend[0].Vencimiento)} días` : 'sin cuotas pendientes', CAT[6]],
-    ['Próximos 30 días', fmt(sum(next30,p=>p.Total_Cuota)), `${int(next30.length)} cuotas hasta ${fd(addDays(HOY,30))}`, COL.pend],
-    ['Deuda total pendiente', fmt(sum(allPend,p=>p.Total_Cuota)), `capital ${cmpM(sum(allPend,p=>p.Capital))} · ${loanRows.filter(l=>l.pending.length).length} ${what} activos`, COL.ink],
-    ['Capital ya amortizado', pct(totalPlan?capPaid/totalPlan*100:NaN), `${cmpM(capPaid)} de ${cmpM(totalPlan)} · última cuota ${fd(lastDate)}`, COL.in],
-    ['CFT promedio ponderado', wCft===null ? 'No calculable' : pct(wCft,2), `${calc.length} de ${enRango.length} ${what} con vencimientos en el rango · ponderado por capital`, COL.muted]
+    ['Deuda pendiente', fmt(sum(allPend,p=>p.Total_Cuota)), `capital ${cmpM(sum(allPend,p=>p.Capital))} · intereses y cargos ${cmpM(sum(allPend,p=>p.Interes+p.Cargos_e_Impuestos))}`, COL.ink],
+    ['Próximos 30 días', fmt(sum(next30,p=>p.Total_Cuota)), `${int(next30.length)} cuotas · 90 días: ${cmpM(sum(next90,p=>p.Total_Cuota))}`, COL.pend],
+    ['Préstamos', fmt(sum(pPres,p=>p.Total_Cuota)), `${new Set(pPres.map(loanKey)).size} préstamos con cuotas pendientes`, COL.loan],
+    ['Moratorias', fmt(sum(pMor,p=>p.Total_Cuota)), `${new Set(pMor.map(loanKey)).size} planes con cuotas pendientes`, CAT[4]],
+    ['Descubierto', fmt(descHoy), lm ? `saldos negativos en cuenta corriente al ${fd(lm)}` : 'sin movimientos de tesorería', descHoy > 0 ? COL.out : COL.in],
+    ['Flujo operativo / cuotas', Number.isFinite(cob) ? `${cob.toFixed(2).replace('.',',')} x` : '—', Number.isFinite(cob) ? `genera ${cmpM(opProm)}/mes (últimos ${ult6.length} meses) · cuotas próximos 6 meses ${cmpM(cuotaProm)}/mes` : 'sin datos suficientes', !Number.isFinite(cob) ? COL.muted : cob >= 1.25 ? COL.in : cob >= 1 ? COL.pend : COL.out],
+    ['Cuotas en el rango', fmt(sum(enR,p=>p.Total_Cuota)), `${int(enR.length)} cuotas · pendientes ${cmpM(tc+ti+tg)} · ${fd(from)} a ${fd(to)}`, CAT[0]],
+    ['CFT promedio ponderado', wCft===null ? 'No calculable' : pct(wCft,2), `${calc.length} de ${enRango.length} ${what} del rango · ponderado por capital`, COL.muted]
   ]);
 
-  // Cuotas pendientes por mes (rango): 7 principales + otros
-  const meses = [...new Set(pend.map(p=>p.Vencimiento.slice(0,7)))].sort();
-  const totByLoan = group(pend, loanKey, p=>p.Total_Cuota);
-  const ranked = Object.keys(totByLoan).sort((a,b)=>totByLoan[b]-totByLoan[a]);
-  const topK = ranked.slice(0,7), others = new Set(ranked.slice(7));
-  const byLoanMonth = group(pend, p=>`${others.has(loanKey(p)) ? '__otros' : loanKey(p)}#${p.Vencimiento.slice(0,7)}`, p=>p.Total_Cuota);
-  const totalMes = meses.map(m => sum(pend.filter(p=>p.Vencimiento.startsWith(m)), p=>p.Total_Cuota));
-  const cuotaDs = topK.map((k,i) => ({label:loanLabel(k), data:meses.map(m=>byLoanMonth[`${k}#${m}`]||0), backgroundColor:CAT[i], borderColor:'#fff', borderWidth:1, maxBarThickness:64}));
-  if (others.size) cuotaDs.push({label:`Otros (${others.size})`, data:meses.map(m=>byLoanMonth[`__otros#${m}`]||0), backgroundColor:'#cbd5e1', borderColor:'#fff', borderWidth:1, maxBarThickness:64});
-  mk('cCuota','bar',{labels:meses.map(fm), datasets:cuotaDs},
-    {scales:{x:{stacked:true, grid:{display:false}}, y:money({stacked:true})}, plugins:{tooltip:{filter:c=>c.parsed.y!==0, callbacks:{label:lab, footer: it => it.length ? `Total del mes: ${fmt(totalMes[it[0].dataIndex])}` : ''}}}});
+  // Próximos vencimientos
+  $('tPrest').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1.5 pr-2">Vencimiento</th><th class="pr-2">Tipo</th><th class="pr-2">Entidad · préstamo / plan</th><th class="pr-2">Cuota</th><th class="text-right px-2">Capital</th><th class="text-right px-2">Int. + cargos</th><th class="text-right pl-2">Total</th></tr></thead><tbody>'
+    + (allPend.slice(0,10).map(p => { const l = byKey.get(loanKey(p)), dd = dayDiff(HOY,p.Vencimiento);
+      return `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2 whitespace-nowrap">${fd(p.Vencimiento)} <span class="text-xs ${dd<=7?'text-rose-700 font-semibold':'text-slate-500'}">(${dd} d)</span></td><td class="pr-2">${tipoPill(p.Tipo)}</td><td class="pr-2">${esc(p.Banco)} · ${esc(p.Prestamo_ID)}</td><td class="pr-2">${p.Cuota}/${l ? l.n : '?'}</td><td class="text-right px-2">${p.sinDesglose?'s/d':fmt(p.Capital)}</td><td class="text-right px-2">${fmt(p.Interes+p.Cargos_e_Impuestos)}</td><td class="text-right pl-2 font-medium">${fmt(p.Total_Cuota)}</td></tr>`; }).join('') || '<tr><td colspan="7" class="py-2 text-slate-500">No hay cuotas pendientes.</td></tr>') + '</tbody>';
+
+  // Cuotas por mes en el rango + flujo operativo
+  const meses = [...new Set(enR.map(p=>p.Vencimiento.slice(0,7)))].sort();
+  const totalMes = meses.map(m => sum(enR.filter(p=>p.Vencimiento.startsWith(m)), p=>p.Total_Cuota));
+  let tlDs;
+  const mode = appState.ui.loanTimeline;
+  if (mode==='concepto'){
+    const f3 = [['Capital','Capital'],['Interés','Interes'],['Cargos e impuestos','Cargos_e_Impuestos']];
+    tlDs = f3.map(([l,k],i) => ({label:l, data:meses.map(m=>sum(enR.filter(p=>p.Vencimiento.startsWith(m)),p=>p[k])), backgroundColor:CAT[i], borderColor:'#fff', borderWidth:1, stack:'c', order:2}));
+  } else if (mode==='prestamo'){
+    const totByLoan = group(enR, loanKey, p=>p.Total_Cuota), ranked = Object.keys(totByLoan).sort((a,b)=>totByLoan[b]-totByLoan[a]);
+    const topK = ranked.slice(0,7), others = new Set(ranked.slice(7));
+    const blm = group(enR, p=>`${others.has(loanKey(p)) ? '__otros' : loanKey(p)}#${p.Vencimiento.slice(0,7)}`, p=>p.Total_Cuota);
+    tlDs = topK.map((k,i) => ({label:loanLabel(k), data:meses.map(m=>blm[`${k}#${m}`]||0), backgroundColor:CAT[i], borderColor:'#fff', borderWidth:1, stack:'c', order:2}));
+    if (others.size) tlDs.push({label:`Otros (${others.size})`, data:meses.map(m=>blm[`__otros#${m}`]||0), backgroundColor:'#cbd5e1', borderColor:'#fff', borderWidth:1, stack:'c', order:2});
+  } else {
+    const pbm = group(enR, p=>`${p.Banco}#${p.Vencimiento.slice(0,7)}`, p=>p.Total_Cuota);
+    tlDs = bancos.filter(b=>enR.some(p=>p.Banco===b)).map(b => ({label:b, data:meses.map(m=>pbm[`${b}#${m}`]||0), backgroundColor:catColor(P.bancos,b), borderColor:'#fff', borderWidth:1, stack:'c', order:2}));
+  }
+  const ultOp = mesesOp[mesesOp.length-1] || '';
+  const opReal = meses.map(m => mesesOp.includes(m) ? opByM[m] : null);
+  const opFut = meses.map(m => m > ultOp && Number.isFinite(opProm) ? opProm : null);
+  if (opReal.some(v => v !== null)) tlDs.push({type:'line', label:'Flujo operativo del mes', data:opReal, borderColor:COL.in, backgroundColor:COL.in, borderWidth:2.5, pointRadius:3, stack:'opR', order:0, spanGaps:false});
+  if (opFut.some(v => v !== null)) tlDs.push({type:'line', label:'Flujo operativo promedio (últimos 6 meses)', data:opFut, borderColor:COL.in, backgroundColor:COL.in, borderDash:[6,4], borderWidth:2, pointRadius:0, stack:'opP', order:1});
+  const hoyIdx = meses.indexOf(HOY.slice(0,7));
+  mk('cTimeline','bar',{labels:meses.map(fm), datasets:tlDs}, {scales:{x:{stacked:true, grid:{display:false}, ticks:{maxRotation:0, autoSkip:true}}, y:money({stacked:true})},
+    plugins:{refLines:{y:[{value:0, color:'#334155'}], x: hoyIdx>=0 ? [{index:hoyIdx, label:'Hoy'}] : []}, tooltip:{filter:c=>c.parsed.y!==0 && c.parsed.y!==null, callbacks:{label:lab, footer: it => it.length ? `Cuotas del mes: ${fmt(totalMes[it[0].dataIndex])}` : ''}}}});
+
+  // Composición de la deuda pendiente (rango)
   const comp = [tc,ti,tg], compL = ['Capital','Interés','Cargos e impuestos'], compT = tc+ti+tg;
   mk('cPrestDon','doughnut',{labels:compL, datasets:[{data:comp, backgroundColor:[CAT[0],CAT[1],CAT[2]], borderColor:'#fff', borderWidth:2}]},
     {cutout:'66%', interaction:{mode:'nearest'}, plugins:{centerText:{top:'Pendiente', main:cmpM(compT)}, tooltip:{callbacks:{label:c=>` ${compL[c.dataIndex]}: ${fmt(c.raw)} (${pct(compT?c.raw/compT*100:0)})`}}}});
 
-  // Evolución del capital adeudado (plan completo)
+  // Evolución del capital adeudado (meses del rango)
   const allMonths = [...new Set(L.map(p=>p.Vencimiento.slice(0,7)))].sort();
   const months = []; if (allMonths.length){ let m = allMonths[0]+'-01'; const end = allMonths[allMonths.length-1]+'-01'; months.push(shiftMonth(m,-1).slice(0,7)); while (m<=end){ months.push(m.slice(0,7)); m = shiftMonth(m,1); } }
+  const monthsR = months.filter(m => m >= from.slice(0,7) && m <= to.slice(0,7));
   const firstMonthByLoan = {}; loanRows.forEach(l => firstMonthByLoan[l.key] = shiftMonth(l.first,-1).slice(0,7));
-  const deudaDs = bancos.map((b,bi) => {
+  const deudaDs = bancos.map(b => {
     const loansB = loanRows.filter(l=>l.bank===b);
-    const data = months.map(m => sum(loansB, l => m < firstMonthByLoan[l.key] ? 0 : sum(l.rows.filter(p=>p.Vencimiento.slice(0,7) > m), p=>p.Capital)));
+    const data = monthsR.map(m => sum(loansB, l => m < firstMonthByLoan[l.key] ? 0 : sum(l.rows.filter(p=>p.Vencimiento.slice(0,7) > m), p=>p.Capital)));
     return {label:b, data, borderColor:catColor(P.bancos,b), backgroundColor:catColor(P.bancos,b)+'40', fill:'stack', pointRadius:0, pointHoverRadius:4, tension:0, borderWidth:1.5};
   }).filter(d => d.data.some(v => v > 0.5));
-  const hoyM = months.indexOf(HOY.slice(0,7));
-  mk('cDeuda','line',{labels:months.map(fm), datasets:deudaDs},
+  const hoyM = monthsR.indexOf(HOY.slice(0,7));
+  mk('cDeuda','line',{labels:monthsR.map(fm), datasets:deudaDs},
     {scales:{x:{grid:{display:false}, ticks:{maxTicksLimit:18, maxRotation:0}}, y:money({stacked:true, beginAtZero:true})},
-     plugins:{refLines:{x: hoyM>=0 ? [{index:hoyM, label:'Hoy'}] : []}, tooltip:{filter:c=>c.parsed.y!==0, callbacks:{title: it => it.length ? `Cierre de ${fm(months[it[0].dataIndex])}` : '', label:lab, footer: it => it.length ? `Total adeudado: ${fmt(sum(it,c=>c.parsed.y))}` : ''}}}});
+     plugins:{refLines:{x: hoyM>=0 ? [{index:hoyM, label:'Hoy'}] : []}, tooltip:{filter:c=>c.parsed.y!==0, callbacks:{title: it => it.length ? `Cierre de ${fm(monthsR[it[0].dataIndex])}` : '', label:lab, footer: it => it.length ? `Total adeudado: ${fmt(sum(it,c=>c.parsed.y))}` : ''}}}});
 
-  // Cuotas pendientes por mes (plan completo): entidad o concepto
-  const mesesC = [...new Set(allPend.map(p=>p.Vencimiento.slice(0,7)))].sort();
-  const totalMesC = mesesC.map(m => sum(allPend.filter(p=>p.Vencimiento.startsWith(m)),p=>p.Total_Cuota));
-  let tlDs;
-  if (appState.ui.loanTimeline==='concepto'){
-    const f3 = [['Capital','Capital'],['Interés','Interes'],['Cargos e impuestos','Cargos_e_Impuestos']];
-    tlDs = f3.map(([l,k],i) => ({label:l, data:mesesC.map(m=>sum(allPend.filter(p=>p.Vencimiento.startsWith(m)),p=>p[k])), backgroundColor:CAT[i], borderColor:'#fff', borderWidth:1}));
-  } else {
-    const pbm = group(allPend, p=>`${p.Banco}#${p.Vencimiento.slice(0,7)}`, p=>p.Total_Cuota);
-    tlDs = bancos.filter(b=>allPend.some(p=>p.Banco===b)).map(b => ({label:b, data:mesesC.map(m=>pbm[`${b}#${m}`]||0), backgroundColor:catColor(P.bancos,b), borderColor:'#fff', borderWidth:1}));
-  }
-  mk('cTimeline','bar',{labels:mesesC.map(fm), datasets:tlDs}, {scales:{x:{stacked:true, grid:{display:false}, ticks:{maxRotation:0, autoSkip:true}}, y:money({stacked:true})},
-    plugins:{tooltip:{filter:c=>c.parsed.y!==0, callbacks:{label:lab, footer: it => it.length ? `Total del mes: ${fmt(totalMesC[it[0].dataIndex])}` : ''}}}});
-
-  // Tablas
-  $('tPrest').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1.5 pr-2">Vencimiento</th><th class="pr-2">Tipo</th><th class="pr-2">Entidad · préstamo / plan</th><th class="pr-2">Cuota</th><th class="text-right px-2">Capital</th><th class="text-right px-2">Int. + cargos</th><th class="text-right pl-2">Total</th></tr></thead><tbody>'
-    + (allPend.slice(0,10).map(p => { const n = groups.get(loanKey(p)); const tot = Math.max(n.length, ...n.map(x=>x.Cuota)); const dd = dayDiff(HOY,p.Vencimiento);
-      return `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2 whitespace-nowrap">${fd(p.Vencimiento)} <span class="text-xs ${dd<=7?'text-rose-700 font-semibold':'text-slate-500'}">(${dd} d)</span></td><td class="pr-2">${tipoPill(p.Tipo)}</td><td class="pr-2">${esc(p.Banco)} · ${esc(p.Prestamo_ID)}</td><td class="pr-2">${p.Cuota}/${tot}</td><td class="text-right px-2">${p.sinDesglose?'s/d':fmt(p.Capital)}</td><td class="text-right px-2">${fmt(p.Interes+p.Cargos_e_Impuestos)}</td><td class="text-right pl-2 font-medium">${fmt(p.Total_Cuota)}</td></tr>`; }).join('') || '<tr><td colspan="7" class="py-2 text-slate-500">No hay cuotas pendientes.</td></tr>') + '</tbody>';
-  const cftRows = loanRows.filter(l => l.rows.some(inRange));
-  $('tCft').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1.5 pr-2">Tipo</th><th class="pr-2">Entidad · préstamo / plan</th><th class="text-right px-2">Capital inicial</th><th class="text-right px-2">Int. y cargos</th><th class="text-right px-2">Costo / capital</th><th class="text-right pl-2">CFT anual est.</th></tr></thead><tbody>'
-    + (cftRows.map(l => `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2">${tipoPill(l.tipo)}</td><td class="pr-2">${esc(l.bank)} · ${esc(l.id)}<div class="text-xs text-slate-500">${l.n} cuotas · ${fm(l.first.slice(0,7))} a ${fm(l.last.slice(0,7))}</div></td><td class="text-right px-2">${l.sinDesglose?'<span class="text-slate-400" title="El origen no desglosa capital e intereses">s/d</span>':fmt(l.principal)}</td><td class="text-right px-2">${l.sinDesglose?'s/d':fmt(l.cost)}</td><td class="text-right px-2">${l.sinDesglose?'—':pct(l.principal?l.cost/l.principal*100:NaN)}</td><td class="text-right pl-2 font-semibold">${l.cft===null?'No calculable':l.fueraSec?`<span class="text-amber-700" title="El cronograma tiene una anomalía en el Excel (cuotas fuera de secuencia o una cuota grande sin capital, que parece la devolución o renovación del préstamo). El CFT no es confiable y no entra en el promedio.">${pct(l.cft,2)} ⚠</span>`:pct(l.cft,2)}</td></tr>`).join('') || '<tr><td colspan="6" class="py-2 text-slate-500">No hay financiaciones con vencimientos dentro del rango.</td></tr>')
-    + (cftRows.length ? `</tbody><tfoot class="font-semibold border-t"><tr><td class="py-1.5 pr-2" colspan="2">Total (con desglose)</td><td class="text-right px-2">${fmt(sum(cftRows.filter(l=>!l.sinDesglose),l=>l.principal))}</td><td class="text-right px-2">${fmt(sum(cftRows.filter(l=>!l.sinDesglose),l=>l.cost))}</td><td></td><td class="text-right pl-2" title="Promedio de los CFT de esta tabla, ponderado por capital">${wCft===null?'—':pct(wCft,2)}</td></tr></tfoot>` : '</tbody>');
-  const withPend = loanRows.filter(l => l.pending.length);
-  $('tDeudaPendiente').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1.5 pr-2">Tipo</th><th class="pr-2">Entidad · préstamo / plan</th><th class="px-2">Avance del plan</th><th class="text-right px-2">Pendientes</th><th class="text-right px-2">Próx. venc.</th><th class="text-right px-2">Capital pendiente</th><th class="text-right px-2">Interés pendiente</th><th class="text-right px-2">Cargos pendientes</th><th class="text-right px-2">Total pendiente</th><th class="text-right pl-2">Última cuota</th></tr></thead><tbody>'
-    + (withPend.map(l => { const prog = l.n ? l.paid/l.n*100 : 0;
-      return `<tr class="border-b border-slate-100"><td class="py-2 pr-2">${tipoPill(l.tipo)}</td><td class="pr-2">${esc(l.bank)} · ${esc(l.id)}</td><td class="px-2"><div class="flex items-center gap-2"><div class="progress flex-1"><span style="width:${prog}%"></span></div><span class="text-xs text-slate-600 whitespace-nowrap">${l.paid}/${l.n}</span></div></td><td class="text-right px-2">${l.pending.length}</td><td class="text-right px-2 whitespace-nowrap">${fd(l.pending[0].Vencimiento)}</td><td class="text-right px-2">${fmt(sum(l.pending,p=>p.Capital))}</td><td class="text-right px-2">${fmt(sum(l.pending,p=>p.Interes))}</td><td class="text-right px-2">${fmt(sum(l.pending,p=>p.Cargos_e_Impuestos))}</td><td class="text-right px-2 font-semibold">${fmt(sum(l.pending,p=>p.Total_Cuota))}</td><td class="text-right pl-2 whitespace-nowrap">${fd(l.last)}</td></tr>`; }).join('') || '<tr><td colspan="10" class="py-2 text-slate-500">No hay financiaciones con cuotas pendientes.</td></tr>')
-    + (withPend.length ? `</tbody><tfoot class="font-semibold border-t"><tr><td class="py-2 pr-2" colspan="5">Total</td><td class="text-right px-2">${fmt(sum(allPend,p=>p.Capital))}</td><td class="text-right px-2">${fmt(sum(allPend,p=>p.Interes))}</td><td class="text-right px-2">${fmt(sum(allPend,p=>p.Cargos_e_Impuestos))}</td><td class="text-right px-2">${fmt(sum(allPend,p=>p.Total_Cuota))}</td><td></td></tr></tfoot>` : '</tbody>');
+  // Tabla única por préstamo: plazos, tasas y costo (del CFT más alto al más bajo)
+  const ord = l => l.cft===null ? -2 : l.fueraSec ? -1 : l.cft;
+  const rowsT = enRango.slice().sort((a,b) => ord(b) - ord(a) || a.first.localeCompare(b.first));
+  const sub = t => `<div class="text-xs text-slate-500 font-normal">${t}</div>`;
+  const tnaInfTd = l => { const t = l.tnaInf; if (!t) return '<span class="text-slate-300">—</span>';
+    if (Number.isFinite(t.TNA)) return `${pct(t.TNA*100,2)}${sub(Number.isFinite(t.TNA0) ? `1ª cuota ${pct(t.TNA0*100,2)}` : '1ª cuota s/d')}`;
+    return Number.isFinite(t.TNA0) ? `${pct(t.TNA0*100,2)}${sub('de la 1ª cuota')}` : '<span class="text-slate-300">—</span>'; };
+  const tnaImpTd = l => !l.tnaImp ? '<span class="text-slate-300">—</span>' : `${pct(l.tnaImp.act,2)}${Math.abs(l.tnaImp.act - l.tnaImp.ini) >= 0.05 ? sub(`1ª cuota ${pct(l.tnaImp.ini,2)}`) : ''}`;
+  const pagoTxt = p => p.Pago ? ` · débito ${fd(p.Pago.Fecha)}` : '';
+  $('tCft').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1.5 pr-2">Tipo</th><th class="pr-2">Entidad · préstamo / plan</th><th class="px-2 whitespace-nowrap">1ª cuota</th><th class="px-2">Avance</th><th class="text-right px-2">Capital inicial</th><th class="text-right px-2">Capital pendiente</th><th class="text-right px-2">Int. y cargos pendientes</th><th class="text-right px-2">Próx. venc.</th><th class="text-right px-2">TNA informada</th><th class="text-right px-2">TNA implícita</th><th class="text-right pl-2">CFT anual est.</th></tr></thead><tbody>'
+    + (rowsT.map(l => { const prog = l.n ? l.paid/l.n*100 : 0;
+        const cftTd = l.cft===null ? '<span class="text-slate-400">No calculable</span>' : l.fueraSec ? `<span class="text-amber-700" title="El cronograma tiene una anomalía en el Excel (cuotas fuera de secuencia o una cuota grande sin capital). El CFT no es confiable y no entra en el promedio.">${pct(l.cft,2)} ⚠</span>` : pct(l.cft,2);
+        return `<tr class="border-b border-slate-100 align-top"><td class="py-2 pr-2">${tipoPill(l.tipo)}</td><td class="py-2 pr-2 min-w-[11rem]">${esc(l.bank)} · ${esc(l.id)}${sub(`${l.n} ${l.n===1?'cuota':'cuotas'}`)}</td>`
+          + `<td class="py-2 px-2 whitespace-nowrap" title="Vencimiento de la primera cuota${esc(pagoTxt(l.firstRow))}">${fd(l.first)}${sub(`última ${fd(l.last)}`)}</td>`
+          + `<td class="py-2 px-2"><div class="flex items-center gap-2"><div class="progress flex-1"><span style="width:${prog}%"></span></div><span class="text-xs text-slate-600 whitespace-nowrap">${l.paid}/${l.n}</span></div></td>`
+          + `<td class="py-2 text-right px-2">${l.sinDesglose?'<span class="text-slate-400" title="El origen no desglosa capital e intereses">s/d</span>':fmt(l.principal)}</td>`
+          + `<td class="py-2 text-right px-2">${l.pending.length ? (l.sinDesglose ? 's/d' : fmt(sum(l.pending,p=>p.Capital))) : '<span class="text-slate-300">—</span>'}</td>`
+          + `<td class="py-2 text-right px-2">${l.pending.length ? fmt(sum(l.pending,p=>p.Interes+p.Cargos_e_Impuestos)) : '<span class="text-slate-300">—</span>'}</td>`
+          + `<td class="py-2 text-right px-2 whitespace-nowrap">${l.pending.length ? fd(l.pending[0].Vencimiento) : '<span class="text-xs text-emerald-700">cancelado</span>'}</td>`
+          + `<td class="py-2 text-right px-2 whitespace-nowrap">${tnaInfTd(l)}</td><td class="py-2 text-right px-2 whitespace-nowrap">${tnaImpTd(l)}</td><td class="py-2 text-right pl-2 font-semibold whitespace-nowrap">${cftTd}</td></tr>`; }).join('')
+      || '<tr><td colspan="11" class="py-2 text-slate-500">No hay financiaciones con vencimientos dentro del rango.</td></tr>')
+    + (rowsT.length ? `</tbody><tfoot class="font-semibold border-t"><tr><td class="py-1.5 pr-2" colspan="4">Total (con desglose)</td><td class="text-right px-2">${fmt(sum(rowsT.filter(l=>!l.sinDesglose),l=>l.principal))}</td><td class="text-right px-2">${fmt(sum(rowsT.filter(l=>!l.sinDesglose),l=>sum(l.pending,p=>p.Capital)))}</td><td class="text-right px-2">${fmt(sum(rowsT,l=>sum(l.pending,p=>p.Interes+p.Cargos_e_Impuestos)))}</td><td colspan="3"></td><td class="text-right pl-2" title="Promedio de los CFT de esta tabla, ponderado por capital">${wCft===null?'—':pct(wCft,2)}</td></tr></tfoot>` : '</tbody>');
 }
 
 /* =====================================================================
@@ -1789,7 +1936,7 @@ function renderSales(){
 
   // Distribución de tickets
   const edges = [0,1000,2500,5000,10000,25000,50000,100000,250000,Infinity];
-  const maxT = Math.max(...rows.map(v=>v.TOTAL));
+  const maxT = rows.reduce((m,v)=>v.TOTAL>m?v.TOTAL:m, -Infinity);
   const buckets = []; for (let i=0;i<edges.length-1;i++){ if (edges[i] > maxT) break; buckets.push([edges[i],edges[i+1]]); }
   const kf = v => v>=1000 ? `${nf2.format(v/1000).replace(/,00$/,'').replace(/,50$/,',5')}k` : String(v);
   const bLab = ([a,b]) => b===Infinity ? `> $${kf(a)}` : `$${kf(a)}–${kf(b)}`;
@@ -1902,7 +2049,7 @@ function renderPurchases(){
     ['Pendiente de pago', fmt(pendiente), `${int(pendRows.length)} comprobantes · vence después de hoy`, COL.pend],
     ['A pagar en 7 días', fmt(sum(next7,c=>c.monto)), `hasta el ${fd(addDays(HOY,7))} · ${int(next7.length)} comprobantes`, COL.loan],
     ['IVA crédito fiscal', fmt(sum(rows,c=>c.iva)), `${pct(tot?sum(rows,c=>c.iva)/tot*100:NaN)} del total de compras`, COL.muted],
-    ['Comprobante promedio', fmt(tot/rows.length), `mayor: ${fmt(Math.max(...rows.map(c=>c.monto)))}`, COL.ink]
+    ['Comprobante promedio', fmt(tot/rows.length), `mayor: ${fmt(rows.reduce((m,c)=>c.monto>m?c.monto:m, -Infinity))}`, COL.ink]
   ]);
 
   // Top 10 + resto
@@ -2143,7 +2290,7 @@ function renderGastos(){
    TESORERÍA
    ===================================================================== */
 let tesLimit = 300;
-const TES_TIPO_COLOR = {Ingreso:'#169b6b', Egreso:'#e34948', Propietarios:'#6250d6', Ajuste:'#94a3b8', Interno:'#64748b'};
+const TES_TIPO_COLOR = {Ingreso:'#169b6b', Egreso:'#e34948', Propietarios:'#6250d6', Ajuste:'#94a3b8', Interno:'#64748b', 'Financiación':'#eda100'};
 // Saldo de una cuenta al cierre del día "d" (null si no hay saldo inicial anterior)
 
 /* ---------- Desglose de "Otros egresos" de Tesorería con el detalle del Excel ---------- */
@@ -2226,7 +2373,7 @@ const OPER_ROWS = [
   {k:'cobros', l:'Cobros por ventas', g:'op'}, {k:'prov', l:'Proveedores (pagos y cheques)', g:'op'}, {k:'sue', l:'Sueldos y cargas sociales', g:'op'},
   {k:'gas', l:'Gastos operativos (fijos, variables y sin detalle)', g:'op'}, {k:'imp', l:'Impuestos, retenciones e IVA', g:'op'},
   {k:'OP', l:'Flujo operativo', total:'op'},
-  {k:'loan', l:'Cuotas de préstamos', g:'fin'}, {k:'mor', l:'Cuotas de moratorias', g:'fin'}, {k:'finO', l:'Intereses bancarios, descubiertos y rendimientos', g:'fin'},
+  {k:'loanIn', l:'Préstamos recibidos', g:'fin'}, {k:'loan', l:'Cuotas de préstamos', g:'fin'}, {k:'mor', l:'Cuotas de moratorias', g:'fin'}, {k:'finO', l:'Intereses bancarios, descubiertos y rendimientos', g:'fin'},
   {k:'inv', l:'Compra de bienes de uso', g:'inv'}, {k:'soc', l:'Socios (aportes, retiros y gastos personales)', g:'soc'}, {k:'int', l:'Movimientos internos y ajustes', g:'int'},
   {k:'VAR', l:'Variación de fondos', total:'all'}];
 function operCat(m){
@@ -2234,7 +2381,8 @@ function operCat(m){
   if (m.Tipo==='Interno' || m.Tipo==='Ajuste') return 'int';
   if (m.Tipo==='Propietarios' || c===DESG.prop) return 'soc';
   if (c===DESG.bdu) return 'inv';
-  if (c===DESG.loan || /^ingreso de pr[eé]stamos/i.test(c)) return 'loan';
+  if (m.Tipo==='Financiación' || /^ingreso de pr[eé]stamos/i.test(c)) return 'loanIn';
+  if (c===DESG.loan) return 'loan';
   if (c===DESG.mor) return 'mor';
   if (c===DESG.fin || /^rendimientos/i.test(c)) return 'finO';
   if (m.Tipo==='Ingreso') return 'cobros';
@@ -2268,7 +2416,7 @@ function renderOperativo(sc, cuentas, iniDate, dEnd){
   const steps = [];
   OPER_ROWS.forEach(r => { const v = T(r.k); if (r.total) steps.push([r.k==='OP'?'Flujo operativo':'Variación de fondos', v, 'total']); else if (Math.abs(v) >= 0.5) steps.push([r.l.replace(/ \(.*\)$/,''), v, v>=0?'up':'down']); });
   let run = 0; const bars = steps.map(([l,v,t]) => { if (t==='total'){ run = v; return [0, v]; } const a = run; run += v; return [a, run]; });
-  const short = l => ({'Cobros por ventas':'Cobros','Proveedores':'Proveedores','Sueldos y cargas sociales':'Sueldos','Gastos operativos':'Gastos','Impuestos, retenciones e IVA':'Impuestos','Cuotas de préstamos':'Préstamos','Cuotas de moratorias':'Moratorias','Intereses bancarios, descubiertos y rendimientos':'Bancarios','Compra de bienes de uso':'Bienes de uso','Socios':'Socios','Movimientos internos y ajustes':'Internos'}[l] || l);
+  const short = l => ({'Cobros por ventas':'Cobros','Proveedores':'Proveedores','Sueldos y cargas sociales':'Sueldos','Gastos operativos':'Gastos','Impuestos, retenciones e IVA':'Impuestos','Préstamos recibidos':'Préstamos recibidos','Cuotas de préstamos':'Cuotas préstamos','Cuotas de moratorias':'Moratorias','Intereses bancarios, descubiertos y rendimientos':'Bancarios','Compra de bienes de uso':'Bienes de uso','Socios':'Socios','Movimientos internos y ajustes':'Internos'}[l] || l);
   mk('cOper','bar',{labels:steps.map(s=>short(s[0])), datasets:[{label:'Importe', data:bars, borderSkipped:false,
       backgroundColor: steps.map(([l,v,t]) => t==='total' ? (v>=0?COL.bal:COL.out) : v>=0 ? COL.in : COL.out)}]},
     {layout:{padding:{top:16}}, scales:{x:{grid:{display:false}, ticks:{maxRotation:45, minRotation:0, autoSkip:false, font:{size:10}}}, y:money()},
@@ -2324,7 +2472,7 @@ function renderTesoreria(){
   kpis('kTes', [
     ['Fondos al inicio', fmt(ini), `${fd(iniDate)}${iniDate!==sc.from?' (primer saldo registrado)':''}${sc.cuenta?` · ${esc(cuentas[0].Nombre)}`:` · ${cuentas.length} cuentas`}`, COL.bal],
     ['Fondos al cierre', fmt(fin), `${fd(dEnd)} (último movimiento ${fd(lastMov)})`, fin>=0?COL.bal:COL.out],
-    ['Ingresos', fmt(byTipo.Ingreso||0), 'cobranzas, liquidaciones y otros ingresos', TES_TIPO_COLOR.Ingreso],
+    ['Ingresos', fmt(byTipo.Ingreso||0), byTipo['Financiación'] ? `cobranzas y liquidaciones · aparte, préstamos recibidos ${cmpM(byTipo['Financiación'])}` : 'cobranzas, liquidaciones y otros ingresos', TES_TIPO_COLOR.Ingreso],
     ['Egresos', fmt(-(byTipo.Egreso||0)), (() => { const cu = -sum(sc.all.filter(m=>m.Concepto===DESG.loan||m.Concepto===DESG.mor), m=>m.Monto); return $('tesSplit').checked && cu ? `incluye ${cmpM(cu)} de cuotas de préstamos y moratorias` : 'proveedores, gastos, sueldos e impuestos'; })(), TES_TIPO_COLOR.Egreso],
     ['Propietarios (neto)', fmt(byTipo.Propietarios||0), 'aportes y retiros', TES_TIPO_COLOR.Propietarios],
     ['Movimientos internos', fmt(byTipo.Interno||0), sc.internos ? 'incluidos en gráficos y tabla' : 'excluidos: transferencias entre cuentas propias', TES_TIPO_COLOR.Interno]
@@ -2378,9 +2526,9 @@ function renderTesoreria(){
     return {c, ini: v0 ? v0.Saldo : saldoCuenta(c.ID, addDays(iniDate,-1)), g, fin: saldoCuenta(c.ID, dEnd)};
   });
   const T = k => sum(rowsC, r => r.g[k]||0);
-  $('tTesCuentas').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1.5 pr-2">Cuenta</th><th class="text-right px-2">Saldo inicial</th><th class="text-right px-2">Ingresos</th><th class="text-right px-2">Egresos</th><th class="text-right px-2">Propietarios</th><th class="text-right px-2">Internos</th><th class="text-right px-2">Ajustes</th><th class="text-right pl-2">Saldo final</th></tr></thead><tbody>'
-    + rowsC.map(r => `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2"><span class="inline-block w-2 h-2 rounded-full mr-1" style="background:${catColor(R.cuentas.map(x=>x.ID),r.c.ID)}"></span>${esc(r.c.Nombre)}</td><td class="text-right px-2">${r.ini===null?'—':fmt(r.ini)}</td><td class="text-right px-2">${fmt(r.g.Ingreso||0)}</td><td class="text-right px-2">${fmt(r.g.Egreso||0)}</td><td class="text-right px-2">${fmt(r.g.Propietarios||0)}</td><td class="text-right px-2 text-slate-500">${fmt(r.g.Interno||0)}</td><td class="text-right px-2 text-slate-500">${fmt(r.g.Ajuste||0)}</td><td class="text-right pl-2 font-semibold ${r.fin<0?'text-rose-700':''}">${r.fin===null?'—':fmt(r.fin)}</td></tr>`).join('')
-    + `</tbody><tfoot class="font-semibold border-t"><tr><td class="py-1.5 pr-2">Total</td><td class="text-right px-2">${fmt(sum(rowsC,r=>r.ini||0))}</td><td class="text-right px-2">${fmt(T('Ingreso'))}</td><td class="text-right px-2">${fmt(T('Egreso'))}</td><td class="text-right px-2">${fmt(T('Propietarios'))}</td><td class="text-right px-2">${fmt(T('Interno'))}</td><td class="text-right px-2">${fmt(T('Ajuste'))}</td><td class="text-right pl-2">${fmt(sum(rowsC,r=>r.fin||0))}</td></tr></tfoot>`;
+  $('tTesCuentas').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1.5 pr-2">Cuenta</th><th class="text-right px-2">Saldo inicial</th><th class="text-right px-2">Ingresos</th><th class="text-right px-2">Egresos</th><th class="text-right px-2">Préstamos recibidos</th><th class="text-right px-2">Propietarios</th><th class="text-right px-2">Internos</th><th class="text-right px-2">Ajustes</th><th class="text-right pl-2">Saldo final</th></tr></thead><tbody>'
+    + rowsC.map(r => `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2"><span class="inline-block w-2 h-2 rounded-full mr-1" style="background:${catColor(R.cuentas.map(x=>x.ID),r.c.ID)}"></span>${esc(r.c.Nombre)}</td><td class="text-right px-2">${r.ini===null?'—':fmt(r.ini)}</td><td class="text-right px-2">${fmt(r.g.Ingreso||0)}</td><td class="text-right px-2">${fmt(r.g.Egreso||0)}</td><td class="text-right px-2">${fmt(r.g['Financiación']||0)}</td><td class="text-right px-2">${fmt(r.g.Propietarios||0)}</td><td class="text-right px-2 text-slate-500">${fmt(r.g.Interno||0)}</td><td class="text-right px-2 text-slate-500">${fmt(r.g.Ajuste||0)}</td><td class="text-right pl-2 font-semibold ${r.fin<0?'text-rose-700':''}">${r.fin===null?'—':fmt(r.fin)}</td></tr>`).join('')
+    + `</tbody><tfoot class="font-semibold border-t"><tr><td class="py-1.5 pr-2">Total</td><td class="text-right px-2">${fmt(sum(rowsC,r=>r.ini||0))}</td><td class="text-right px-2">${fmt(T('Ingreso'))}</td><td class="text-right px-2">${fmt(T('Egreso'))}</td><td class="text-right px-2">${fmt(T('Financiación'))}</td><td class="text-right px-2">${fmt(T('Propietarios'))}</td><td class="text-right px-2">${fmt(T('Interno'))}</td><td class="text-right px-2">${fmt(T('Ajuste'))}</td><td class="text-right pl-2">${fmt(sum(rowsC,r=>r.fin||0))}</td></tr></tfoot>`;
 
   // Conciliación: "Otros egresos" de tesorería vs. detalle de Gastos (por mes)
   const meses = monthsBetween(sc.from.slice(0,7), sc.to.slice(0,7));
@@ -2395,7 +2543,266 @@ function renderTesoreria(){
 /* =====================================================================
    Pestañas y eventos
    ===================================================================== */
-const renderers = {inicio:renderHome, flujo:renderFlow, tesoreria:renderTesoreria, prestamos:renderLoans, ventas:renderSales, compras:renderPurchases, gastos:renderGastos};
+/* =====================================================================
+   RESULTADOS Y BALANCE (estados contables internos + ratios)
+   ===================================================================== */
+const PROY_ORDER = ['Ingresos por ventas netos','Cheques','Pagos a proveedores','Sueldos de bolsillo','Aguinaldos','Aportes y contribuciones','Costos fijos','Costos variables','Impuestos sin IVA','IVA a pagar','Cuotas de moratorias','Préstamos adquiridos','Descubierto','Cuotas de préstamos','Tarjetas de crédito','Bienes de uso','Otras inversiones y extraordinarios','Reserva de efectivo','Aportes y retiros de socios'];
+const monthEnd = per => lastDayOf(per);
+function ecModel(){
+  const R = appState.raw, P = appState.processed;
+  if (!R.resultados.length && !R.balance.length) return null;
+  // índice de resultados por mes y concepto
+  const idx = {};
+  R.resultados.forEach(r => { const k = `${r.Periodo}|${r.Concepto}`; idx[k] = (idx[k]||0) + r.Monto; });
+  const rs = (per, c) => idx[`${per}|${c}`] || 0;
+  const meses = [...new Set(R.resultados.map(r=>r.Periodo))].sort();
+  // costo financiero real: cuotas que vencen en el mes (cronogramas) + débitos de descubierto y comisiones de préstamos
+  const gMes = g => g.Fecha ? g.Fecha.slice(0,7) : g.Periodo;
+  const fin = per => {
+    const cu = R.prestamos.filter(p => p.Vencimiento.slice(0,7)===per);
+    const costo = p => (p.Interes||0) + (p.Cargos_e_Impuestos||0);
+    const gs = R.gastos.filter(g => gMes(g)===per);
+    const intP = sum(cu.filter(p=>p.Tipo!=='Moratoria'), costo), intM = sum(cu.filter(p=>p.Tipo==='Moratoria'), costo);
+    const desc = sum(gs.filter(g => /descubierto/i.test(g.Concepto)), g=>g.Monto), comP = sum(gs.filter(g => /comisi[oó]n.*pr[eé]stamo/i.test(g.Concepto)), g=>g.Monto);
+    const sinDesg = cu.filter(p => p.sinDesglose).length;
+    return {intP, intM, desc: desc + comP, total: intP + intM + desc + comP, servicio: sum(cu, p=>p.Total_Cuota), capital: sum(cu, p=>p.Capital), sinDesg};
+  };
+  const er = meses.map(per => {
+    const vb = rs(per,'Ventas brutas'), iva = rs(per,'IVA ventas'), cc = rs(per,'Cuentas corrientes'), vn = vb - iva - cc;
+    const cmv = rs(per,'CMV + vencidos'), com = rs(per,'Comisiones por venta'), mb = vn - cmv - com;
+    const sue = rs(per,'Sueldos'), cf = rs(per,'Costos fijos'), cv = rs(per,'Costos variables'), iibb = rs(per,'IIBB + APR'), ext = rs(per,'Costos extraordinarios');
+    const ebitda = mb - sue - cf - cv - iibb - ext, f = fin(per), gcias = rs(per,'Ganancias y financieros');
+    const contrib = vn - cmv - com - cv - iibb, fijos = sue + cf;
+    return {per, vb, iva, cc, vn, cmv, com, mb, sue, cf, cv, iibb, ext, ebitda, intP:f.intP, intM:f.intM, desc:f.desc, fint:f.total, neto: ebitda - f.total,
+      cliente: ebitda - cc - gcias, gcias, afip: rs(per,'Ventas según AFIP'), servicio: f.servicio, capital: f.capital, sinDesg: f.sinDesg, contrib, fijos,
+      mc: vn ? contrib / vn : NaN, eq: contrib > 0 ? fijos / (contrib / vn) : NaN, eqF: contrib > 0 ? (fijos + f.total) / (contrib / vn) : NaN};
+  });
+  const keys = ['vb','iva','cc','vn','cmv','com','mb','sue','cf','cv','iibb','ext','ebitda','intP','intM','desc','fint','neto','cliente','gcias','afip','servicio','capital','contrib','fijos'];
+  const tot = Object.fromEntries(keys.map(k => [k, sum(er, e=>e[k])]));
+  tot.mc = tot.vn ? tot.contrib / tot.vn : NaN; tot.eq = tot.contrib > 0 ? tot.fijos / tot.mc : NaN; tot.eqF = tot.contrib > 0 ? (tot.fijos + tot.fint) / tot.mc : NaN;
+  const erBy = Object.fromEntries(er.map(e => [e.per, e]));
+  // compras del mes (con IVA, netas de notas de crédito) para los días de pago
+  const compM = group(P.comprasX.filter(c => c.fecha), c => c.fecha.slice(0,7), c => c.monto);
+  // balance a fin de mes (sólo el año de los resultados; 2023 queda como referencia en el Excel)
+  const anio = meses.length ? meses[0].slice(0,4) : (R.balance.map(b=>b.Fecha).sort().pop() || '').slice(0,4);
+  const fechas = [...new Set(R.balance.filter(b => b.Fecha.startsWith(anio)).map(b=>b.Fecha))].sort();
+  // cronogramas: deuda pendiente a una fecha (sólo financiaciones ya otorgadas: primera cuota hasta 35 días después)
+  const primera = {}; R.prestamos.forEach(p => { if (!primera[p.FinID] || p.Vencimiento < primera[p.FinID]) primera[p.FinID] = p.Vencimiento; });
+  const pend = (d, tipo) => { const l = R.prestamos.filter(p => (tipo==='Moratoria') === (p.Tipo==='Moratoria') && p.Vencimiento > d && primera[p.FinID] <= addDays(d,35));
+    return {total: sum(l, p=>p.Total_Cuota), capital: sum(l, p=>p.Capital), lp: sum(l.filter(p => p.Vencimiento > addDays(d,365)), p=>p.Total_Cuota), n: new Set(l.map(p=>p.FinID)).size}; };
+  const bal = fechas.map(fecha => {
+    const rows = R.balance.filter(b => b.Fecha===fecha), g = f => sum(rows.filter(f), b=>b.Monto);
+    const disp = g(b => b.Grupo==='Disponibilidades' && b.Monto > 0), desc = -g(b => b.Grupo==='Disponibilidades' && b.Monto < 0);
+    const cred = g(b => b.Grupo==='Créditos'), stock = g(b => b.Grupo==='Stocks'), ac = disp + cred + stock, anc = g(b => /^activo no/i.test(b.Rubro));
+    const pasOrig = g(b => /^pasivo/i.test(b.Rubro)), pc = pasOrig + desc, activo = ac + anc, pasivo = pc;
+    const prov = g(b => b.Cuenta==='Proveedores'), prest = g(b => /pr[eé]stamo/i.test(b.Cuenta)), mor = g(b => /moratoria/i.test(b.Cuenta));
+    const per = fecha.slice(0,7), e = erBy[per];
+    const prev3 = er.filter(x => x.per <= per).slice(-3), ebitdaAn = prev3.length ? sum(prev3, x=>x.ebitda) / prev3.length * 12 : NaN;
+    const deudaFin = prest + mor + desc;
+    const comp = compM[per];
+    return {fecha, per, rows, disp, desc, cred, stock, ac, anc, activo, pc, pasivo, pn: activo - pasivo, prov, prest, mor, deudaFin, ebitdaAn,
+      liq: pc ? ac/pc : NaN, acida: pc ? (ac - stock)/pc : NaN, inm: pc ? disp/pc : NaN, ct: ac - pc, endeud: activo ? pasivo/activo : NaN,
+      dEbitda: ebitdaAn > 0 ? deudaFin / ebitdaAn : NaN, ebitdaNeg: ebitdaAn <= 0,
+      dStock: e && e.cmv ? stock / e.cmv * 30 : NaN, dCobro: e && e.vb ? cred / e.vb * 30 : NaN,
+      dPago: comp > 0 ? prov / comp * 30 : (e && e.cmv ? prov / (e.cmv * 1.21) * 30 : NaN), pagoProxy: !(comp > 0),
+      cronoP: pend(fecha, 'Préstamo'), cronoM: pend(fecha, 'Moratoria')};
+  });
+  bal.forEach(b => { b.lp = Math.min(b.cronoP.lp + b.cronoM.lp, b.prest + b.mor); b.liqLP = b.pc - b.lp > 0 ? b.ac / (b.pc - b.lp) : NaN; b.ciclo = [b.dStock, b.dCobro, b.dPago].every(Number.isFinite) ? b.dStock + b.dCobro - b.dPago : NaN; });
+  return {meses, er, tot, bal, rs, anio};
+}
+
+const r2 = v => Number.isFinite(v) ? v.toFixed(2).replace('.',',') : '—';
+const dias = v => Number.isFinite(v) ? `${Math.round(v)} d` : '—';
+function semaforo(v, good, warn, higherBetter=true){
+  if (!Number.isFinite(v)) return '';
+  const ok = higherBetter ? v >= good : v <= good, mid = higherBetter ? v >= warn : v <= warn;
+  return ok ? 'bg-emerald-50 text-emerald-800' : mid ? 'bg-amber-50 text-amber-800' : 'bg-rose-50 text-rose-800';
+}
+function renderContable(){
+  const R = appState.raw;
+  const ids = ['cEERR','cEquilibrio','cECDeuda','cLocales','cBalance','cProy'];
+  const ec = ecModel();
+  if (!ec){ clearCharts(ids); ['tEERR','tRatios','tLocales','tBalance','tProy'].forEach(id => $(id).innerHTML=''); $('ecAvisos').innerHTML=''; $('ecPeriodo').textContent='';
+    return emptyNote('kEC', 'estados contables (hojas Resultados_Mensuales y Balance_Saldos del Excel normalizado v6 o posterior)'); }
+  const {er, tot, bal, meses} = ec, ult = bal[bal.length-1] || null;
+  $('ecPeriodo').textContent = meses.length ? `${fm(meses[0])} – ${fm(meses[meses.length-1])}` : '';
+  const th = 'class="text-right px-2 whitespace-nowrap"';
+  const cell = (v, extra='') => `<td class="text-right px-2 whitespace-nowrap ${v<0?'text-rose-700':''} ${extra}">${Math.abs(v)<0.5?'<span class="text-slate-300">—</span>':fmt(v)}</td>`;
+
+  // avisos
+  const av = [];
+  if (ult && ult.pn < 0) av.push(alertBox('bad', `El patrimonio neto es negativo: <b>${fmt(ult.pn)}</b> al ${fd(ult.fecha)} (el pasivo supera al activo en ${pct(ult.activo ? (ult.pasivo/ult.activo - 1)*100 : NaN, 0)}).`));
+  if (ult && ult.cronoP.total){ const fut = ult.cronoP.total - ult.cronoP.capital;
+    if (Math.abs(ult.prest - ult.cronoP.total) < Math.max(1, ult.cronoP.total*0.02) && fut > 0) av.push(alertBox('warn', `Los préstamos del balance al ${fd(ult.fecha)} (${fmt(ult.prest)}) son la suma de las cuotas pendientes, con los <b>intereses futuros</b> incluidos. Según los cronogramas el capital adeudado es ${fmt(ult.cronoP.capital)}: el pasivo está ${fmt(fut)} por encima del criterio contable (los intereses se deben a medida que pasa el tiempo), y el patrimonio neto, por debajo en el mismo importe.`));
+    else av.push(alertBox('info', `Préstamos al ${fd(ult.fecha)}: balance ${fmt(ult.prest)}; cronogramas ${fmt(ult.cronoP.total)} en cuotas pendientes (capital ${fmt(ult.cronoP.capital)}).`)); }
+  if (tot.sinDesg === undefined){ const n = sum(er, e=>e.sinDesg); if (n) av.push(alertBox('info', `${int(n)} cuotas que vencen en el período no tienen el interés separado del capital en el cronograma; para esas el costo financiero real queda subestimado.`)); }
+  $('ecAvisos').innerHTML = av.join('');
+
+  const desc0 = ult ? ult.deudaFin : NaN;
+  kpis('kEC', [
+    ['Ventas netas', fmt(tot.vn), `brutas ${cmpM(tot.vb)} · ${meses.length} meses`, COL.in],
+    ['Margen bruto', pct(tot.vn ? tot.mb/tot.vn*100 : NaN), `${cmpM(tot.mb)} después de mercadería y comisiones`, COL.bal],
+    ['Resultado operativo', fmt(tot.ebitda), `${pct(tot.vn ? tot.ebitda/tot.vn*100 : NaN)} de las ventas · antes de intereses`, tot.ebitda>=0?COL.in:COL.out],
+    ['Costo financiero real', fmt(tot.fint), `${pct(tot.vn ? tot.fint/tot.vn*100 : NaN)} de las ventas · ${pct(tot.ebitda>0 ? tot.fint/tot.ebitda*100 : NaN, 0)} del resultado operativo`, COL.loan],
+    ['Resultado después de intereses', fmt(tot.neto), `el estado del cliente da ${cmpM(tot.cliente)}`, tot.neto>=0?COL.in:COL.out],
+    ['Patrimonio neto', ult ? fmt(ult.pn) : '—', ult ? `al ${fd(ult.fecha)} · deuda financiera ${cmpM(desc0)}` : 'sin balance', ult && ult.pn<0 ? COL.out : COL.bal]
+  ]);
+
+  // ---------- Estado de resultados
+  const labels = meses.map(fm);
+  mk('cEERR','bar',{labels, datasets:[
+      {label:'Resultado operativo', data:er.map(e=>e.ebitda), backgroundColor:COL.bal, maxBarThickness:40},
+      {label:'Después de intereses reales', data:er.map(e=>e.neto), backgroundColor:er.map(e=>e.neto>=0?COL.in:COL.out), maxBarThickness:40}]},
+    {scales:{x:{grid:{display:false}}, y:money()}, plugins:{refLines:{y:[{value:0, color:'#334155'}]}, legend:{labels:{generateLabels:ch => ch.data.datasets.map((d,i)=>({text:d.label, fillStyle:i===0?COL.bal:COL.in, strokeStyle:'transparent', datasetIndex:i, hidden:!ch.isDatasetVisible(i)}))}},
+      tooltip:{callbacks:{footer:it => { if(!it.length) return ''; const e = er[it[0].dataIndex]; return `Intereses reales: ${fmt(e.fint)} · margen operativo ${pct(e.vn?e.ebitda/e.vn*100:NaN)}`; }}}}});
+  const ER_ROWS = [
+    ['vb','Ventas brutas',0], ['iva','IVA de las ventas',-1], ['cc','Cuentas corrientes',-1], ['vn','Ventas netas','t'],
+    ['cmv','CMV + vencidos',-1], ['com','Comisiones por venta (tarjetas y billeteras)',-1], ['mb','Margen bruto','t'],
+    ['sue','Sueldos',-1], ['cf','Costos fijos',-1], ['cv','Costos variables',-1], ['iibb','IIBB + APR (estimado por el cliente)',-1], ['ext','Costos extraordinarios',-1], ['ebitda','Resultado operativo (antes de intereses)','T'],
+    ['intP','Intereses y cargos de préstamos (cronograma)',-1], ['intM','Intereses de moratorias (cronograma)',-1], ['desc','Descubiertos y comisiones de préstamos',-1], ['neto','Resultado después de intereses reales','T'],
+    ['cliente','Resultado neto según el estado del cliente','i'], ['afip','Ventas declaradas en AFIP (informativo)','i']];
+  $('tEERR').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2 min-w-[14rem]">Concepto</th>${meses.map(m=>`<th ${th}>${fm(m)}</th>`).join('')}<th ${th}>Total</th><th ${th}>% ventas netas</th></tr></thead><tbody>`
+    + ER_ROWS.map(([k,l,t]) => {
+        const sg = t===-1 ? -1 : 1, vs = er.map(e => sg*e[k]), tv = sg*tot[k];
+        if (t===-1 && vs.every(v=>Math.abs(v)<0.5)) return '';
+        const cls = t==='T' ? `font-semibold ${k==='neto' ? (tv>=0?'bg-emerald-50':'bg-rose-50') : 'bg-slate-100'} border-t border-slate-300` : t==='t' ? 'font-semibold border-t border-slate-200' : t==='i' ? 'text-slate-500 italic border-t border-slate-200' : 'border-b border-slate-100';
+        return `<tr class="${cls}"><td class="py-1.5 pr-2 ${t===-1?'pl-3':''}">${t===-1?'− ':''}${l}</td>${vs.map(v=>cell(v)).join('')}${cell(tv)}<td ${th}>${tot.vn && k!=='afip' ? pct(tv/tot.vn*100) : ''}</td></tr>`;
+      }).join('')
+    + (R.ipc.some(x => meses.includes(x.Periodo)) ? `<tr class="text-slate-500 border-t border-slate-200"><td class="py-1.5 pr-2">Inflación del mes (IPC)</td>${meses.map(m => { const x = R.ipc.find(i=>i.Periodo===m); return `<td ${th}>${x ? pct(x.Var*100) : '—'}</td>`; }).join('')}<td></td><td></td></tr>` : '')
+    + '</tbody>';
+  $('eerrNote').innerHTML = `Diferencia con el resultado del cliente (${fmt(tot.cliente - tot.neto)} en el período): el cliente resta dos veces las cuentas corrientes (${fmt(tot.cc)}) y en lugar de los intereses reales (${fmt(tot.fint)}) resta un 10% estimado del resultado (${fmt(tot.gcias)}). `
+    + 'Los intereses de cada mes son los de las cuotas que vencen en ese mes; el impuesto a las ganancias no se incluye.';
+
+  // ---------- Ratios
+  const balBy = Object.fromEntries(bal.map(b => [b.per, b]));
+  const cols = meses.length ? meses : bal.map(b=>b.per);
+  const RAT = [
+    {g:'Liquidez'},
+    {l:'Liquidez corriente', d:'Activo corriente / pasivo corriente', b:b=>b.liq, f:r2, s:v=>semaforo(v,1.5,1)},
+    {l:'Liquidez corriente sin la deuda a largo plazo', d:'Pasando al no corriente las cuotas que vencen a más de 12 meses', b:b=>b.liqLP, f:r2, s:v=>semaforo(v,1.5,1)},
+    {l:'Prueba ácida', d:'Sin stocks', b:b=>b.acida, f:r2, s:v=>semaforo(v,1,0.7)},
+    {l:'Liquidez inmediata', d:'Disponibilidades / pasivo corriente', b:b=>b.inm, f:r2, s:v=>semaforo(v,0.2,0.1)},
+    {l:'Capital de trabajo', d:'Activo corriente − pasivo corriente', b:b=>b.ct, f:fmt, s:v=>semaforo(v,0,0)},
+    {g:'Endeudamiento'},
+    {l:'Pasivo / activo', d:'Más de 1 = patrimonio neto negativo', b:b=>b.endeud, f:v=>pct(v*100,0), s:v=>semaforo(v,0.6,1,false)},
+    {l:'Deuda financiera', d:'Préstamos + moratorias + descubiertos (balance)', b:b=>b.deudaFin, f:fmt},
+    {l:'Deuda financiera / resultado operativo anual', d:'Años de operación para pagar la deuda (últimos 3 meses × 4)', b:b=>b.dEbitda, f:v=>Number.isFinite(v)?`${r2(v)} años`:'—', s:v=>semaforo(v,2,3.5,false), neg:b=>b.ebitdaNeg},
+    {l:'Cobertura de intereses', d:'Resultado operativo / intereses reales', e:e=>e.fint ? e.ebitda/e.fint : NaN, t:t=>t.fint ? t.ebitda/t.fint : NaN, f:v=>Number.isFinite(v)?`${r2(v)} x`:'—', s:v=>semaforo(v,3,1.5)},
+    {l:'Cobertura de cuotas', d:'Resultado operativo / cuotas que vencen (capital + interés)', e:e=>e.servicio ? e.ebitda/e.servicio : NaN, t:t=>t.servicio ? t.ebitda/t.servicio : NaN, f:v=>Number.isFinite(v)?`${r2(v)} x`:'—', s:v=>semaforo(v,1.25,1)},
+    {l:'Costo financiero / ventas netas', d:'Intereses reales sobre ventas', e:e=>e.vn ? e.fint/e.vn : NaN, t:t=>t.vn ? t.fint/t.vn : NaN, f:v=>pct(v*100), s:v=>semaforo(v,0.02,0.04,false)},
+    {g:'Rentabilidad'},
+    {l:'Margen bruto', d:'(Ventas netas − CMV − comisiones) / ventas netas', e:e=>e.vn ? e.mb/e.vn : NaN, t:t=>t.vn ? t.mb/t.vn : NaN, f:v=>pct(v*100)},
+    {l:'Margen de contribución', d:'Después de todos los costos variables', e:e=>e.mc, t:t=>t.mc, f:v=>pct(v*100)},
+    {l:'Margen operativo', d:'Resultado operativo / ventas netas', e:e=>e.vn ? e.ebitda/e.vn : NaN, t:t=>t.vn ? t.ebitda/t.vn : NaN, f:v=>pct(v*100), s:v=>semaforo(v,0.08,0.03)},
+    {l:'Margen después de intereses', d:'Resultado después de intereses reales / ventas netas', e:e=>e.vn ? e.neto/e.vn : NaN, t:t=>t.vn ? t.neto/t.vn : NaN, f:v=>pct(v*100), s:v=>semaforo(v,0.03,0)},
+    {l:'Ventas de equilibrio', d:'Cubren sueldos y costos fijos', e:e=>e.eq, t:t=>t.eq, f:v=>Number.isFinite(v)?cmpM(v):'—'},
+    {l:'Ventas de equilibrio con intereses', d:'Cubren además los intereses reales', e:e=>e.eqF, t:t=>t.eqF, f:v=>Number.isFinite(v)?cmpM(v):'—'},
+    {l:'Margen de seguridad', d:'Cuánto pueden caer las ventas antes de perder (con intereses)', e:e=>Number.isFinite(e.eqF) && e.vn ? 1 - e.eqF/e.vn : NaN, t:t=>Number.isFinite(t.eqF) && t.vn ? 1 - t.eqF/t.vn : NaN, f:v=>pct(v*100,0), s:v=>semaforo(v,0.1,0)},
+    {g:'Ciclo comercial (días)'},
+    {l:'Días de stock', d:'Stock / CMV del mes × 30', b:b=>b.dStock, f:dias},
+    {l:'Días de cobro', d:'Créditos / ventas brutas del mes × 30', b:b=>b.dCobro, f:dias},
+    {l:'Días de pago a proveedores', d:'Proveedores / compras del mes con IVA × 30', b:b=>b.dPago, f:dias},
+    {l:'Ciclo de caja', d:'Stock + cobro − pago: días que hay que financiar', b:b=>b.ciclo, f:dias, s:v=>semaforo(v,30,60,false)}
+  ];
+  const nc = cols.length + 3;
+  $('tRatios').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2 min-w-[16rem]">Ratio</th>${cols.map(m=>`<th ${th}>${fm(m)}</th>`).join('')}<th ${th}>Acumulado</th></tr></thead><tbody>`
+    + RAT.map(r => {
+        if (r.g) return `<tr><td colspan="${nc}" class="pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">${r.g}</td></tr>`;
+        const vals = cols.map(m => r.b ? (balBy[m] ? r.b(balBy[m]) : NaN) : (ec.er.find(e=>e.per===m) ? r.e(ec.er.find(e=>e.per===m)) : NaN));
+        const tv = r.t ? r.t(tot) : NaN;
+        const td = (v, i) => { const negE = r.neg && i>=0 && balBy[cols[i]] && r.neg(balBy[cols[i]]);
+          return negE ? `<td class="text-right px-2 whitespace-nowrap bg-rose-50 text-rose-800" title="El resultado operativo de los últimos 3 meses es negativo: la operación no genera para pagar la deuda">no paga</td>`
+            : `<td class="text-right px-2 whitespace-nowrap ${r.s ? r.s(v) : ''}">${Number.isFinite(v) ? r.f(v) : '—'}</td>`; };
+        return `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2"><div>${r.l}</div><div class="text-[11px] text-slate-500">${r.d}</div></td>${vals.map(td).join('')}${td(tv,-1)}</tr>`;
+      }).join('') + '</tbody>';
+
+  mk('cEquilibrio','bar',{labels, datasets:[
+      {label:'Ventas netas', data:er.map(e=>e.vn), backgroundColor:COL.in, maxBarThickness:40, order:2},
+      {type:'line', label:'Equilibrio (costos fijos)', data:er.map(e=>Number.isFinite(e.eq)?e.eq:null), borderColor:COL.muted, backgroundColor:COL.muted, borderDash:[5,4], borderWidth:2, pointRadius:3, order:1},
+      {type:'line', label:'Equilibrio con intereses', data:er.map(e=>Number.isFinite(e.eqF)?e.eqF:null), borderColor:COL.out, backgroundColor:COL.out, borderWidth:2.5, pointRadius:4, order:0}]},
+    {scales:{x:{grid:{display:false}}, y:money({beginAtZero:true})}});
+  mk('cECDeuda','bar',{labels:bal.map(b=>fm(b.per)), datasets:[
+      {label:'Deuda financiera', data:bal.map(b=>b.deudaFin), backgroundColor:COL.loan, maxBarThickness:40, order:1},
+      {type:'line', label:'Resultado operativo anualizado', data:bal.map(b=>Number.isFinite(b.ebitdaAn)?b.ebitdaAn:null), borderColor:COL.bal, backgroundColor:COL.bal, borderWidth:2.5, pointRadius:4, order:0}]},
+    {scales:{x:{grid:{display:false}}, y:money()}, plugins:{refLines:{y:[{value:0, color:'#334155'}]}}});
+
+  // ---------- Locales
+  const locs = [...new Set(R.resultados.filter(r=>r.Espacio).map(r=>r.Espacio))].sort();
+  const lv = (loc, per, c) => sum(R.resultados.filter(r => r.Espacio===loc && (!per || r.Periodo===per) && r.Concepto===c), r=>r.Monto);
+  const contribL = (loc, per) => lv(loc,per,'Ventas brutas') - lv(loc,per,'CMV + vencidos') - lv(loc,per,'Sueldos') - lv(loc,per,'Costos fijos') - lv(loc,per,'Costos variables');
+  const lname = loc => (R.resultados.find(r=>r.Espacio===loc)||{}).EspacioNombre || loc;
+  mk('cLocales','bar',{labels, datasets: locs.map((loc,i) => ({label:lname(loc), data:meses.map(m=>contribL(loc,m)), backgroundColor:CAT[i%CAT.length], maxBarThickness:28}))},
+    {scales:{x:{grid:{display:false}}, y:money()}, plugins:{refLines:{y:[{value:0, color:'#334155'}]}}});
+  const LC = [['Ventas brutas','Ventas brutas',1], ['CMV + vencidos','CMV + vencidos',-1], ['mb','Margen sobre ventas brutas','p'], ['Sueldos','Sueldos',-1], ['Costos fijos','Costos fijos',-1], ['Costos variables','Costos variables',-1], ['ct','Contribución del local','T'], ['cp','Contribución / ventas brutas','p2']];
+  const locRow = loc => { const vb = loc ? lv(loc,null,'Ventas brutas') : sum(locs,l=>lv(l,null,'Ventas brutas')), g = c => loc ? lv(loc,null,c) : sum(locs,l=>lv(l,null,c));
+    const ct = vb - g('CMV + vencidos') - g('Sueldos') - g('Costos fijos') - g('Costos variables');
+    return LC.map(([k,,t]) => t===1 ? cell(vb) : t===-1 ? cell(-g(k)) : t==='p' ? `<td ${th}>${pct(vb ? (vb-g('CMV + vencidos'))/vb*100 : NaN)}</td>` : t==='T' ? cell(ct,'font-semibold') : `<td class="text-right px-2 whitespace-nowrap ${semaforo(vb?ct/vb:NaN,0.1,0.03)}">${pct(vb ? ct/vb*100 : NaN)}</td>`).join(''); };
+  $('tLocales').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2 min-w-[10rem]">Local (${fm(meses[0])}–${fm(meses[meses.length-1])})</th>${LC.map(([,l])=>`<th ${th}>${l}</th>`).join('')}</tr></thead><tbody>`
+    + locs.map(loc => `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2">${esc(lname(loc))}</td>${locRow(loc)}</tr>`).join('')
+    + `<tr class="font-semibold bg-slate-100 border-t border-slate-300"><td class="py-1.5 pr-2">Total locales</td>${locRow(null)}</tr></tbody>`;
+
+  // ---------- Balance
+  if (bal.length){
+    mk('cBalance','bar',{labels:bal.map(b=>fm(b.per)), datasets:[
+        {label:'Patrimonio neto', data:bal.map(b=>b.pn), backgroundColor:bal.map(b=>b.pn>=0?COL.in:COL.out), maxBarThickness:40, order:2},
+        {type:'line', label:'Activo', data:bal.map(b=>b.activo), borderColor:COL.bal, backgroundColor:COL.bal, borderWidth:2.5, pointRadius:4, order:0},
+        {type:'line', label:'Pasivo', data:bal.map(b=>b.pasivo), borderColor:COL.loan, backgroundColor:COL.loan, borderWidth:2.5, pointRadius:4, pointStyle:'rectRot', order:1}]},
+      {scales:{x:{grid:{display:false}}, y:money()}, plugins:{refLines:{y:[{value:0, color:'#334155'}]}, legend:{labels:{generateLabels:ch => ch.data.datasets.map((d,i)=>({text:d.label, fillStyle:[COL.out,COL.bal,COL.loan][i], strokeStyle:[COL.out,COL.bal,COL.loan][i], datasetIndex:i, hidden:!ch.isDatasetVisible(i)}))}}}});
+    const grupos = []; R.balance.filter(b => b.Fecha.startsWith(ec.anio)).forEach(b => { const k = `${b.Rubro}|${b.Grupo}`; if (!grupos.includes(k)) grupos.push(k); });
+    const ord = r => /^activo corriente/i.test(r) ? 0 : /^activo/i.test(r) ? 1 : 2;
+    grupos.sort((a,b) => ord(a) - ord(b));
+    const gval = (b, k) => { const [ru,gr] = k.split('|'); return sum(b.rows.filter(x => x.Rubro===ru && x.Grupo===gr && !(gr==='Disponibilidades' && x.Monto<0)), x=>x.Monto); };
+    const row = (l, f, cls='border-b border-slate-100', pad=true) => `<tr class="${cls}"><td class="py-1.5 pr-2 ${pad?'pl-3':''}">${l}</td>${bal.map(b=>cell(f(b))).join('')}</tr>`;
+    const gr = pref => grupos.filter(k => ord(k.split('|')[0])===pref).map(k => row(esc(k.split('|')[1]), b => gval(b,k))).join('');
+    $('tBalance').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2 min-w-[14rem]">Rubro</th>${bal.map(b=>`<th ${th}>${fd(b.fecha).slice(0,5)}/${b.fecha.slice(2,4)}</th>`).join('')}</tr></thead><tbody>`
+      + gr(0) + row('Activo corriente', b=>b.ac, 'font-semibold border-t border-slate-200', false)
+      + gr(1) + row('Activo total', b=>b.activo, 'font-semibold bg-slate-100 border-t border-slate-300', false)
+      + gr(2) + row('Descubiertos bancarios (saldos negativos)', b=>b.desc)
+      + row('Pasivo total', b=>b.pasivo, 'font-semibold bg-slate-100 border-t border-slate-300', false)
+      + row('Patrimonio neto', b=>b.pn, `font-semibold border-t border-slate-300 ${ult && ult.pn<0?'bg-rose-50':'bg-emerald-50'}`, false)
+      + `<tr class="text-slate-500 italic border-t border-slate-200"><td class="py-1.5 pr-2">Préstamos según cronogramas: cuotas pendientes</td>${bal.map(b=>cell(b.cronoP.total)).join('')}</tr>`
+      + `<tr class="text-slate-500 italic"><td class="py-1.5 pr-2">Préstamos según cronogramas: sólo capital</td>${bal.map(b=>cell(b.cronoP.capital)).join('')}</tr>`
+      + `<tr class="text-slate-500 italic"><td class="py-1.5 pr-2">Moratorias según cronogramas: cuotas pendientes</td>${bal.map(b=>cell(b.cronoM.total)).join('')}</tr>`
+      + '</tbody>';
+    $('balNote').textContent = `Balance interno del cliente (${ec.anio}). Las filas en cursiva son referencia: la deuda pendiente según los cronogramas cargados (sólo financiaciones ya otorgadas a cada fecha). Si el balance difiere de esas filas, falta registrar o dar de baja alguna deuda en uno de los dos lados.`;
+  } else { clearCharts(['cBalance']); $('tBalance').innerHTML = ''; $('balNote').textContent = 'El Excel no tiene la hoja Balance_Saldos.'; }
+
+  // ---------- Proyección
+  if (R.proy.length){
+    const pm = [...new Set(R.proy.map(p=>p.Periodo))].sort();
+    const conc = [...new Set(R.proy.map(p=>p.Concepto))].sort((a,b) => (PROY_ORDER.indexOf(a)+1||99) - (PROY_ORDER.indexOf(b)+1||99));
+    const pv = (m, c) => sum(R.proy.filter(p => p.Periodo===m && p.Concepto===c), p=>p.Monto);
+    const neto = pm.map(m => sum(R.proy.filter(p=>p.Periodo===m), p=>p.Monto));
+    const lm = R.movsTes.map(m=>m.Fecha).sort().pop();
+    const ini = lm ? sum(R.cuentas, c => saldoCuenta(c.ID, lm) ?? 0) : 0;
+    let run = ini; const acum = neto.map(v => run += v);
+    const cronL = m => -sum(R.prestamos.filter(p => p.Tipo!=='Moratoria' && p.Vencimiento.slice(0,7)===m), p=>p.Total_Cuota);
+    const cronM = m => -sum(R.prestamos.filter(p => p.Tipo==='Moratoria' && p.Vencimiento.slice(0,7)===m), p=>p.Total_Cuota);
+    mk('cProy','bar',{labels:pm.map(fm), datasets:[
+        {label:'Neto del mes', data:neto, backgroundColor:neto.map(v=>v>=0?COL.in:COL.out), maxBarThickness:36, order:1},
+        {type:'line', label:'Saldo acumulado', data:acum, borderColor:COL.bal, backgroundColor:COL.bal, borderWidth:2.5, pointRadius:3, order:0}]},
+      {scales:{x:{grid:{display:false}}, y:money()}, plugins:{refLines:{y:[{value:0, color:'#334155'}]}, legend:{labels:{generateLabels:ch => ch.data.datasets.map((d,i)=>({text:d.label, fillStyle:[COL.in,COL.bal][i], strokeStyle:[COL.in,COL.bal][i], datasetIndex:i, hidden:!ch.isDatasetVisible(i)}))}}}});
+    const pr = (l, vs, cls='border-b border-slate-100') => `<tr class="${cls}"><td class="py-1.5 pr-2 whitespace-nowrap">${l}</td>${vs.map(v=>cell(v)).join('')}${cell(sum(vs,v=>v))}</tr>`;
+    const dL = pm.map(m => pv(m,'Cuotas de préstamos') - cronL(m)), dM = pm.map(m => pv(m,'Cuotas de moratorias') - cronM(m));
+    $('tProy').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2 min-w-[14rem]">Concepto</th>${pm.map(m=>`<th ${th}>${fm(m)}</th>`).join('')}<th ${th}>Total</th></tr></thead><tbody>`
+      + `<tr class="border-b border-slate-200 text-slate-500"><td class="py-1.5 pr-2">Saldo inicial (fondos reales al ${lm ? fd(lm) : '—'})</td>${cell(ini)}${pm.slice(1).map(()=>'<td></td>').join('')}<td></td></tr>`
+      + conc.map(c => pr(esc(c), pm.map(m => pv(m,c)))).join('')
+      + pr('Neto del mes', neto, 'font-semibold bg-slate-100 border-t border-slate-300')
+      + `<tr class="font-semibold border-t border-slate-200"><td class="py-1.5 pr-2">Saldo acumulado</td>${acum.map(v=>cell(v)).join('')}<td></td></tr>`
+      + pr('<i>Cuotas de préstamos según cronogramas</i>', pm.map(cronL), 'text-slate-500 border-t border-slate-300')
+      + pr('<i>Diferencia (proyección − cronograma)</i>', dL, 'text-slate-500')
+      + pr('<i>Cuotas de moratorias según cronogramas</i>', pm.map(cronM), 'text-slate-500')
+      + pr('<i>Diferencia (proyección − cronograma)</i>', dM, 'text-slate-500 border-b border-slate-100')
+      + '</tbody>';
+    const minI = acum.reduce((b,v,i)=>v<acum[b]?i:b, 0), dTot = sum(dL,v=>v) + sum(dM,v=>v);
+    $('proyNote').innerHTML = `Con la proyección del cliente el saldo acumulado ${acum[minI] < 0 ? `es negativo desde ${fm(pm[acum.findIndex(v=>v<0)])} y llega a <b>${fmt(acum[minI])}</b> en ${fm(pm[minI])}` : `se mantiene positivo (mínimo ${fmt(acum[minI])} en ${fm(pm[minI])})`}; termina ${fm(pm[pm.length-1])} en <b>${fmt(acum[acum.length-1])}</b>. `
+      + (Math.abs(dTot) >= 1 ? `Las cuotas proyectadas difieren de los cronogramas cargados en ${fmt(dTot)} en total (${dTot > 0 ? 'el cliente proyecta pagar menos' : 'el cliente proyecta pagar más'}). ` : 'Las cuotas proyectadas coinciden con los cronogramas. ')
+      + 'Proveedores = 59% de las ventas; sueldos y costos fijos constantes en pesos (sin inflación).';
+  } else { clearCharts(['cProy']); $('tProy').innerHTML = ''; $('proyNote').textContent = 'El Excel no tiene la hoja Proyeccion_Financiera.'; }
+}
+
+const renderFlujoFondos = () => { let err = null; try { renderTesoreria(); } catch(e){ err = e; } renderFlow(); if (err) throw err; };
+const renderers = {inicio:renderHome, tesoreria:renderFlujoFondos, contable:renderContable, prestamos:renderLoans, ventas:renderSales, compras:renderPurchases, gastos:renderGastos};
 function syncDateFilters(from,to){
   document.querySelectorAll('.date-from').forEach(i => i.value = from);
   document.querySelectorAll('.date-to').forEach(i => i.value = to);

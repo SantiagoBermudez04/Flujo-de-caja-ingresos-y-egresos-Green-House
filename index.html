@@ -201,8 +201,8 @@ table th{font-weight:600}
   </div>
 
   <div class="card overflow-x-auto">
-    <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="mb-1">Préstamos y planes: plazos, tasas y costo</h3><span class="chart-badge">DEL MÁS CARO AL MÁS BARATO</span></div>
-    <p class="chart-note">Una fila por préstamo o plan con vencimientos en el rango, ordenadas por CFT. <b>1ª cuota</b>: vencimiento de la primera cuota (debajo, la última). <b>TNA informada</b>: la que informa el banco (actual y, debajo, la de la primera cuota). <b>TNA implícita</b>: la que surge del cronograma (interés de la cuota ÷ capital adeudado × 365 ÷ días entre cuotas); se muestra la de la última cuota vencida y, debajo, la del comienzo (desde la 2ª cuota, porque no se conoce la fecha exacta de otorgamiento). Si el banco bajó la tasa y el cronograma no se actualizó, la implícita queda por encima de la informada. <b>TEA</b>: tasa efectiva anual (la TNA con capitalización mensual). <b>CFT anual</b>: costo efectivo con todos los pagos (capital, interés y cargos, incluido el IVA de los intereses) contra lo efectivamente recibido. Para las cuotas ya debitadas se usa el débito real (en los préstamos a tasa variable puede diferir del cronograma); para las futuras, el cronograma. La fecha y el monto recibido salen del ingreso del préstamo en la tesorería (“otorgado”); si no figura, la fecha se estima con el interés de la primera cuota (“otorgado ≈”) y, si tampoco se puede, se supone un mes antes de la primera cuota. Es una estimación. Los marcados con ⚠ tienen un cronograma anómalo y no entran en el promedio; “s/d” = pagos sin desglose de capital e intereses.</p>
+    <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="mb-1">Préstamos y planes: plazos, tasas y costo</h3><div class="flex items-center gap-2"><button type="button" class="btn" id="loanOnlyActive" aria-pressed="false" title="Mostrar solo préstamos y moratorias con cuotas pendientes">Solo activos</button><span class="chart-badge">DEL MÁS CARO AL MÁS BARATO</span></div></div>
+    <p class="chart-note">Una fila por préstamo o plan con vencimientos en el rango, ordenadas por CFT. <b>Solo activos</b> muestra únicamente los préstamos y moratorias con cuotas pendientes. <b>1ª cuota</b>: vencimiento de la primera cuota (debajo, la última). <b>TNA informada</b>: la que informa el banco (actual y, debajo, la de la primera cuota). <b>TNA implícita</b>: la que surge del cronograma (interés de la cuota ÷ capital adeudado × 365 ÷ días entre cuotas); se muestra la de la última cuota vencida y, debajo, la del comienzo (desde la 2ª cuota, porque no se conoce la fecha exacta de otorgamiento). Si el banco bajó la tasa y el cronograma no se actualizó, la implícita queda por encima de la informada. <b>TEA</b>: tasa efectiva anual (la TNA con capitalización mensual). <b>CFT anual</b>: costo efectivo con todos los pagos (capital, interés y cargos, incluido el IVA de los intereses) contra lo efectivamente recibido. Para las cuotas ya debitadas se usa el débito real (en los préstamos a tasa variable puede diferir del cronograma); para las futuras, el cronograma. La fecha y el monto recibido salen del ingreso del préstamo en la tesorería (“otorgado”); si no figura, la fecha se estima con el interés de la primera cuota (“otorgado ≈”) y, si tampoco se puede, se supone un mes antes de la primera cuota. Es una estimación. Los marcados con ⚠ tienen un cronograma anómalo y no entran en el promedio; “s/d” = pagos sin desglose de capital e intereses.</p>
     <table id="tCft" class="w-full min-w-[1350px] text-sm num"></table>
   </div>
 
@@ -873,7 +873,7 @@ const FLOW_DEFAULT = {prov:true, loan:true, mor:true, gas:true, imp:true, iva:fa
 const appState = {
   raw: {ventas:[], compras:[], plazos:[], prestamos:[], gastos:[], iva:[], espacios:[], cuentas:[], saldos:[], movsTes:[], pagosFin:[], mediosCobro:[], cobranzas:[], tasasDesc:[], tasasPrest:[], balance:[], resultados:[], ipc:[], proy:[]},
   processed: {movsTesX:[], ventasOK:[], comprasX:[], gastosX:[], movs:{}, avisos:[], loaded:false, sourceName:'', savedAt:'', report:null, lastSale:null, firstSale:null, lastGasto:null, sucursales:[], loanKeys:[], bancos:[], clasificaciones:[], espacios:[], espacioNombre:{}},
-  ui: {current:'inicio', flowGran:'day', flowSelKey:null, flowCats:{...FLOW_DEFAULT}, loanTipo:'', loanTimeline:'banco', weekdayMetric:'avg', mixMode:'pct', gvBase:'auto', gvMes:'imp', gvNivel:'clas', calGran:'week', matchFilter:'', salesLimit:300, purchasesLimit:300}
+  ui: {current:'inicio', flowGran:'day', flowSelKey:null, flowCats:{...FLOW_DEFAULT}, loanTipo:'', loanOnlyActive:false, loanTimeline:'banco', weekdayMetric:'avg', mixMode:'pct', gvBase:'auto', gvMes:'imp', gvNivel:'clas', calGran:'week', matchFilter:'', salesLimit:300, purchasesLimit:300}
 };
 const lastDayOf = per => { const [y,m] = per.split('-').map(Number); return `${per}-${String(new Date(Date.UTC(y,m,0)).getUTCDate()).padStart(2,'0')}`; };
 const dayIn = (per, day) => { const last = +lastDayOf(per).slice(8); return `${per}-${String(Math.min(Math.max(1,Math.round(day)), last)).padStart(2,'0')}`; };
@@ -1650,6 +1650,8 @@ const nCuotas = rows => Math.max(rows.length, Math.max(...rows.map(p=>p.Cuota)) 
 function renderLoans(){
   try { renderDescubiertos(); } catch(e){ console.error(e); }
   const P = appState.processed, R = appState.raw, L = loanData();
+  $('loanOnlyActive').classList.toggle('btn-brand', appState.ui.loanOnlyActive);
+  $('loanOnlyActive').setAttribute('aria-pressed', String(appState.ui.loanOnlyActive));
   const ids = ['cTimeline','cDeuda','cPrestDon'];
   const resetTables = () => ['tPrest','tCft'].forEach(id => $(id).innerHTML='');
   const bancos = P.bancos.filter(b => L.some(p => p.Banco===b));
@@ -1677,6 +1679,9 @@ function renderLoans(){
   const enRango = loanRows.filter(l => l.rows.some(inRange));
   const calc = enRango.filter(l => l.cft!==null && l.principal>0 && !l.fueraSec), wP = sum(calc,l=>l.principal);
   const wCft = wP ? sum(calc,l=>l.cft*l.principal)/wP : null;
+  const calcActivas = enRango.filter(l => l.pending.length && l.cft!==null && l.principal>0 && !l.fueraSec);
+  const wPActivas = sum(calcActivas,l=>l.principal);
+  const wCftActivas = wPActivas ? sum(calcActivas,l=>l.cft*l.principal)/wPActivas : null;
   const enR = L.filter(inRange), pend = enR.filter(p => !isPaid(p));
   const allPend = L.filter(p => !isPaid(p)).sort((a,b)=>a.Vencimiento.localeCompare(b.Vencimiento));
   const tc=sum(pend,p=>p.Capital), ti=sum(pend,p=>p.Interes), tg=sum(pend,p=>p.Cargos_e_Impuestos);
@@ -1703,7 +1708,8 @@ function renderLoans(){
     ['Descubierto', fmt(descHoy), lm ? `saldos negativos en cuenta corriente al ${fd(lm)}` : 'sin movimientos de tesorería', descHoy > 0 ? COL.out : COL.in],
     ['Flujo operativo / cuotas', Number.isFinite(cob) ? `${cob.toFixed(2).replace('.',',')} x` : '—', Number.isFinite(cob) ? `genera ${cmpM(opProm)}/mes (últimos ${ult6.length} meses) · cuotas próximos 6 meses ${cmpM(cuotaProm)}/mes` : 'sin datos suficientes', !Number.isFinite(cob) ? COL.muted : cob >= 1.25 ? COL.in : cob >= 1 ? COL.pend : COL.out],
     ['Cuotas en el rango', fmt(sum(enR,p=>p.Total_Cuota)), `${int(enR.length)} cuotas · pendientes ${cmpM(tc+ti+tg)} · ${fd(from)} a ${fd(to)}`, CAT[0]],
-    ['CFT promedio ponderado', wCft===null ? 'No calculable' : pct(wCft,2), `${calc.length} de ${enRango.length} ${what} del rango · ponderado por capital`, COL.muted]
+    ['CFT promedio ponderado', wCft===null ? 'No calculable' : pct(wCft,2), `${calc.length} de ${enRango.length} ${what} del rango · ponderado por capital`, COL.muted],
+    ['CFT promedio ponderado · activas', wCftActivas===null ? 'No calculable' : pct(wCftActivas,2), `${calcActivas.length} de ${enRango.filter(l=>l.pending.length).length} ${what} activos del rango · ponderado por capital`, COL.muted]
   ]);
 
   // Próximos vencimientos
@@ -1760,7 +1766,9 @@ function renderLoans(){
 
   // Tabla única por préstamo: plazos, tasas y costo (del CFT más alto al más bajo)
   const ord = l => l.cft===null ? -2 : l.fueraSec ? -1 : l.cft;
-  const rowsT = enRango.slice().sort((a,b) => ord(b) - ord(a) || a.first.localeCompare(b.first));
+  const rowsT = enRango.filter(l => !appState.ui.loanOnlyActive || l.pending.length > 0).sort((a,b) => ord(b) - ord(a) || a.first.localeCompare(b.first));
+  const calcTabla = rowsT.filter(l => l.cft!==null && l.principal>0 && !l.fueraSec), wPTabla = sum(calcTabla,l=>l.principal);
+  const wCftTabla = wPTabla ? sum(calcTabla,l=>l.cft*l.principal)/wPTabla : null;
   const sub = t => `<div class="text-xs text-slate-500 font-normal">${t}</div>`;
   const tnaInfTd = l => { const t = l.tnaInf; if (!t) return '<span class="text-slate-300">—</span>';
     if (Number.isFinite(t.TNA)) return `${pct(t.TNA*100,2)}${sub(Number.isFinite(t.TNA0) ? `1ª cuota ${pct(t.TNA0*100,2)}` : '1ª cuota s/d')}`;
@@ -1784,7 +1792,7 @@ function renderLoans(){
           + `<td class="py-2 text-right px-2 whitespace-nowrap">${l.pending.length ? fd(l.pending[0].Vencimiento) : '<span class="text-xs text-emerald-700">cancelado</span>'}</td>`
           + `<td class="py-2 text-right px-2 whitespace-nowrap">${tnaInfTd(l)}</td><td class="py-2 text-right px-2 whitespace-nowrap">${tnaImpTd(l)}</td><td class="py-2 text-right px-2 whitespace-nowrap">${teaTd(l)}</td><td class="py-2 text-right pl-2 font-semibold whitespace-nowrap">${cftTd}</td></tr>`; }).join('')
       || '<tr><td colspan="12" class="py-2 text-slate-500">No hay financiaciones con vencimientos dentro del rango.</td></tr>')
-    + (rowsT.length ? `</tbody><tfoot class="font-semibold border-t"><tr><td class="py-1.5 pr-2" colspan="4">Total (con desglose)</td><td class="text-right px-2">${fmt(sum(rowsT.filter(l=>!l.sinDesglose),l=>l.principal))}</td><td class="text-right px-2">${fmt(sum(rowsT.filter(l=>!l.sinDesglose),l=>sum(l.pending,p=>p.Capital)))}</td><td class="text-right px-2">${fmt(sum(rowsT,l=>sum(l.pending,p=>p.Interes+p.Cargos_e_Impuestos)))}</td><td colspan="4"></td><td class="text-right pl-2" title="Promedio de los CFT de esta tabla, ponderado por capital">${wCft===null?'—':pct(wCft,2)}</td></tr></tfoot>` : '</tbody>');
+    + (rowsT.length ? `</tbody><tfoot class="font-semibold border-t"><tr><td class="py-1.5 pr-2" colspan="4">Total (con desglose)</td><td class="text-right px-2">${fmt(sum(rowsT.filter(l=>!l.sinDesglose),l=>l.principal))}</td><td class="text-right px-2">${fmt(sum(rowsT.filter(l=>!l.sinDesglose),l=>sum(l.pending,p=>p.Capital)))}</td><td class="text-right px-2">${fmt(sum(rowsT,l=>sum(l.pending,p=>p.Interes+p.Cargos_e_Impuestos)))}</td><td colspan="4"></td><td class="text-right pl-2" title="Promedio de los CFT de esta tabla, ponderado por capital">${wCftTabla===null?'—':pct(wCftTabla,2)}</td></tr></tfoot>` : '</tbody>');
 }
 
 /* =====================================================================
@@ -2888,6 +2896,12 @@ bindSeg('mixMode','mixMode', () => appState.processed.loaded && renderMix());
 bindSeg('purchaseCalendarGranularity','calGran', () => appState.processed.loaded && renderPurchases());
 bindSeg('matchFilter','matchFilter', () => appState.processed.loaded && renderMatchTable(purchasesScope().rows));
 bindSeg('loanTipo','loanTipo', () => appState.processed.loaded && renderLoans());
+$('loanOnlyActive').addEventListener('click', () => {
+  appState.ui.loanOnlyActive = !appState.ui.loanOnlyActive;
+  $('loanOnlyActive').classList.toggle('btn-brand', appState.ui.loanOnlyActive);
+  $('loanOnlyActive').setAttribute('aria-pressed', String(appState.ui.loanOnlyActive));
+  if (appState.processed.loaded) renderLoans();
+});
 $('flowCats').addEventListener('change', async e => {
   const cb = e.target.closest('input[data-cat]'); if (!cb) return;
   appState.ui.flowCats[cb.dataset.cat] = cb.checked; appState.ui.flowSelKey = null;

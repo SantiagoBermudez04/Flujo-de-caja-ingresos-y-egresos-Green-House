@@ -240,6 +240,7 @@ table th{font-weight:600}
       <div class="lg:col-span-3"><h4 class="text-sm font-semibold text-slate-700">Cascada del período</h4><p class="chart-note">De los cobros al flujo operativo y, después de financiación, inversión y socios, a la variación de los fondos.</p><div class="h-80"><canvas id="cOper"></canvas></div></div>
       <div class="lg:col-span-2"><h4 class="text-sm font-semibold text-slate-700">Flujo operativo por mes</h4><p class="chart-note">Barras: flujo operativo de cada mes. Línea: cuotas de préstamos y moratorias pagadas. Si la barra no supera a la línea, la operación no alcanza para pagar las cuotas.</p><div class="h-80"><canvas id="cOperMes"></canvas></div></div>
     </div>
+    <div class="flex justify-end"><button type="button" class="btn variation-toggle" data-variation="oper" aria-pressed="false">Variaciones %</button></div>
     <div class="overflow-x-auto"><table id="tOper" class="w-full min-w-[720px] text-sm num"></table></div>
     <p id="operNote" class="text-xs text-slate-500"></p>
   </div>
@@ -271,6 +272,7 @@ table th{font-weight:600}
     <div class="flex flex-wrap items-center justify-between gap-2"><h3>Estado de resultados mensual</h3><span class="chart-badge">DEVENGADO</span></div>
     <p class="chart-note">Barras: resultado operativo (antes de intereses) y resultado después de intereses reales. Si la segunda barra queda por debajo de cero, la operación no alcanza para pagar el costo de la deuda.</p>
     <div class="h-72"><canvas id="cEERR" aria-label="Resultado operativo y después de intereses por mes"></canvas></div>
+    <div class="flex justify-end mt-4"><button type="button" class="btn variation-toggle" data-variation="eerr" aria-pressed="false">Variaciones %</button></div>
     <div class="overflow-x-auto mt-4"><table id="tEERR" class="w-full min-w-[860px] text-sm num"></table></div>
     <p id="eerrNote" class="text-xs text-slate-500 mt-2"></p>
   </div>
@@ -310,6 +312,7 @@ table th{font-weight:600}
     <div class="flex flex-wrap items-center justify-between gap-2"><h3>Balance mensual</h3><span class="chart-badge">PATRIMONIO</span></div>
     <p class="chart-note">Líneas: activo y pasivo a fin de mes. Barras: patrimonio neto (activo − pasivo).</p>
     <div class="h-72"><canvas id="cBalance"></canvas></div>
+    <div class="flex justify-end mt-4"><button type="button" class="btn variation-toggle" data-variation="balance" aria-pressed="false">Variaciones %</button></div>
     <div class="overflow-x-auto mt-4"><table id="tBalance" class="w-full min-w-[860px] text-sm num"></table></div>
     <p id="balNote" class="text-xs text-slate-500 mt-2"></p>
   </div>
@@ -349,6 +352,9 @@ const fmt = n => nf0.format(Number.isFinite(n)?n:0).replace(/^-?\$\s?-?0$/,'$ 0'
 const cmpM = n => (n<0?'−':'') + '$' + nfC.format(Math.abs(n));
 const int = n => nfN.format(n);
 const pct = (v,d=1) => Number.isFinite(v) ? v.toFixed(d).replace('.',',')+'%' : '—';
+const monthVariation = (current, previous) => Number.isFinite(current) && Number.isFinite(previous) && previous!==0
+  ? (current - previous) / Math.abs(previous) * 100 : NaN;
+const variationText = v => Number.isFinite(v) ? `${v>0?'+':''}${pct(v)}` : '—';
 const sum = (a,f) => a.reduce((t,x)=>t+(f(x)||0),0);
 const group = (a,kf,vf) => { const m={}; for (const x of a){ const k=kf(x); m[k]=(m[k]||0)+vf(x); } return m; };
 const iso = d => d.toISOString().slice(0,10);
@@ -558,7 +564,7 @@ function parseModel(d){
 const appState = {
   raw: {prestamos:[], gastos:[], iva:[], espacios:[], cuentas:[], saldos:[], movsTes:[], pagosFin:[], tasasDesc:[], tasasPrest:[], balance:[], resultados:[], ipc:[], proy:[], descAcu:[]},
   processed: {movsTesX:[], gastosX:[], avisos:[], loaded:false, sourceName:'', savedAt:'', report:null, bancos:[]},
-  ui: {current:'inicio', loanTipo:'', loanOnlyActive:false, loanTimeline:'banco'}
+  ui: {current:'inicio', loanTipo:'', loanOnlyActive:false, loanTimeline:'banco', operVariations:false, eerrVariations:false, balanceVariations:false}
 };
 const lastDayOf = per => { const [y,m] = per.split('-').map(Number); return `${per}-${String(new Date(Date.UTC(y,m,0)).getUTCDate()).padStart(2,'0')}`; };
 const dayIn = (per, day) => { const last = +lastDayOf(per).slice(8); return `${per}-${String(Math.min(Math.max(1,Math.round(day)), last)).padStart(2,'0')}`; };
@@ -1317,6 +1323,7 @@ function renderTesDetail(rows){
 const OPER_ROWS = [
   {k:'cobros', l:'Cobros por ventas', g:'op'}, {k:'prov', l:'Proveedores (pagos y cheques)', g:'op'}, {k:'sue', l:'Sueldos y cargas sociales', g:'op'},
   {k:'gas', l:'Gastos operativos (fijos, variables y sin detalle)', g:'op'}, {k:'imp', l:'Impuestos, retenciones e IVA', g:'op'},
+  {k:'EGR', l:'Total egresos operativos', sub:true},
   {k:'OP', l:'Flujo operativo', total:'op'},
   {k:'loanIn', l:'Préstamos recibidos', g:'fin'}, {k:'loan', l:'Cuotas de préstamos', g:'fin'}, {k:'mor', l:'Cuotas de moratorias', g:'fin'}, {k:'finO', l:'Intereses bancarios, descubiertos y rendimientos', g:'fin'},
   {k:'inv', l:'Compra de bienes de uso', g:'inv'}, {k:'soc', l:'Socios (aportes, retiros y gastos personales)', g:'soc'}, {k:'int', l:'Movimientos internos y ajustes', g:'int'},
@@ -1341,7 +1348,7 @@ function renderOperativo(sc, cuentas, iniDate, dEnd){
   // Siempre a nivel empresa (todas las cuentas): por cuenta, las transferencias internas distorsionan el resultado
   const src = $('tesSplit').checked && appState.processed.movsTesX.length ? appState.processed.movsTesX : R.movsTes;
   const rows = src.filter(m => within(m.Fecha, sc.from, sc.to));   // incluye internos y ajustes para que cierre con la variación de fondos
-  const val = (list, k) => k==='OP' ? sum(list.filter(m=>['cobros','prov','sue','gas','imp'].includes(operCat(m))), m=>m.Monto) : k==='VAR' ? sum(list, m=>m.Monto) : sum(list.filter(m=>operCat(m)===k), m=>m.Monto);
+  const val = (list, k) => k==='EGR' ? sum(list.filter(m=>['prov','sue','gas','imp'].includes(operCat(m))), m=>m.Monto) : k==='OP' ? sum(list.filter(m=>['cobros','prov','sue','gas','imp'].includes(operCat(m))), m=>m.Monto) : k==='VAR' ? sum(list, m=>m.Monto) : sum(list.filter(m=>operCat(m)===k), m=>m.Monto);
   const months = monthsBetween(sc.from.slice(0,7), (dEnd < sc.to ? dEnd : sc.to).slice(0,7)).filter(mo => rows.some(m=>m.Fecha.startsWith(mo)));
   const byM = Object.fromEntries(months.map(mo => [mo, rows.filter(m=>m.Fecha.startsWith(mo))]));
   const firstSaldo = R.saldos.map(x=>x.Fecha).sort()[0] || sc.from;
@@ -1359,7 +1366,7 @@ function renderOperativo(sc, cuentas, iniDate, dEnd){
 
   // Cascada
   const steps = [];
-  OPER_ROWS.forEach(r => { const v = T(r.k); if (r.total) steps.push([r.k==='OP'?'Flujo operativo':'Variación de fondos', v, 'total']); else if (Math.abs(v) >= 0.5) steps.push([r.l.replace(/ \(.*\)$/,''), v, v>=0?'up':'down']); });
+  OPER_ROWS.forEach(r => { if (r.sub) return; const v = T(r.k); if (r.total) steps.push([r.k==='OP'?'Flujo operativo':'Variación de fondos', v, 'total']); else if (Math.abs(v) >= 0.5) steps.push([r.l.replace(/ \(.*\)$/,''), v, v>=0?'up':'down']); });
   let run = 0; const bars = steps.map(([l,v,t]) => { if (t==='total'){ run = v; return [0, v]; } const a = run; run += v; return [a, run]; });
   const short = l => ({'Cobros por ventas':'Cobros','Proveedores':'Proveedores','Sueldos y cargas sociales':'Sueldos','Gastos operativos':'Gastos','Impuestos, retenciones e IVA':'Impuestos','Préstamos recibidos':'Préstamos recibidos','Cuotas de préstamos':'Cuotas préstamos','Cuotas de moratorias':'Moratorias','Intereses bancarios, descubiertos y rendimientos':'Bancarios','Compra de bienes de uso':'Bienes de uso','Socios':'Socios','Movimientos internos y ajustes':'Internos'}[l] || l);
   mk('cOper','bar',{labels:steps.map(s=>short(s[0])), datasets:[{label:'Importe', data:bars, borderSkipped:false,
@@ -1377,17 +1384,34 @@ function renderOperativo(sc, cuentas, iniDate, dEnd){
      plugins:{refLines:{y:[{value:0, color:'#334155'}]}, tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.parsed.y)}`, footer:it=>{ if(!it.length) return ''; const i = it[0].dataIndex; return dM[i] ? `Cobertura: ${(opM[i]/dM[i]).toFixed(2).replace('.',',')} veces` : ''; }}}}});
 
   // Tabla
+  const variations = appState.ui.operVariations;
+  const outflows = new Set(['prov','sue','gas','imp','EGR','loan','mor']);
   const th = 'class="text-right px-2 whitespace-nowrap"';
   const cell = v => `<td class="text-right px-2 whitespace-nowrap ${v<0?'text-rose-700':''}">${Math.abs(v)<0.5?'<span class="text-slate-300">—</span>':fmt(v)}</td>`;
-  $('tOper').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2">Concepto</th>${months.map(mo=>`<th ${th}>${fm(mo)}${parcial(mo)?' <span title="Mes parcial: el rango o los datos no cubren el mes completo">*</span>':''}</th>`).join('')}<th ${th}>Total</th><th ${th}>% de cobros</th></tr></thead><tbody>`
+  const monthHeaders = months.map(mo=>`<th ${th}>${fm(mo)}${parcial(mo)?' <span title="Mes parcial: el rango o los datos no cubren el mes completo">*</span>':''}${variations?'<div class="text-[10px] font-normal">vs. mes anterior</div>':''}</th>`).join('');
+  $('tOper').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2 min-w-[13rem]">Concepto</th>${monthHeaders}${variations?'':`<th ${th}>Total</th><th ${th}>% de cobros</th>`}</tr></thead><tbody>`
     + OPER_ROWS.map(r => {
         const vs = months.map(mo => val(byM[mo], r.k)), t = T(r.k);
-        if (!r.total && months.length && vs.every(v=>Math.abs(v)<0.5) && Math.abs(t)<0.5) return '';
-        const cls = r.total ? `font-semibold ${r.k==='OP'?'bg-emerald-50':'bg-slate-100'} border-t border-slate-300` : 'border-b border-slate-100';
-        return `<tr class="${cls}"><td class="py-1.5 pr-2 ${r.total?'':'pl-3'}">${r.l}</td>${vs.map(cell).join('')}${cell(t)}<td ${th}>${cobros && !['int'].includes(r.k) ? pct(t/cobros*100) : ''}</td></tr>`;
+        if (!r.total && !r.sub && months.length && vs.every(v=>Math.abs(v)<0.5) && Math.abs(t)<0.5) return '';
+        const cls = r.total ? `font-semibold ${r.k==='OP'?'bg-emerald-50':'bg-slate-100'} border-t border-slate-300` : r.sub ? 'font-semibold border-t border-slate-200' : 'border-b border-slate-100';
+        const cellP = (v, i) => {
+          if (variations) {
+            const prevMonth = i ? shiftMonth(`${months[i]}-01`, -1).slice(0,7) : '';
+            const prevIndex = months.indexOf(prevMonth);
+            const prev = prevIndex>=0 ? val(byM[prevMonth], r.k) : NaN;
+            const currentValue = outflows.has(r.k) ? Math.abs(v) : v;
+            const previousValue = outflows.has(r.k) ? Math.abs(prev) : prev;
+            return `<td ${th}>${variationText(monthVariation(currentValue, previousValue))}</td>`;
+          }
+          const c = val(byM[months[i]], 'cobros'), ratio = r.k==='OP'||r.k==='VAR' ? v : Math.abs(v);
+          return `<td class="text-right px-2 whitespace-nowrap ${v<0?'text-rose-700':''}">${Math.abs(v)<0.5?'<span class="text-slate-300">—</span>':fmt(v)}${c && Math.abs(v)>=0.5 ? `<div class="text-[11px] font-normal text-slate-500">${pct(ratio/c*100)}</div>` : ''}</td>`;
+        };
+        const pT = cobros ? pct((r.k==='OP'||r.k==='VAR' ? t : Math.abs(t))/cobros*100) : '';
+        return `<tr class="${cls}"><td class="py-1.5 pr-2 ${r.total||r.sub?'':'pl-3'}">${r.l}</td>${vs.map(cellP).join('')}${variations?'':`${cell(t)}<td ${th}>${pT}</td>`}</tr>`;
       }).join('') + '</tbody>';
   $('operNote').innerHTML = `${months.some(parcial) ? '* Mes parcial: el rango elegido o los datos cargados no cubren el mes completo. ' : ''}`
     + 'Los sueldos se pagan a principio del mes siguiente, así que un mes puede verse mejor y el siguiente peor: conviene mirar al menos dos meses juntos. '
+    + (variations ? 'La variación compara cada mes con el mes calendario anterior; los aumentos de egresos se muestran positivos. Se muestra “—” si no hay mes previo o su valor es cero. ' : 'Debajo de cada partida figura su proporción sobre los cobros por ventas de ese mes. ')
     + '“Gastos operativos” incluye los otros egresos sin detalle en el Excel.'
     + (sinSplit ? ' <b>Atención:</b> está desmarcado “Separar ‘Otros egresos’ con el detalle”, así que las cuotas, impuestos y sueldos que vienen dentro de esos débitos quedan como gastos operativos.' : '');
 }
@@ -1612,16 +1636,29 @@ function renderContable(){
     ['sue','Sueldos',-1], ['cf','Costos fijos',-1], ['cv','Costos variables',-1], ['iibb','IIBB + APR (estimado por el cliente)',-1], ['ext','Costos extraordinarios',-1], ['ebitda','Resultado operativo (antes de intereses)','T'],
     ['intP','Intereses y cargos de préstamos (cronograma)',-1], ['intM','Intereses de moratorias (cronograma)',-1], ['desc','Descubiertos y comisiones de préstamos',-1], ['neto','Resultado después de intereses reales','T'],
     ['cliente','Resultado neto según el estado del cliente','i'], ['afip','Ventas declaradas en AFIP (informativo)','i']];
-  $('tEERR').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2 min-w-[14rem]">Concepto</th>${meses.map(m=>`<th ${th}>${fm(m)}</th>`).join('')}<th ${th}>Total</th><th ${th}>% ventas netas</th></tr></thead><tbody>`
+  const eerrVariations = appState.ui.eerrVariations;
+  $('tEERR').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2 min-w-[14rem]">Concepto</th>${meses.map(m=>`<th ${th}>${fm(m)}${eerrVariations?'<div class="text-[10px] font-normal">vs. mes anterior</div>':''}</th>`).join('')}${eerrVariations?'':`<th ${th}>Total</th><th ${th}>% ventas brutas</th>`}</tr></thead><tbody>`
     + ER_ROWS.map(([k,l,t]) => {
         const sg = t===-1 ? -1 : 1, vs = er.map(e => sg*e[k]), tv = sg*tot[k];
         if (t===-1 && vs.every(v=>Math.abs(v)<0.5)) return '';
         const cls = t==='T' ? `font-semibold ${k==='neto' ? (tv>=0?'bg-emerald-50':'bg-rose-50') : 'bg-slate-100'} border-t border-slate-300` : t==='t' ? 'font-semibold border-t border-slate-200' : t==='i' ? 'text-slate-500 italic border-t border-slate-200' : 'border-b border-slate-100';
-        return `<tr class="${cls}"><td class="py-1.5 pr-2 ${t===-1?'pl-3':''}">${t===-1?'− ':''}${l}</td>${vs.map(v=>cell(v)).join('')}${cell(tv)}<td ${th}>${tot.vn && k!=='afip' ? pct(tv/tot.vn*100) : ''}</td></tr>`;
+        const monthCells = vs.map((v,i) => {
+          if (eerrVariations) {
+            const prevMonth = i ? shiftMonth(`${meses[i]}-01`, -1).slice(0,7) : '';
+            const prevIndex = meses.indexOf(prevMonth);
+            const prev = prevIndex>=0 ? sg*er[prevIndex][k] : NaN;
+            return `<td ${th}>${variationText(monthVariation(t===-1?Math.abs(v):v,t===-1?Math.abs(prev):prev))}</td>`;
+          }
+          const base = er[i].vb, share = base ? pct((t===-1?Math.abs(v):v)/base*100) : '';
+          return `<td class="text-right px-2 whitespace-nowrap ${v<0?'text-rose-700':''}">${Math.abs(v)<0.5?'<span class="text-slate-300">—</span>':fmt(v)}${share?`<div class="text-[11px] font-normal text-slate-500">${share}</div>`:''}</td>`;
+        }).join('');
+        const totalShare = tot.vb ? pct((t===-1?Math.abs(tv):tv)/tot.vb*100) : '';
+        return `<tr class="${cls}"><td class="py-1.5 pr-2 ${t===-1?'pl-3':''}">${t===-1?'− ':''}${l}</td>${monthCells}${eerrVariations?'':`${cell(tv)}<td ${th}>${totalShare}</td>`}</tr>`;
       }).join('')
-    + (R.ipc.some(x => meses.includes(x.Periodo)) ? `<tr class="text-slate-500 border-t border-slate-200"><td class="py-1.5 pr-2">Inflación del mes (IPC)</td>${meses.map(m => { const x = R.ipc.find(i=>i.Periodo===m); return `<td ${th}>${x ? pct(x.Var*100) : '—'}</td>`; }).join('')}<td></td><td></td></tr>` : '')
+    + (!eerrVariations && R.ipc.some(x => meses.includes(x.Periodo)) ? `<tr class="text-slate-500 border-t border-slate-200"><td class="py-1.5 pr-2">Inflación del mes (IPC)</td>${meses.map(m => { const x = R.ipc.find(i=>i.Periodo===m); return `<td ${th}>${x ? pct(x.Var*100) : '—'}</td>`; }).join('')}<td></td><td></td></tr>` : '')
     + '</tbody>';
   $('eerrNote').innerHTML = `Diferencia con el resultado del cliente (${fmt(tot.cliente - tot.neto)} en el período): el cliente resta dos veces las cuentas corrientes (${fmt(tot.cc)}) y en lugar de los intereses reales (${fmt(tot.fint)}) resta un 10% estimado del resultado (${fmt(tot.gcias)}). `
+    + (eerrVariations ? 'Las variaciones comparan cada mes con el mes calendario anterior; los aumentos de gastos se muestran positivos. Se muestra “—” si no hay mes previo o su valor es cero. ' : 'Debajo de cada importe figura su proporción sobre las ventas brutas del mes. ')
     + 'Los intereses de cada mes son los de las cuotas que vencen en ese mes; el impuesto a las ganancias no se incluye.';
 
   // ---------- Ratios
@@ -1708,19 +1745,31 @@ function renderContable(){
     const ord = r => /^activo corriente/i.test(r) ? 0 : /^activo/i.test(r) ? 1 : 2;
     grupos.sort((a,b) => ord(a) - ord(b));
     const gval = (b, k) => { const [ru,gr] = k.split('|'); return sum(b.rows.filter(x => x.Rubro===ru && x.Grupo===gr && !(gr==='Disponibilidades' && x.Monto<0)), x=>x.Monto); };
-    const row = (l, f, cls='border-b border-slate-100', pad=true) => `<tr class="${cls}"><td class="py-1.5 pr-2 ${pad?'pl-3':''}">${l}</td>${bal.map(b=>cell(f(b))).join('')}</tr>`;
-    const gr = pref => grupos.filter(k => ord(k.split('|')[0])===pref).map(k => row(esc(k.split('|')[1]), b => gval(b,k))).join('');
-    $('tBalance').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2 min-w-[14rem]">Rubro</th>${bal.map(b=>`<th ${th}>${fd(b.fecha).slice(0,5)}/${b.fecha.slice(2,4)}</th>`).join('')}</tr></thead><tbody>`
-      + gr(0) + row('Activo corriente', b=>b.ac, 'font-semibold border-t border-slate-200', false)
-      + gr(1) + row('Activo total', b=>b.activo, 'font-semibold bg-slate-100 border-t border-slate-300', false)
-      + gr(2) + row('Descubiertos bancarios (saldos negativos)', b=>b.desc)
-      + row('Pasivo total', b=>b.pasivo, 'font-semibold bg-slate-100 border-t border-slate-300', false)
-      + row('Patrimonio neto', b=>b.pn, `font-semibold border-t border-slate-300 ${ult && ult.pn<0?'bg-rose-50':'bg-emerald-50'}`, false)
-      + `<tr class="text-slate-500 italic border-t border-slate-200"><td class="py-1.5 pr-2">Préstamos según cronogramas: cuotas pendientes</td>${bal.map(b=>cell(b.cronoP.total)).join('')}</tr>`
-      + `<tr class="text-slate-500 italic"><td class="py-1.5 pr-2">Préstamos según cronogramas: sólo capital</td>${bal.map(b=>cell(b.cronoP.capital)).join('')}</tr>`
-      + `<tr class="text-slate-500 italic"><td class="py-1.5 pr-2">Moratorias según cronogramas: cuotas pendientes</td>${bal.map(b=>cell(b.cronoM.total)).join('')}</tr>`
+    const balanceVariations = appState.ui.balanceVariations;
+    const row = (l, f, cls='border-b border-slate-100', pad=true, denominator=null) => `<tr class="${cls}"><td class="py-1.5 pr-2 ${pad?'pl-3':''}">${l}</td>${bal.map((b,i) => {
+      if (balanceVariations) {
+        const previous = i && shiftMonth(`${b.per}-01`, -1).slice(0,7)===bal[i-1].per ? f(bal[i-1]) : NaN;
+        return `<td ${th}>${variationText(monthVariation(f(b),previous))}</td>`;
+      }
+      const v = f(b), base = denominator ? denominator(b) : NaN, share = Number.isFinite(base) && base ? pct(v/base*100) : '';
+      return `<td class="text-right px-2 whitespace-nowrap ${v<0?'text-rose-700':''}">${Math.abs(v)<0.5?'<span class="text-slate-300">—</span>':fmt(v)}${share?`<div class="text-[11px] font-normal text-slate-500">${share}</div>`:''}</td>`;
+    }).join('')}</tr>`;
+    const groupDenominator = (b, rubro) => /^activo corriente/i.test(rubro) ? b.ac : /^activo/i.test(rubro) ? b.activo : b.pasivo;
+    const gr = pref => grupos.filter(k => ord(k.split('|')[0])===pref).map(k => {
+      const rubro = k.split('|')[0];
+      return row(esc(k.split('|')[1]), b => gval(b,k), 'border-b border-slate-100', true, b => groupDenominator(b,rubro));
+    }).join('');
+    $('tBalance').innerHTML = `<thead class="text-slate-500"><tr class="border-b"><th class="text-left py-1.5 pr-2 min-w-[14rem]">Rubro</th>${bal.map(b=>`<th ${th}>${fd(b.fecha).slice(0,5)}/${b.fecha.slice(2,4)}${balanceVariations?'<div class="text-[10px] font-normal">vs. mes anterior</div>':''}</th>`).join('')}</tr></thead><tbody>`
+      + gr(0) + row('Activo corriente', b=>b.ac, 'font-semibold border-t border-slate-200', false, b=>b.activo)
+      + gr(1) + row('Activo total', b=>b.activo, 'font-semibold bg-slate-100 border-t border-slate-300', false, b=>b.activo)
+      + gr(2) + row('Descubiertos bancarios (saldos negativos)', b=>b.desc, 'border-b border-slate-100', true, b=>b.pasivo)
+      + row('Pasivo total', b=>b.pasivo, 'font-semibold bg-slate-100 border-t border-slate-300', false, b=>b.activo)
+      + row('Patrimonio neto', b=>b.pn, `font-semibold border-t border-slate-300 ${ult && ult.pn<0?'bg-rose-50':'bg-emerald-50'}`, false, b=>b.activo)
+      + row('<i>Préstamos según cronogramas: cuotas pendientes</i>', b=>b.cronoP.total, 'text-slate-500 border-t border-slate-200', false)
+      + row('<i>Préstamos según cronogramas: sólo capital</i>', b=>b.cronoP.capital, 'text-slate-500', false)
+      + row('<i>Moratorias según cronogramas: cuotas pendientes</i>', b=>b.cronoM.total, 'text-slate-500', false)
       + '</tbody>';
-    $('balNote').textContent = `Balance interno del cliente (${ec.anio}). Las filas en cursiva son referencia: la deuda pendiente según los cronogramas cargados (sólo financiaciones ya otorgadas a cada fecha). Si el balance difiere de esas filas, falta registrar o dar de baja alguna deuda en uno de los dos lados.`;
+    $('balNote').textContent = `Balance interno del cliente (${ec.anio}). ${balanceVariations?'Las variaciones comparan cada mes con el mes anterior; se muestra “—” cuando no hay un mes previo disponible. ':'Debajo de cada importe figura su proporción sobre el subtotal correspondiente (activo corriente, activo total o pasivo total). '}Las filas en cursiva son referencia: la deuda pendiente según los cronogramas cargados (sólo financiaciones ya otorgadas a cada fecha). Si el balance difiere de esas filas, falta registrar o dar de baja alguna deuda en uno de los dos lados.`;
   } else { clearCharts(['cBalance']); $('tBalance').innerHTML = ''; $('balNote').textContent = 'El Excel no tiene la hoja Balance_Saldos.'; }
 
   // ---------- Proyección
@@ -1791,6 +1840,15 @@ function bindSeg(id, key, cb){
 }
 bindSeg('loanTimelineMode','loanTimeline', () => appState.processed.loaded && renderLoans());
 bindSeg('loanTipo','loanTipo', () => appState.processed.loaded && renderLoans());
+document.querySelectorAll('.variation-toggle').forEach(button => button.addEventListener('click', () => {
+  const view = button.dataset.variation, key = `${view}Variations`;
+  appState.ui[key] = !appState.ui[key];
+  button.setAttribute('aria-pressed', String(appState.ui[key]));
+  button.classList.toggle('btn-brand', appState.ui[key]);
+  if (!appState.processed.loaded) return;
+  if (view==='oper') renderTesoreria();
+  else renderContable();
+}));
 $('loanOnlyActive').addEventListener('click', () => {
   appState.ui.loanOnlyActive = !appState.ui.loanOnlyActive;
   $('loanOnlyActive').classList.toggle('btn-brand', appState.ui.loanOnlyActive);

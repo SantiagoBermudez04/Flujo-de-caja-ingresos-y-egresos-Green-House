@@ -250,7 +250,7 @@ table th{font-weight:600}
     <div class="card"><div class="flex flex-wrap items-center justify-between gap-2"><h3>Ingresos y egresos diarios<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><span class="chart-badge">MOVIMIENTO DIARIO</span></div><p class="chart-note">Sin movimientos internos. El tooltip muestra el neto del día.</p><div class="h-96"><canvas id="cTDiario"></canvas></div></div>
   </div>
   <div class="card overflow-x-auto"><h3 class="mb-1">Resumen por cuenta<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><p class="chart-note">Saldo inicial, movimientos por tipo y saldo final de cada cuenta en el rango.</p><table id="tTesCuentas" class="w-full min-w-[1020px] text-sm num"></table></div>
-  <div class="card overflow-x-auto"><h3 class="mb-1">Conciliación con el detalle de gastos<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><p class="chart-note">Compara los “Otros egresos” de las cuentas con los gastos detallados pagados por débito o en efectivo, más las cuotas e IVA pagados. Una diferencia grande indica gastos sin detallar o registrados en otra fila.</p><table id="tTesConc" class="w-full min-w-[760px] text-sm num"></table></div>
+  <div class="card overflow-x-auto"><h3 class="mb-1">Conciliación con el detalle de gastos<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><p class="chart-note">Compara los “Otros egresos” de las cuentas con lo que el detalle explica: los gastos pagados por débito o en efectivo, las cargas sociales, sindicato y obra social (los sueldos netos tienen su propia fila “Sueldos” y no pasan por acá) y las cuotas e IVA pagados. La diferencia es lo que falta detallar; incluye los débitos de los resúmenes de tarjeta, cuyos consumos se detallan aparte.</p><table id="tTesConc" class="w-full min-w-[760px] text-sm num"></table></div>
   <div class="card overflow-x-auto">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h3>Movimientos<span class="filter-icon" role="img" aria-label="Afectado por el filtro Desde/Hasta" title="Afectado por el filtro Desde/Hasta"></span></h3><div class="flex items-center gap-2"><span id="tesCount" class="chart-badge"></span><button type="button" class="btn" id="exportTes">Exportar CSV</button></div></div>
     <label class="field mb-3 max-w-sm">Concepto<select id="tesConceptoFilter"><option value="">Todos los conceptos</option></select></label>
@@ -1477,10 +1477,13 @@ function renderTesoreria(){
      plugins:{refLines:{y:[{value:0, color:'#334155'}]}, tooltip:{filter:c=>c.parsed.y!==null && c.dataset.type!=='line', callbacks:{title:it=>it.length?`Cierre del ${fd(days[it[0].dataIndex])}`:'', label:lab, footer:it=>it.length?[`Total: ${fmt(tot[it[0].dataIndex])}`, ...(trend[it[0].dataIndex]!==null?[`Tendencia: ${fmt(trend[it[0].dataIndex])}`]:[])]:''}}}});
 
   // Por concepto
-  const byC = Object.entries(group(sc.rows.filter(m=>m.Tipo!=='Ajuste'), m=>`${m.Concepto}|${m.Tipo}`, m=>m.Monto)).sort((a,b)=>b[1]-a[1]);
+  // la fila "Sueldos" de las cuentas (sueldos netos) y las cargas sociales debitadas en "Otros egresos" van en una sola barra
+  const concGraf = m => m.Concepto==='Sueldos' && m.Tipo==='Egreso' ? DESG.sue : m.Concepto;
+  const sueParts = {netos: -sum(sc.rows.filter(m=>m.Concepto==='Sueldos' && m.Tipo==='Egreso'), m=>m.Monto), cargas: -sum(sc.rows.filter(m=>m.Concepto===DESG.sue), m=>m.Monto)};
+  const byC = Object.entries(group(sc.rows.filter(m=>m.Tipo!=='Ajuste'), m=>`${concGraf(m)}|${m.Tipo}`, m=>m.Monto)).sort((a,b)=>b[1]-a[1]);
   mk('cTConc','bar',{labels:byC.map(([k])=>k.split('|')[0]), datasets:[{label:'Monto', data:byC.map(([,v])=>v), backgroundColor:byC.map(([k])=>DESG_COLOR[k.split('|')[0]]||TES_TIPO_COLOR[k.split('|')[1]]||'#94a3b8'), borderSkipped:'start', maxBarThickness:20}]},
     {indexAxis:'y', layout:{padding:{right:60}}, interaction:{mode:'nearest', axis:'y', intersect:false}, scales:{x:money(), y:{grid:{display:false}, ticks:{autoSkip:false, font:{size:10}}}},
-     plugins:{legend:{display:false}, refLines:{}, barValue:{format:v=>cmpM(v)}, tooltip:{callbacks:{label:c=>` ${fmt(c.parsed.x)}`, afterLabel:c=>` ${byC[c.dataIndex][0].split('|')[1]}`}}}});
+     plugins:{legend:{display:false}, refLines:{}, barValue:{format:v=>cmpM(v)}, tooltip:{callbacks:{label:c=>` ${fmt(c.parsed.x)}`, afterLabel:c=>{ const k = byC[c.dataIndex][0].split('|'); return k[0]===DESG.sue && sueParts.netos && sueParts.cargas ? [` ${k[1]}`, ` Sueldos netos: ${fmt(sueParts.netos)}`, ` Cargas sociales, sindicato y obra social: ${fmt(sueParts.cargas)}`] : ` ${k[1]}`; }}}}});
 
   // Ingresos y egresos diarios
   const dIn = days.map(d => sum(sc.rows.filter(m=>m.Fecha===d && m.Monto>0 && m.Tipo!=='Interno'), m=>m.Monto));
@@ -1502,11 +1505,17 @@ function renderTesoreria(){
   // Conciliación: "Otros egresos" de tesorería vs. detalle de Gastos (por mes)
   const meses = monthsBetween(sc.from.slice(0,7), sc.to.slice(0,7));
   const otros = m => -sum(R.movsTes.filter(x=>x.Concepto.startsWith('Otros egresos') && x.Fecha.startsWith(m) && (!sc.cuenta || x.Cuenta===sc.cuenta)), x=>x.Monto);
-  const gdet = m => sum(P.gastosX.filter(g=>g.Fecha && g.Fecha.startsWith(m) && g.MedioTipo!=='Tarjeta de crédito' && g.Clasificacion!=='SUELDOS' && (!sc.cuenta || g.Cuenta===sc.cuenta)), g=>g.Monto);
+  // gastos del detalle pagados por débito o en efectivo (los consumos con tarjeta se debitan después, en el resumen)
+  const gMes = (m, pers) => sum(P.gastosX.filter(g=>g.Fecha && g.Fecha.startsWith(m) && g.MedioTipo!=='Tarjeta de crédito' && (g.Clasificacion==='SUELDOS')===pers && (!sc.cuenta || g.Cuenta===sc.cuenta)), g=>g.Monto);
+  const gdet = m => gMes(m, false);
+  // personal: cargas sociales, sindicato y obra social (los sueldos netos tienen su propia fila "Sueldos" y no pasan por "Otros egresos")
+  const gper = m => gMes(m, true);
   const pf = m => sum(R.pagosFin.filter(p=>p.Fecha.startsWith(m) && (!sc.cuenta || p.Cuenta===sc.cuenta)), p=>p.Monto) + sum(R.iva.filter(v=>v.FechaPago && v.FechaPago.startsWith(m) && (!sc.cuenta || v.Cuenta===sc.cuenta)), v=>v.MontoPagado||0);
-  $('tTesConc').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1.5 pr-2">Mes</th><th class="text-right px-2">“Otros egresos” en las cuentas</th><th class="text-right px-2">Gastos detallados (sin tarjeta ni sueldos)</th><th class="text-right px-2">Cuotas e IVA pagados</th><th class="text-right pl-2">Diferencia</th></tr></thead><tbody>'
-    + meses.filter(m => otros(m) || gdet(m) || pf(m)).map(m => { const o = otros(m), g = gdet(m), p = pf(m), d = o-g-p;
-      return `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2">${fm(m)}</td><td class="text-right px-2">${fmt(o)}</td><td class="text-right px-2">${fmt(g)}</td><td class="text-right px-2">${fmt(p)}</td><td class="text-right pl-2 font-semibold ${Math.abs(d)>1000?'text-amber-700':''}">${fmt(d)}</td></tr>`; }).join('') + '</tbody>';
+  $('tTesConc').innerHTML = '<thead><tr class="text-left text-slate-500 border-b"><th class="py-1.5 pr-2">Mes</th><th class="text-right px-2">“Otros egresos” en las cuentas</th><th class="text-right px-2">Gastos detallados (sin tarjeta)</th><th class="text-right px-2">Cargas sociales, sindicato y obra social</th><th class="text-right px-2">Cuotas e IVA pagados</th><th class="text-right pl-2">Diferencia</th></tr></thead><tbody>'
+    + (() => { const ms = meses.filter(m => otros(m) || gdet(m) || gper(m) || pf(m)).map(m => { const o = otros(m), g = gdet(m), q = gper(m), p = pf(m); return {m, o, g, q, p, d:o-g-q-p}; });
+        const tdD = d => `<td class="text-right pl-2 font-semibold ${Math.abs(d)>1000?'text-amber-700':''}">${fmt(d)}</td>`;
+        return ms.map(x => `<tr class="border-b border-slate-100"><td class="py-1.5 pr-2">${fm(x.m)}</td><td class="text-right px-2">${fmt(x.o)}</td><td class="text-right px-2">${fmt(x.g)}</td><td class="text-right px-2">${fmt(x.q)}</td><td class="text-right px-2">${fmt(x.p)}</td>${tdD(x.d)}</tr>`).join('') + '</tbody>'
+          + (ms.length > 1 ? `<tfoot class="font-semibold border-t"><tr><td class="py-1.5 pr-2">Total</td>${['o','g','q','p'].map(k=>`<td class="text-right px-2">${fmt(sum(ms,x=>x[k]))}</td>`).join('')}${tdD(sum(ms,x=>x.d))}</tr></tfoot>` : ''); })();
 }
 
 /* =====================================================================
